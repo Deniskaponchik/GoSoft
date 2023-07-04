@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+	//c := *unifi.Config{
 	c := unifi.Config{
 		//c := unifi.Config{
 		User: "admin",
@@ -15,6 +16,7 @@ func main() {
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,
 	}
+	//uni, err := unifi.NewUnifi(c)
 	uni, err := unifi.NewUnifi(&c)
 
 	if err != nil {
