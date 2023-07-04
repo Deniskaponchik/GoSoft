@@ -1,13 +1,10 @@
 package main
 
-import (
-	"github.com/unpoller/unifi"
-	"log"
-)
+import "log"
+import "github.com/unpoller/unifi"
 
 func main() {
-	c := unifi.Config{
-		//c := unifi.Config{
+	c := *unifi.Config{
 		User: "admin",
 		Pass: "superSecret1234",
 		URL:  "https://127.0.0.1:8443/",
@@ -15,8 +12,7 @@ func main() {
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,
 	}
-	uni, err := unifi.NewUnifi(&c)
-
+	uni, err := unifi.NewUnifi(c)
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}
