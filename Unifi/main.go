@@ -9,9 +9,9 @@ func main() {
 	//c := *unifi.Config{
 	c := unifi.Config{
 		//c := unifi.Config{
-		User: "admin",
-		Pass: "superSecret1234",
-		URL:  "https://127.0.0.1:8443/",
+		User: "unifi",
+		Pass: "FORCEpower23",
+		URL:  "https://10.78.221.142:8443/",
 		// Log with log.Printf or make your own interface that accepts (msg, fmt)
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,
@@ -22,7 +22,6 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}
-
 	sites, err := uni.GetSites()
 	if err != nil {
 		log.Fatalln("Error:", err)
@@ -37,12 +36,14 @@ func main() {
 	}
 
 	log.Println(len(sites), "Unifi Sites Found: ", sites)
+
 	log.Println(len(clients), "Clients connected:")
 	for i, client := range clients {
 		log.Println(i+1, client.ID, client.Hostname, client.IP, client.Name, client.LastSeen)
 	}
 
 	log.Println(len(devices.USWs), "Unifi Switches Found")
+
 	log.Println(len(devices.USGs), "Unifi Gateways Found")
 
 	log.Println(len(devices.UAPs), "Unifi Wireless APs Found:")
