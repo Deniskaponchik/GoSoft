@@ -8,7 +8,6 @@ import (
 func main() {
 	//c := *unifi.Config{
 	c := unifi.Config{
-		//c := unifi.Config{
 		User: "unifi",
 		Pass: "FORCEpower23",
 		URL:  "https://10.78.221.142:8443/",
@@ -22,6 +21,7 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}
+
 	sites, err := uni.GetSites()
 	if err != nil {
 		log.Fatalln("Error:", err)
@@ -34,6 +34,12 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}
+	/*
+		_, err = uni.GetAnomalies(sites)
+		if err != nil {
+			log.Fatalln("Error:", err)
+		}
+	*/
 
 	log.Println(len(sites), "Unifi Sites Found: ", sites)
 
@@ -41,6 +47,12 @@ func main() {
 	for i, client := range clients {
 		log.Println(i+1, client.ID, client.Hostname, client.IP, client.Name, client.LastSeen)
 	}
+	/*
+		log.Println(len(_), "Clients connected:")
+		for i, client := range clients {
+			log.Println(i+1, client.ID, client.Hostname, client.IP, client.Name, client.LastSeen)
+		}
+	*/
 
 	log.Println(len(devices.USWs), "Unifi Switches Found")
 
