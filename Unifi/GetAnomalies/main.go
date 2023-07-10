@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/unpoller/unifi"
 	"log"
+	"time"
 )
 
 func main() {
@@ -11,7 +12,7 @@ func main() {
 		User: "unifi",
 		Pass: "FORCEpower23",
 		URL:  "https://10.78.221.142:8443/",
-		// Log with log.Printf or make your own interface that accepts (msg, fmt)
+		// Log with log.Printf or make your own interface that accepts (msg, test)
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,
 	}
@@ -21,7 +22,6 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}
-
 	sites, err := uni.GetSites()
 	if err != nil {
 		log.Fatalln("Error:", err)
@@ -30,36 +30,38 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}
-	devices, err := uni.GetDevices(sites)
-	if err != nil {
-		log.Fatalln("Error:", err)
-	}
 	/*
-		_, err = uni.GetAnomalies(sites)
+		devices, err := uni.GetDevices(sites)
 		if err != nil {
 			log.Fatalln("Error:", err)
 		}
 	*/
+	anomalies, err := uni.GetAnomalies(sites, time.Now())
+	if err != nil {
+		log.Fatalln("Error:", err)
+	}
 
 	log.Println(len(sites), "Unifi Sites Found: ", sites)
 
 	log.Println(len(clients), "Clients connected:")
 	for i, client := range clients {
-		log.Println(i+1, client.ID, client.Hostname, client.IP, client.Name, client.LastSeen)
+		log.Println(i+1, client.ID, client.Hostname, client.IP, client.Name, client.LastSeen, client.Anomalies)
 	}
 	/*
-		log.Println(len(_), "Clients connected:")
-		for i, client := range clients {
+		log.Println(len(anomalies), "Anomalies:")
+		for i, anomaly := range anomalies {
 			log.Println(i+1, client.ID, client.Hostname, client.IP, client.Name, client.LastSeen)
 		}
 	*/
 
-	log.Println(len(devices.USWs), "Unifi Switches Found")
+	/*
+		log.Println(len(devices.USWs), "Unifi Switches Found")
 
-	log.Println(len(devices.USGs), "Unifi Gateways Found")
+		log.Println(len(devices.USGs), "Unifi Gateways Found")
 
-	log.Println(len(devices.UAPs), "Unifi Wireless APs Found:")
-	for i, uap := range devices.UAPs {
-		log.Println(i+1, uap.Name, uap.IP)
-	}
+		log.Println(len(devices.UAPs), "Unifi Wireless APs Found:")
+		for i, uap := range devices.UAPs {
+			log.Println(i+1, uap.Name, uap.IP)
+		}
+	*/
 }

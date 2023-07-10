@@ -11,7 +11,7 @@ func main() {
 		User: "unifi",
 		Pass: "FORCEpower23",
 		URL:  "https://10.78.221.142:8443/",
-		// Log with log.Printf or make your own interface that accepts (msg, fmt)
+		// Log with log.Printf or make your own interface that accepts (msg, test)
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,
 	}
