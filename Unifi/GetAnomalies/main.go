@@ -36,7 +36,8 @@ func main() {
 			log.Fatalln("Error:", err)
 		}
 	*/
-	anomalies, err := uni.GetAnomalies(sites, time.Now())
+	//anomalies, err := uni.GetAnomalies(sites, time.Now(), time.Date(2023, 07, 10, 16, 0, 0, 0, time.Local))
+	anomalies, err := uni.GetAnomalies(sites, time.Date(2023, 07, 10, 16, 0, 0, 0, time.Local), time.Now())
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}
@@ -47,12 +48,10 @@ func main() {
 	for i, client := range clients {
 		log.Println(i+1, client.ID, client.Hostname, client.IP, client.Name, client.LastSeen, client.Anomalies)
 	}
-	/*
-		log.Println(len(anomalies), "Anomalies:")
-		for i, anomaly := range anomalies {
-			log.Println(i+1, client.ID, client.Hostname, client.IP, client.Name, client.LastSeen)
-		}
-	*/
+	log.Println(len(anomalies), "Anomalies:")
+	for i, anomaly := range anomalies {
+		log.Println(i+1, anomaly.Anomaly)
+	}
 
 	/*
 		log.Println(len(devices.USWs), "Unifi Switches Found")
