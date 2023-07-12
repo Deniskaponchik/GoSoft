@@ -37,6 +37,9 @@ func (u *Unifi) GetClients(sites []*Site) ([]*Client, error) {
 	return data, nil
 }
 
+
+
+
 // GetClientsDPI garners dpi data for clients.
 func (u *Unifi) GetClientsDPI(sites []*Site) ([]*DPITable, error) {
 	var data []*DPITable
