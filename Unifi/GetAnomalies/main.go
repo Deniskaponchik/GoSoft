@@ -24,10 +24,9 @@ func main() {
 	apMacName := map[string]string{}      // apMac      -> apName
 	namesClientAps := map[string]string{} // clientName -> apName
 
-	// DO WHILE раз в час
-	for true {
+	for true { //зацикливаем
 		//uni, err := unifi.NewUnifi(c)
-		uni, err := unifi.NewUnifi(&c) //в аргументах функций обычно всегда используется &
+		uni, err := unifi.NewUnifi(&c) //в аргументах функций обычно всегда используется &. вставляем переменную из этой функции
 		if err != nil {
 			log.Fatalln("Error:", err)
 		}
@@ -95,12 +94,16 @@ func main() {
 			fmt.Println(k, v)
 		}
 
-		// Если время НЕ 5 минут от начала часа
-		if time.Now().Minute() == 5 {
-			//
+		// Если время НЕ 1 минута от начала часа
+		if time.Now().Minute() == 1 {
+			now := time.Now()
+			count := 10 //минус 70 минут
+			then := now.Add(time.Duration(-count) * time.Minute)
 			//ORIGINAL
 			anomalies, err := uni.GetAnomalies(sites,
-				time.Date(2023, 07, 11, 7, 0, 0, 0, time.Local), time.Now())
+				//time.Date(2023, 07, 11, 7, 0, 0, 0, time.Local), time.Now()
+				then,
+			)
 			if err != nil {
 				log.Fatalln("Error:", err)
 			}
@@ -132,8 +135,8 @@ func main() {
 							clientHostName,
 							//corpAnomalies:
 							[]string{anomaly.Anomaly},
-							"за последний час у пользователя возникли следующие аномалии на Wi-Fi сети Tele2Corp:",
-							"",
+							//"за последний час у пользователя возникли следующие аномалии на Wi-Fi сети Tele2Corp:",
+							//"",
 						}
 					} else {
 						for k, v := range bpmTickets {
@@ -153,7 +156,20 @@ func main() {
 					}
 				}
 			}
-			fmt.Println(bpmTickets)
+
+			fmt.Println("")
+			for _, v := range bpmTickets {
+				if len(v.corpAnomalies) > 1 {
+					fmt.Println(v.clientName)
+					for _, s := range v.corpAnomalies {
+						fmt.Println(s)
+					}
+					fmt.Println("")
+				}
+			}
+			//fmt.Println(bpmTickets)
+			//jsonStr, err := json.Marshal(bpmTickets)
+			//fmt.Println(string(jsonStr))
 		} //else
 
 		time.Sleep(60 * time.Second) //Ставим на паузу на 1 минуту
@@ -165,11 +181,11 @@ func GetClientsCorpWithAnomalies(anoms []*Anomaly) ([]*ClientCorp) {
 	return
 }*/
 
-type BpmTicket struct {
-	site           string
-	apName         string
-	clientName     string
-	corpAnomalies  []string
-	description    string
-	recomendations string
+type BpmTicket struct { //структура ДОЛЖНА находиться ВНЕ main
+	site          string
+	apName        string
+	clientName    string
+	corpAnomalies []string
+	//description    string
+	//recomendations string
 }
