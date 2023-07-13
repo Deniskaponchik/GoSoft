@@ -69,35 +69,21 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error:", err)
 	}
-	//Выбрать из клиентов только КОРП
-	clientsCorp := make([]*unifi.Client, 0)
-	//
-	for _, clientCorp := range clients {
-		if !clientCorp.IsGuest.Val {
-			clientsCorp = append(clientsCorp, clientCorp)
-		}
-	}
-	//
-	for _, clientCorp := range clientsCorp {
-		/* Проверка на существование мака в мапе не обязательна
-		_, existence := clientMacName[clientCorp.Mac] //проверяем, есть ли мак в мапе
-		if !existence { //если нет, добавляем в мапу
-			clientMacName[clientCorp.Mac] = clientCorp.Hostname
-		}*/
-		clientMacName[clientCorp.Mac] = clientCorp.Hostname //Добавить КОРП клиентов в map
-	}
 	/* ORIGINAL
 	log.Println(len(clients), "Clients connected:")
 	for i, client := range clients {
 		log.Println(i+1, client.SiteName, client.IsGuest.Val, client.Mac, client.Hostname, client.IP, client.LastSeen, client.Anomalies) //i+1
 	}*/
-	for _, clientCorp := range clientsCorp {
-		siteName := clientCorp.SiteName[:len(clientCorp.SiteName)-11]
-		apHostName := apMacName[clientCorp.ApMac]
-		fmt.Println(siteName, apHostName, clientCorp.Hostname, clientCorp.Mac, clientCorp.IP, clientCorp.LastSeen)
-
-		clientMacName[clientCorp.Mac] = clientCorp.Hostname //Добавить КОРП клиентов в map
-		namesClientAps[clientCorp.Name] = clientCorp.ApName //Соответсвие имён клиентов и точек
+	for _, client := range clients {
+		if !client.IsGuest.Val {
+			//Вывод на экран
+			siteName := client.SiteName[:len(client.SiteName)-11]
+			apHostName := apMacName[client.ApMac]
+			fmt.Println(siteName, apHostName, client.Hostname, client.Mac, client.IP, client.LastSeen)
+			//Обновление мап
+			clientMacName[client.Mac] = client.Hostname //Добавить КОРП клиентов в map
+			namesClientAps[client.Name] = client.ApName //Добавить Соответсвие имён клиентов и точек
+		}
 	}
 	//Вывести CLIENT мапу на экран
 	for k, v := range clientMacName {
