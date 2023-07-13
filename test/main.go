@@ -2,15 +2,14 @@ package main
 
 import (
 	"fmt"
-	"time"
 )
 
-var weekday string
-
-func init() {
-	weekday = time.Now().Weekday().String()
-}
-
 func main() {
-	fmt.Printf("Today is %s", weekday)
+
+	clientMacName := map[string]string{}
+
+	clientMacName["00:01"] = "ClientOne"
+	clientMacName["00:01"] = "ClientTwo"
+
+	fmt.Println(clientMacName["00:01"])
 }
