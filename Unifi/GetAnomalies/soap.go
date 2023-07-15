@@ -1,12 +1,13 @@
 package main
 
+/*
 import (
 	"encoding/xml"
 	"github.com/globusdigital/soap"
 	"log"
 )
 
-func main() {
+func notMainmain() {
 	client := soap.NewClient("http://127.0.0.1:8080/", nil)
 	response := &FooResponse{}
 	httpResponse, err := client.Call("operationFoo", &FooRequest{Foo: "hello i am foo"}, response)
@@ -34,3 +35,5 @@ type Soap struct {
 	BpmSystemName  string
 	BpmServiceName string
 }
+
+*/

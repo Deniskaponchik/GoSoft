@@ -1,13 +1,8 @@
-module github.com/deniskaponchik/GoSoft/Unifi/GetAnomalies
+module github.com/deniskaponchik/GoSoft/Unifi/test
 
 go 1.20
 
-require (
-	github.com/go-sql-driver/mysql v1.7.1
-	github.com/unpoller/unifi v0.3.3
-)
-
-replace github.com/unpoller/unifi v0.3.3 => ../vendor/github.com/unpoller/unifi@v0.3.3
+require github.com/go-sql-driver/mysql v1.7.1
 
 replace github.com/go-sql-driver/mysql v1.7.1 => ../vendor/github.com/go-sql-driver/mysql@v1.7.1
 
