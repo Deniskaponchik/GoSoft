@@ -1,6 +1,7 @@
 package main
 
 //https://gist.github.com/buroz/d4cc4b8016e5c21817b6704e93d54023
+//https://api.n11.com/ws/CityService.wsdl
 import (
 	"bytes"
 	"crypto/tls"

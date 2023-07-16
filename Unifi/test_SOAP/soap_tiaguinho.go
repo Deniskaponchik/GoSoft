@@ -12,6 +12,9 @@ import (
 type GetIPLocationResponse struct {
 	GetIPLocationResult string `xml:"GetIpLocationResult"`
 }
+type ReadSystemsResponse struct {
+	ReadSystemsResult string `xml:"ReadSystemsResult"`
+}
 
 // GetIPLocationResult will
 type GetIPLocationResult struct {
@@ -19,26 +22,41 @@ type GetIPLocationResult struct {
 	Country string   `xml:"Country"`
 	State   string   `xml:"State"`
 }
+type ReadSystemsResult struct {
+	XMLName xml.Name `xml:"ber-ns0:row"`
+	Name    string   `xml:"ber-ns0:cell"`
+	Id      string   `xml:"ber-ns0:cell"`
+}
 
 var (
-	r GetIPLocationResponse
+	//r GetIPLocationResponse
+	r ReadSystemsResponse
 )
 
 func main() {
 	httpClient := &http.Client{
 		Timeout: 1500 * time.Millisecond,
 	}
-	soap, err := gosoap.SoapClient("http://wsgeoip.lavasoft.com/ipservice.asmx?WSDL", httpClient)
+	gosoap.SetCustomEnvelope("soapenv", map[string]string{
+		"xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
+		//"xmlns:tem": "http://tempuri.org/",
+		"xmlns:bpm": "http://www.bercut.com/specs/aoi/tele2/bpm",
+	})
+
+	//soap, err := gosoap.SoapClient("http://wsgeoip.lavasoft.com/ipservice.asmx?WSDL", httpClient)
+	soap, err := gosoap.SoapClient("http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType?wsdl", httpClient)
 	if err != nil {
 		log.Fatalf("SoapClient error: %s", err)
 	}
 
 	// Use gosoap.ArrayParams to support fixed position params
 	params := gosoap.Params{
-		"sIp": "8.8.8.8",
+		//"sIp": "8.8.8.8",
+		"Filter": "WebTutor",
 	}
 
-	res, err := soap.Call("GetIpLocation", params)
+	//res, err := soap.Call("GetIpLocation", params)
+	res, err := soap.Call("ReadSystems", params)
 	if err != nil {
 		log.Fatalf("Call error: %s", err)
 	}
@@ -46,8 +64,11 @@ func main() {
 	res.Unmarshal(&r)
 
 	// GetIpLocationResult will be a string. We need to parse it to XML
-	result := GetIPLocationResult{}
-	err = xml.Unmarshal([]byte(r.GetIPLocationResult), &result)
+	//result := GetIPLocationResult{}
+	result := ReadSystemsResult{}
+
+	//err = xml.Unmarshal([]byte(r.GetIPLocationResult), &result)
+	err = xml.Unmarshal([]byte(r.ReadSystemsResult), &result)
 	if err != nil {
 		log.Fatalf("xml.Unmarshal error: %s", err)
 	}
