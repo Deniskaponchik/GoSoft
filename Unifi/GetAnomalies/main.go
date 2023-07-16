@@ -15,7 +15,7 @@ func main() {
 		//URL:  "https://localhost:8443/"
 		//URL:  "https://10.78.221.142:8443/", //ROSTOV
 		URL: "https://10.8.176.8:8443/", //NOVOSIB
-		// Log with log.Printf or make your own interface that accepts (msg, test)
+		// Log with log.Printf or make your own interface that accepts (msg, test_SOAP)
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,
 	}
