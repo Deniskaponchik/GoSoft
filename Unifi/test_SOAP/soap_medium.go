@@ -13,111 +13,96 @@ import (
 )
 
 func main() {
-	/*			url := fmt.Sprintf("%s%s%s",
-				"https://12.34.56.78:9443",
-				"/services/RemoteUserStoreManagerService",
-				".RemoteUserStoreManagerServiceHttpsSoap11Endpoint")*/
-	url := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
-
-	//region := "БиДВ"
-	//regionField := "<Value>" + region + "</Value>"
-
-	/*Тема с массивом строк не зашла
-	strArray := [17]string{
-		//"'",
-		"'<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">",
-		"<soapenv:Header/>",
-		"soapenv:Body>",
-		"<bpm:createRequestRequest>",
-		"<SystemId>5594b877-3bb7-46db-99f5-3c75b3e46556</SystemId>",
-		"<ServiceId>ed84a37f-4b31-4dab-85fe-ba4fe87325b1</ServiceId>",
-		"<Subject>Тестовая заявка medium</Subject>",
-		"<UserName>denis.tirskikh</UserName>",
-		"<RequestType>Request</RequestType>",
-		"<Priority>Normal</Priority>",
-		"<Filds>",
-		"<ID>5c8dee23-e48a-45bc-a084-573e1a6cc5ca</ID>",
-		regionField,
-		"</Filds>",
-		"</bpm:createRequestRequest>",
-		"</soapenv:Body>",
-		"</soapenv:Envelope>'",
-		//"'",
-	}
-	fmt.Println(strArray)
-	buf := &bytes.Buffer{}
-	gob.NewEncoder(buf).Encode(strArray)
-	mypayload := buf.Bytes()
-	fmt.Println(mypayload)
+	/*
+		url := fmt.Sprintf("%s%s%s",
+		"https://12.34.56.78:9443",
+		"/services/RemoteUserStoreManagerService",
+		".RemoteUserStoreManagerServiceHttpsSoap11Endpoint")
 	*/
+	url := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
+	userlogin := "denis.tirskikh"
+	pcName := "wsir-tirskikh"
+	anomalies := []string{
+		"anomal1",
+		"anomaly2",
+		"anomaly3",
+	}
+	apName := "IRK-CO-1FL"
+	desAnomalies := strings.Join(anomalies, "\n")
+
+	//description := "<![CDATA[Tootsie roll tiramisu macaroon wafer carrot cake. <br /> Danish topping sugar plum tart bonbon caramels cake.]]>"
+	//description := "Tootsie roll tiramisu macaroon wafer carrot cake. \n Danish topping sugar plum tart bonbon caramels cake."
+	//description := "Tootsie roll tiramisu maca" + "\n" + "Danish topping sugar plum tart bonbon "
+	//description := "У клиента зафиксированы следующие Аномалии:" + "\n" + desAnomalies + "\n" + ""
+	description := "На ноутбуке:" + "\n" + pcName + "\n" + "" + "\n" + "зафиксированы следующие Аномалии:" + "\n" + desAnomalies + "\n" + "" + "\n" + "Предполагаемое, но не на 100% точное имя точки:" + "\n" + apName + "\n" + "" + "\n" + "Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" + "https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" + ""
+	region := "Москва ЦФ"
+
 	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:createRequestRequest><SystemId>5594b877-3bb7-46db-99f5-3c75b3e46556</SystemId><ServiceId>ed84a37f-4b31-4dab-85fe-ba4fe87325b1</ServiceId><Subject>Description</Subject><UserName>UserLogin</UserName><RequestType>Request</RequestType><Priority>Normal</Priority><Filds><ID>5c8dee23-e48a-45bc-a084-573e1a6cc5ca</ID><Value>Region</Value></Filds></bpm:createRequestRequest></soapenv:Body></soapenv:Envelope>"
-	replacer := strings.NewReplacer("Description", "My des", "UserLogin", "denis.tirskikh", "Region", "Москва ЦФ")
-	//re := regexp.MustCompile("fox|dog")
-	//newStr := re.ReplaceAllString(str, "cat")
+	//replacer := strings.NewReplacer("Description", "My des", "UserLogin", "denis.tirskikh", "Region", "Москва ЦФ")
+	replacer := strings.NewReplacer("Description", description, "UserLogin", userlogin, "Region", region)
 	strAfter := replacer.Replace(strBefore)
-	fmt.Println(strAfter)
-	//os.Exit(0)
-	/*
-			payload := []byte(strings.TrimSpace(`
-				<soapenv:Envelope
-					xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-					xmlns:ser="http://service.ws.um.carbon.wso2.org"
-				>
-				<soapenv:Body>
-						<ser:listUsers>
-							<ser:filter></ser:filter>
-							<ser:maxItemLimit>100</ser:maxItemLimit>
-						</ser:listUsers>
-					</soapenv:Body>
-				</soapenv:Envelope>`,
-			))
-		payload := []byte(strings.TrimSpace(`
-			<soapenv:Envelope
-				xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-				xmlns:bpm="http://www.bercut.com/specs/aoi/tele2/bpm"
-			>
-			<soapenv:Header/>
-			<soapenv:Body>
-					<bpm:readSystemsRequest>
-						<bpm:Filter>WebTutor</bpm:Filter>
-					</bpm:readSystemsRequest>
-				</soapenv:Body>
-			</soapenv:Envelope>`,
-		))*/
-	//payload := []byte(strings.TrimSpace(`
+	//fmt.Println(strAfter)
 	payload := []byte(strAfter)
-	/*
-		payload := []byte(`
-				<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:bpm="http://www.bercut.com/specs/aoi/tele2/bpm">
-			   <soapenv:Header/>
-			   <soapenv:Body>
-			      <bpm:createRequestRequest>
-			          <SystemId>5594b877-3bb7-46db-99f5-3c75b3e46556</SystemId>
-			         <ServiceId>ed84a37f-4b31-4dab-85fe-ba4fe87325b1</ServiceId>
-			         <Subject>Тестовая заявка Denis Tirskikh</Subject>
-			         <UserName>denis.tirskikh</UserName>
-			        <RequestType>Request</RequestType>
-			        <Priority>Normal</Priority>
-			        <Filds>
-			            <ID>5c8dee23-e48a-45bc-a084-573e1a6cc5ca</ID>
-			            <Value>Воронеж ОЦО</Value>
-			         </Filds>
-			      </bpm:createRequestRequest>
-			   </soapenv:Body>
-					</soapenv:Envelope>`,
-		)*/
-	//fmt.Println(payload)
 	//os.Exit(0)
+
+	/*ОРИГИНАЛ
+	payload := []byte(strings.TrimSpace(`
+		<soapenv:Envelope
+			xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			xmlns:ser="http://service.ws.um.carbon.wso2.org"
+		>
+		<soapenv:Body>
+				<ser:listUsers>
+					<ser:filter></ser:filter>
+					<ser:maxItemLimit>100</ser:maxItemLimit>
+				</ser:listUsers>
+			</soapenv:Body>
+		</soapenv:Envelope>`,
+	))
+	//Запрос на Получение id Системы из bpm
+	payload := []byte(strings.TrimSpace(`
+		<soapenv:Envelope
+			xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			xmlns:bpm="http://www.bercut.com/specs/aoi/tele2/bpm"
+		>
+		<soapenv:Header/>
+		<soapenv:Body>
+				<bpm:readSystemsRequest>
+					<bpm:Filter>WebTutor</bpm:Filter>
+				</bpm:readSystemsRequest>
+			</soapenv:Body>
+		</soapenv:Envelope>`,
+	))*/
+	/*Запрос на создание заявки в SMAC.Wi-Fi
+	//payload := []byte(strings.TrimSpace(`
+	payload := []byte(`
+		<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:bpm="http://www.bercut.com/specs/aoi/tele2/bpm">
+	   <soapenv:Header/>
+	   <soapenv:Body>
+		  <bpm:createRequestRequest>
+			  <SystemId>5594b877-3bb7-46db-99f5-3c75b3e46556</SystemId>
+			 <ServiceId>ed84a37f-4b31-4dab-85fe-ba4fe87325b1</ServiceId>
+			 <Subject>Тестовая заявка Denis Tirskikh</Subject>
+			 <UserName>denis.tirskikh</UserName>
+			<RequestType>Request</RequestType>
+			<Priority>Normal</Priority>
+			<Filds>
+				<ID>5c8dee23-e48a-45bc-a084-573e1a6cc5ca</ID>
+				<Value>Воронеж ОЦО</Value>
+			 </Filds>
+		  </bpm:createRequestRequest>
+	   </soapenv:Body>
+			</soapenv:Envelope>`,
+	)*/
+	//fmt.Println(payload)
 
 	//<bpm:Top></bpm:Top>
 	//<bpm:Skip></bpm:Skip>
-	//fmt.Println(payload)
 
-	//soapAction := "urn:listUsers"        // The format is `urn:<soap_action>`
+	//soapAction := "urn:listUsers"          // The format is `urn:<soap_action>`
 	//soapAction := "urn:readSystemsRequest" // The format is `urn:<soap_action>`
 
-	//username := "admin"
-	//password := "admin"
+	//username := "admin"	//password := "admin"
 
 	//httpMethod := "POST"
 	httpMethod := "POST"
@@ -146,17 +131,17 @@ func main() {
 		log.Fatal("Error on dispatching request. ", err.Error())
 		return
 	}
-	/*
-		type UserList struct {
-			XMLName xml.Name
-			Body    struct {
-				XMLName           xml.Name
-				ListUsersResponse struct {
-					XMLName xml.Name
-					Return  []string `xml:"return"`
-				} `xml:"listUsersResponse"`
-			}
-		}*/
+	/*ORIGINAL
+	type UserList struct {
+		XMLName xml.Name
+		Body    struct {
+			XMLName           xml.Name
+			ListUsersResponse struct {
+				XMLName xml.Name
+				Return  []string `xml:"return"`
+			} `xml:"listUsersResponse"`
+		}
+	}*/
 	type SystemList struct {
 		XMLName xml.Name
 		Body    struct {

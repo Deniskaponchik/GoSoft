@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func main() {
+func main567567657657() {
 	//c := *unifi.Config{
 	c := unifi.Config{
 		User: "unifi",
@@ -96,7 +96,7 @@ func main() {
 		}*/
 
 		// Если время НЕ 1 минута от начала часа
-		if time.Now().Minute() == 41 {
+		if time.Now().Minute() == 47 {
 			now := time.Now()
 			count := 61 //минус 70 минут
 			then := now.Add(time.Duration(-count) * time.Minute)
@@ -118,15 +118,15 @@ func main() {
 			//
 			for _, anomaly := range anomalies {
 				_, existence := clientMacName[anomaly.DeviceMAC] //проверяем, есть ли мак в мапе corp clients
-				//блок кода для Tele2Corp
-				if existence {
+				//fmt.Println("Аномалии Tele2Corp клиентов:")
+				if existence { //блок кода для Tele2Corp
 					//если есть, выводим на экран с именем ПК, взятым из мапы
-					fmt.Println("Аномалии Tele2Corp клиентов:")
 					siteName := anomaly.SiteName[:len(anomaly.SiteName)-11]
 					clientHostName := clientMacName[anomaly.DeviceMAC]
 					apHostName := namesClientAps[clientHostName]
-					usrLogin := GetLogin(clientHostName) //моя функция GetLogin
-					fmt.Println(siteName, clientHostName, usrLogin, apHostName, anomaly.Datetime, anomaly.Anomaly)
+					//usrLogin := GetLogin(clientHostName)
+					//fmt.Println(siteName, clientHostName, usrLogin, apHostName, anomaly.Datetime, anomaly.Anomaly)
+					fmt.Println(siteName, clientHostName, apHostName, anomaly.Datetime, anomaly.Anomaly) //без usrLogin
 
 					_, exisClHostName := bpmTickets[clientHostName] //проверяем, есть ли client hostname в мапе тикетов
 					if !exisClHostName {                            //если нет, создаём
@@ -136,9 +136,7 @@ func main() {
 							//apName:
 							apHostName,
 							clientHostName,
-							//
-							usrLogin,
-							//
+							//	usrLogin,
 							[]string{anomaly.Anomaly},
 							//"за последний час у пользователя возникли следующие аномалии на Wi-Fi сети Tele2Corp:",
 							//"",
@@ -160,17 +158,21 @@ func main() {
 
 					}
 				} else {
-					//Обработка аномалий для Tele2Guest. Пока просто шапка
+					//Обработка аномалий для Tele2Guest.
+					//Пока просто шапка
 				}
 			}
 
 			fmt.Println("Tele2Corp клиенты с больше чем 1 аномалией:")
 			for _, v := range bpmTickets {
-				if len(v.corpAnomalies) > 1 {
+				if len(v.corpAnomalies) > 2 {
 					fmt.Println(v.clientName)
 					for _, s := range v.corpAnomalies {
 						fmt.Println(s)
 					}
+					//SoapCreateTicket(clientHostName, v.clientName, v.corpAnomalies, siteName)
+					usrLogin := GetLogin(v.clientName)
+					SoapCreateTicket(usrLogin, v.clientName, v.corpAnomalies, v.apName, v.site)
 					fmt.Println("")
 				}
 			}
@@ -190,10 +192,10 @@ func GetClientsCorpWithAnomalies(anoms []*Anomaly) ([]*ClientCorp) {
 }*/
 
 type BpmTicket struct { //структура ДОЛЖНА находиться ВНЕ main
-	site          string
-	apName        string
-	clientName    string
-	userLogin     string
+	site       string
+	apName     string
+	clientName string
+	//userLogin     string
 	corpAnomalies []string
 	//description    string
 	//recomendations string

@@ -23,10 +23,14 @@ func GetLogin(pcName string) string {
 	var pc PC
 	err = db.QueryRow("SELECT contact FROM glpi_db.glpi_computers where name = ? ORDER BY date_mod DESC", pcName).Scan(&pc.UserName)
 	// после запятой указываем значение, которое будет подставляться заметсо вопроса + ОБЯЗАТЕЛЬНО в Scan использовать &
+
 	if err != nil {
 		panic(err.Error()) // proper error handling instead of panic in your app
+		return "denis.tirskikh"
+	} else {
+		return pc.UserName
 	}
-	//log.Println(pc.ID)
-	//log.Println(pc.UserName)
-	return pc.UserName
+
+	//log.Println(pc.ID)//log.Println(pc.UserName)
+	//return pc.UserName
 }
