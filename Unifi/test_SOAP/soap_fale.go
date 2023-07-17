@@ -14,9 +14,10 @@ import (
 type soapRQ struct {
 	XMLName   xml.Name `xml:"soap:Envelope"`
 	XMLNsSoap string   `xml:"xmlns:soap,attr"`
-	XMLNsXSI  string   `xml:"xmlns:xsi,attr"`
-	XMLNsXSD  string   `xml:"xmlns:xsd,attr"`
-	Body      soapBody
+	//XMLNsXSI  string   `xml:"xmlns:xsi,attr"`
+	//XMLNsXSD  string   `xml:"xmlns:xsd,attr"`
+	XMLNsBpm string `xml:"xmlns:bpm,attr"`
+	Body     soapBody
 }
 
 type soapBody struct {
@@ -41,8 +42,9 @@ func soapCallHandleResponse(ws string, action string, payloadInterface interface
 func soapCall(ws string, action string, payloadInterface interface{}) ([]byte, error) {
 	v := soapRQ{
 		XMLNsSoap: "http://schemas.xmlsoap.org/soap/envelope/",
-		XMLNsXSD:  "http://www.w3.org/2001/XMLSchema",
-		XMLNsXSI:  "http://www.w3.org/2001/XMLSchema-instance",
+		//XMLNsXSD:  "http://www.w3.org/2001/XMLSchema",
+		//XMLNsXSI:  "http://www.w3.org/2001/XMLSchema-instance",
+		XMLNsBpm: "http://www.bercut.com/specs/aoi/tele2/bpm",
 		Body: soapBody{
 			Payload: payloadInterface,
 		},

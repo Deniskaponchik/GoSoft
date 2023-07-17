@@ -15,12 +15,10 @@ import (
 type SoapHeader struct {
 	XMLName xml.Name `xml:"x:Header"`
 }
-
 type SoapBody struct {
 	XMLName xml.Name `xml:"x:Body"`
 	Request interface{}
 }
-
 type SoapRoot struct {
 	XMLName xml.Name `xml:"x:Envelope"`
 	X       string   `xml:"xmlns:x,attr"`
@@ -32,11 +30,18 @@ type SoapRoot struct {
 type GetCitiesRequest struct {
 	XMLName xml.Name `xml:"sch:GetCitiesRequest"`
 }
+type ReadSystemsRequest struct {
+	XMLName xml.Name `xml:"bpm:readSystemsRequest"`
+}
 
 type GetCitiesResponse struct {
 	XMLName xml.Name `xml:"ns3:GetCitiesResponse"`
 	result  struct{} `xml:result`
 	cities  struct{} `xml:cities`
+}
+type ReadSystemsResponse struct {
+	XMLName xml.Name `xml:"ber-ns1:readSystemsResponse"`
+	result  struct{} `xml:Table`
 }
 
 func SoapCall(service string, request interface{}) string {

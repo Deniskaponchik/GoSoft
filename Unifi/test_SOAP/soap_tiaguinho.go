@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"encoding/xml"
 	"github.com/tiaguinho/gosoap"
@@ -80,3 +81,4 @@ func main() {
 	log.Println("Country: ", result.Country)
 	log.Println("State: ", result.State)
 }
+*/
