@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	//c := *unifi.Config{
+	//c := *unifi.Config{  //ORIGINAL
 	c := unifi.Config{
 		User: "unifi",
 		Pass: "FORCEpower23",
@@ -20,24 +20,24 @@ func main() {
 		DebugLog: log.Printf,
 	}
 
-	clientMacName := map[string]string{}  // clientMAC  -> clientName
+	clientMacName := map[string]string{}  // clientMAC  -> clientHostName
 	apMacName := map[string]string{}      // apMac      -> apName
 	namesClientAps := map[string]string{} // clientName -> apName
 
-	for true { //зацикливаем
+	for true {   //зацикливаем
 		//uni, err := unifi.NewUnifi(c)
-		uni, err := unifi.NewUnifi(&c) //в аргументах функций обычно всегда используется &. вставляем переменную из этой функции
+		uni, err := unifi.NewUnifi(&c)
 		if err != nil {
 			log.Fatalln("Error:", err)
 		}
-		//
+
+		//ORIGINAL
 		sites, err := uni.GetSites()
 		if err != nil {
 			log.Fatalln("Error:", err)
 		}
 		log.Println(len(sites), "Unifi Sites Found: ", sites)
 
-		//
 		//ORIGINAL
 		devices, err := uni.GetDevices(sites) //devices = APs
 		if err != nil {
@@ -55,7 +55,7 @@ func main() {
 				apMacName[uap.Mac] = uap.Name
 			}
 		}
-		/*Вывести AP мапу на экран
+		/*Вывести apMacName мапу на экран
 		for k, v := range apMacName {
 			//fmt.Printf("key: %d, value: %t\n", k, v)
 			fmt.Println(k, v)
@@ -172,7 +172,7 @@ func main() {
 					}
 					//SoapCreateTicket(clientHostName, v.clientName, v.corpAnomalies, siteName)
 					usrLogin := GetLogin(v.clientName)
-					smacWiFiTicket := CreateSmacWiFiTicket(usrLogin, v.clientName, v.corpAnomalies, v.apName, v.site)
+					HowGetIDticket? := CreateSmacWiFiTicket(usrLogin, v.clientName, v.corpAnomalies, v.apName, v.site)
 					fmt.Println("")
 				}
 			}

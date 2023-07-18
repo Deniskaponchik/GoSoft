@@ -3,6 +3,7 @@ package main
 //test_SOAP/soap_medium
 import (
 	"encoding/xml"
+	"fmt"
 	"io"
 	"strings"
 )
@@ -187,6 +188,154 @@ func CheckTicketStatus(srID string) (srStatus string, srStatusID string) {
 	return srStatus, srStatusID
 }
 
-func ClarifyTicket(srID string) {
+func ChangeStatus(srID string, NewStatus string) {
+	url := Server
+	//srID := "fc0d1340-2ccd-4772-a48f-0f60f5ba753e"
+	UserLogin := "service.glpi"
+	//NewStatus := "На уточнении"
+	//NewStatus := "Отменено"
 
+	//Убрать из строки \n
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
+	replacer := strings.NewReplacer("SRid", srID, "NewStatus", NewStatus, "UserLogin", UserLogin)
+	strAfter := replacer.Replace(strBefore)
+	payload := []byte(strAfter)
+
+	httpMethod := "POST" // GET запрос не срабатывает
+	req, err :=
+		http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+	if err != nil {
+		log.Fatal("Error on creating request object. ", err.Error())
+		return
+	}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Error on dispatching request. ", err.Error())
+		return
+	}
+
+	/*Посмотреть response Body, если понадобится
+	defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(b))
+	//os.Exit(0)*/
+
+	//https://blog.kowalczyk.info/tools/xmltogo/
+	type Envelope struct {
+		XMLName xml.Name `xml:"Envelope"`
+		Text    string   `xml:",chardata"`
+		SOAPENV string   `xml:"SOAP-ENV,attr"`
+		Body    struct {
+			Text                     string `xml:",chardata"`
+			BerNs0                   string `xml:"ber-ns0,attr"`
+			ChangeCaseStatusResponse struct {
+				Text        string `xml:",chardata"`
+				Code        string `xml:"Code"`
+				ModifyOn    string `xml:"ModifyOn"`
+				NewStatusId string `xml:"NewStatusId"`
+			} `xml:"changeCaseStatusResponse"`
+		} `xml:"Body"`
+	}
+	envelope := &Envelope{}
+	bodyByte, err := io.ReadAll(res.Body)
+	er := xml.Unmarshal(bodyByte, envelope)
+	if er != nil {
+		log.Fatalln(err)
+	}
+
+	srDateChange := envelope.Body.ChangeCaseStatusResponse.ModifyOn
+	srNewStatus := envelope.Body.ChangeCaseStatusResponse.NewStatusId
+
+	if srDateChange != "" && srNewStatus != "" {
+		fmt.Println("Обращение " + NewStatus + " в: " + srDateChange)
+		//fmt.Println(srNewStatus)
+	} else {
+		fmt.Println("НЕ УДАЛОСЬ изменить статус обращения на " + NewStatus)
+	}
+}
+
+func AddComment(srID string, myComment string) {
+	url := Server
+	//srID := "fc0d1340-2ccd-4772-a48f-0f60f5ba753e"
+	userLogin := "denis.tirskikh"
+	//myComment := "Моё первое сервисное сообщение!"
+
+	//Убрать из строки \n
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
+	replacer := strings.NewReplacer("srID", srID, "myComment", myComment, "userLogin", userLogin)
+	strAfter := replacer.Replace(strBefore)
+	//fmt.Println(strAfter)
+	payload := []byte(strAfter)
+
+	httpMethod := "POST" // GET запрос не срабатывает
+	req, err :=
+		http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+	if err != nil {
+		log.Fatal("Error on creating request object. ", err.Error())
+		return
+	}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Error on dispatching request. ", err.Error())
+		return
+	}
+
+	/*Посмотреть response Body, если понадобится
+	defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(b))
+	os.Exit(0)*/
+
+	//https://blog.kowalczyk.info/tools/xmltogo/
+	type Envelope struct {
+		XMLName xml.Name `xml:"Envelope"`
+		Text    string   `xml:",chardata"`
+		SOAPENV string   `xml:"SOAP-ENV,attr"`
+		Body    struct {
+			Text                  string `xml:",chardata"`
+			BerNs0                string `xml:"ber-ns0,attr"`
+			CreateCommentResponse struct {
+				Text      string `xml:",chardata"`
+				Code      string `xml:"Code"`
+				CreatedOn string `xml:"CreatedOn"`
+				ID        string `xml:"Id"`
+			} `xml:"createCommentResponse"`
+		} `xml:"Body"`
+	}
+	envelope := &Envelope{}
+	bodyByte, err := io.ReadAll(res.Body)
+	er := xml.Unmarshal(bodyByte, envelope)
+	if er != nil {
+		log.Fatalln(err)
+	}
+
+	srDateComment := envelope.Body.CreateCommentResponse.CreatedOn
+	//srNewStatus := envelope.Body.ChangeCaseStatusResponse.NewStatusId
+
+	if srDateComment != "" {
+		fmt.Println("Оставлен комментарий в " + srDateComment)
+		//fmt.Println(srNewStatus)
+	} else {
+		fmt.Println("НЕ УДАЛОСЬ оставить комментарий")
+	}
 }
