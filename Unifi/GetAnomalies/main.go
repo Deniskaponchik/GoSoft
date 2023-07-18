@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func main567567657657() {
+func main() {
 	//c := *unifi.Config{
 	c := unifi.Config{
 		User: "unifi",
@@ -79,7 +79,7 @@ func main567567657657() {
 				apHostName := apMacName[client.ApMac]
 				//fmt.Println(siteName, apHostName, client.Hostname, client.Mac, client.IP)
 
-				//Обновление мапы
+				//Обновление мапы clientMAC-clientHOST
 				clientMacName[client.Mac] = client.Hostname //Добавить КОРП клиентов в map
 				namesClientAps[client.Name] = apHostName    //Добавить Соответсвие имён клиентов и точек
 			}
@@ -172,7 +172,7 @@ func main567567657657() {
 					}
 					//SoapCreateTicket(clientHostName, v.clientName, v.corpAnomalies, siteName)
 					usrLogin := GetLogin(v.clientName)
-					SoapCreateTicket(usrLogin, v.clientName, v.corpAnomalies, v.apName, v.site)
+					smacWiFiTicket := CreateSmacWiFiTicket(usrLogin, v.clientName, v.corpAnomalies, v.apName, v.site)
 					fmt.Println("")
 				}
 			}

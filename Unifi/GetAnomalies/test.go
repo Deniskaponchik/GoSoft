@@ -1,6 +1,6 @@
 package main
 
-func main() {
+func main45346476567() {
 	anomalies := []string{
 		"anomal1",
 		"anomaly2",

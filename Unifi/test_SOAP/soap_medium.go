@@ -1,18 +1,173 @@
 package main
 
+//https://novalagung.medium.com/soap-wsdl-request-in-go-language-3861cfb5949e
+
 import (
 	"encoding/xml"
+	"fmt"
+	"io"
 	"strings"
 )
 import (
 	"bytes"
 	"crypto/tls"
-	"fmt"
 	"log"
 	"net/http"
 )
 
+var (
+	ServerProd = "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"
+	ServerTest = "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
+)
+
+func mainCancel() {
+	/*
+		StatusIdVising := "b32b613a-0282-4e8a-b831-1027e7c7972f"
+		StatusIdCancel := "6e5f4218-f46b-1410-fe9a-0050ba5d6c38"
+		StatusIdResolve := "ae7f411e-f46b-1410-009b-0050ba5d6c38"
+		StatusIdClarification := "81e6a1ee-16c1-4661-953e-dde140624fb3"
+
+		CloseCode_FullSolution := 200
+	*/
+}
+
 func main() {
+
+	url := ServerTest
+	UserLogin := "service.glpi"
+	srID := "fc0d1340-2ccd-4772-a48f-0f60f5ba753e"
+
+	//Убрать из строки \n
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
+	replacer := strings.NewReplacer("SRid", srID, "NewStatus", "На уточнении", "UserLogin", UserLogin)
+	strAfter := replacer.Replace(strBefore)
+	payload := []byte(strAfter)
+
+	httpMethod := "POST" // GET запрос не срабатывает
+	req, err :=
+		http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+	if err != nil {
+		log.Fatal("Error on creating request object. ", err.Error())
+		return
+	}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Error on dispatching request. ", err.Error())
+		return
+	}
+
+	/*Посмотреть response Body, если понадобится
+	defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(b))
+	//os.Exit(0)*/
+
+	type Envelope struct {
+		XMLName xml.Name `xml:"Envelope"`
+		Text    string   `xml:",chardata"`
+		SOAPENV string   `xml:"SOAP-ENV,attr"`
+		Body    struct {
+			Text                     string `xml:",chardata"`
+			BerNs0                   string `xml:"ber-ns0,attr"`
+			ChangeCaseStatusResponse struct {
+				Text        string `xml:",chardata"`
+				Code        string `xml:"Code"`
+				ModifyOn    string `xml:"ModifyOn"`
+				NewStatusId string `xml:"NewStatusId"`
+			} `xml:"changeCaseStatusResponse"`
+		} `xml:"Body"`
+	}
+	envelope := &Envelope{}
+	bodyByte, err := io.ReadAll(res.Body)
+	er := xml.Unmarshal(bodyByte, envelope)
+	if er != nil {
+		log.Fatalln(err)
+	}
+
+	srDateChange := envelope.Body.ChangeCaseStatusResponse.ModifyOn
+	srNewStatus := envelope.Body.ChangeCaseStatusResponse.NewStatusId
+	fmt.Println(srDateChange)
+	fmt.Println(srNewStatus)
+}
+
+func mainCHECK() {
+	//url := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
+	url := ServerTest
+	srID := "f0074e96-1ab9-4f63-af29-0acd933b49e8"
+	//Убрать из строки \n
+	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+	replacer := strings.NewReplacer("SRid", srID)
+	strAfter := replacer.Replace(strBefore)
+	payload := []byte(strAfter)
+
+	httpMethod := "POST" // GET запрос не срабатывает
+	req, err :=
+		http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+	if err != nil {
+		log.Fatal("Error on creating request object. ", err.Error())
+		return
+	}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Error on dispatching request. ", err.Error())
+		return
+	}
+
+	/*Посмотреть response Body, если понадобится
+	defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(b))
+	//os.Exit(0)*/
+
+	type Envelope struct {
+		XMLName xml.Name `xml:"Envelope"`
+		Text    string   `xml:",chardata"`
+		SOAPENV string   `xml:"SOAP-ENV,attr"`
+		Body    struct {
+			Text              string `xml:",chardata"`
+			BerNs0            string `xml:"ber-ns0,attr"`
+			GetStatusResponse struct {
+				Text     string `xml:",chardata"`
+				Code     string `xml:"Code"`
+				Status   string `xml:"Status"`
+				StatisId string `xml:"StatisId"`
+			} `xml:"getStatusResponse"`
+		} `xml:"Body"`
+	}
+	envelope := &Envelope{}
+	bodyByte, err := io.ReadAll(res.Body)
+	er := xml.Unmarshal(bodyByte, envelope)
+	if er != nil {
+		log.Fatalln(err)
+	}
+
+	srStatus := envelope.Body.GetStatusResponse.Status
+	srStatusId := envelope.Body.GetStatusResponse.StatisId
+	fmt.Println(srStatus)
+	fmt.Println(srStatusId)
+}
+
+func mainCREATE() {
 	/*
 		url := fmt.Sprintf("%s%s%s",
 		"https://12.34.56.78:9443",
@@ -131,7 +286,53 @@ func main() {
 		log.Fatal("Error on dispatching request. ", err.Error())
 		return
 	}
-	/*ORIGINAL
+	/*Посмотреть response Body, если понадобится
+	defer res.Body.Close()
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(b))
+	//os.Exit(0)
+	*/
+
+	//Вбиваем результат из постмана сюда
+	//https://tool.hiofd.com/en/xml-to-go/
+	type Envelope struct {
+		XMLName xml.Name `xml:"Envelope"`
+		Text    string   `xml:",chardata"`
+		SOAPENV string   `xml:"SOAP-ENV,attr"`
+		Body    struct {
+			Text                  string `xml:",chardata"`
+			BerNs0                string `xml:"ber-ns0,attr"`
+			CreateRequestResponse struct {
+				Text       string `xml:",chardata"`
+				Code       string `xml:"Code"`
+				ID         string `xml:"ID"`
+				Number     string `xml:"Number"`
+				SystemName string `xml:"SystemName"`
+			} `xml:"createRequestResponse"`
+		} `xml:"Body"`
+	}
+	// Смог победить только через unmarshal. Кривенько косо, но работает и куча времени угрохано даже на это
+	//res := &MyRespEnvelope{}
+	envelope := &Envelope{}
+	bodyByte, err := io.ReadAll(res.Body)
+	error := xml.Unmarshal(bodyByte, envelope)
+	if error != nil {
+		log.Fatalln(err)
+	}
+	sr := envelope.Body.CreateRequestResponse.Number
+	srID := envelope.Body.CreateRequestResponse.ID
+	bpmLink := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/" + srID
+	//fmt.Println(envelope.Body.CreateRequestResponse.Number, error)
+	//fmt.Println(envelope.Body.CreateRequestResponse.Number)
+	fmt.Println(sr)
+	fmt.Println(srID)
+	fmt.Println(bpmLink)
+
+	/* через xml.DECODE НЕ смог обработать результат
+	//ORIGINAL
 	type UserList struct {
 		XMLName xml.Name
 		Body    struct {
@@ -141,41 +342,53 @@ func main() {
 				Return  []string `xml:"return"`
 			} `xml:"listUsersResponse"`
 		}
-	}*/
-	type SystemList struct {
+	}
+	type TicketNumberID struct {
 		XMLName xml.Name
+		//XMLNS   xml.Attr
+		Body struct {
+			XMLName               xml.Name
+			createRequestResponse struct {
+				XMLName    xml.Name
+				Code       int    `xml:"Code,omitempty"`
+				ID         string `xml:"ID"`
+				Number     string `xml:"Number"`
+				SystemName string `xml:"SystemName"`
+			} `xml:"createRequestResponse"`
+		} `xml:"Body"`
+	}
+	type Envelope struct {
+		XMLName xml.Name `xml:"Envelope"`
+		Text    string   `xml:",chardata"`
+		SOAPENV string   `xml:"SOAP-ENV,attr"`
 		Body    struct {
-			XMLName             xml.Name
-			readSystemsResponse struct {
-				XMLName xml.Name
-				Table   struct {
-					//XMLName xml.Name
-					head struct {
-						XMLName xml.Name
-						Head    []string `xml:",innerxml"`
-					} `xml:"head"`
-					row struct {
-						XMLName xml.Name
-						Cell    []string `xml:",innerxml"`
-					} `xml:"row"`
-				} `xml:"Table"`
-			} `xml:"readSystemsResponse"`
-		}
+			Text                  string `xml:",chardata"`
+			BerNs0                string `xml:"ber-ns0,attr"`
+			CreateRequestResponse struct {
+				Text       string `xml:",chardata"`
+				Code       string `xml:"Code"`
+				ID         string `xml:"ID"`
+				Number     string `xml:"Number"`
+				SystemName string `xml:"SystemName"`
+			} `xml:"createRequestResponse"`
+		} `xml:"Body"`
 	}
 
 	//result := new(UserList)
-	result := new(SystemList)
+	result := new(TicketNumberID)
+	//result := new(Envelope)
 	err = xml.NewDecoder(res.Body).Decode(result)
 	if err != nil {
 		log.Fatal("Error on unmarshaling xml. ", err.Error())
 		return
 	}
-
 	//users := result.Body.ListUsersResponse.Return
 	//systems := result.Body.readSystemsResponse.Table.row.Cell[0]
-
+	ticket := result.Body.createRequestResponse.Number
+	//ticket := result.Body.CreateRequestResponse.Number
 	//fmt.Println(strings.Join(users, ", "))
 	//fmt.Println(strings.Join(systems, ", "))
-	fmt.Println(res)
+	fmt.Println(ticket)
+	*/
 
 }
