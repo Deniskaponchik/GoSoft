@@ -6,12 +6,6 @@ import (
 	"log"
 )
 
-type PC struct {
-	//ID   int    `json:"id"`
-	UserName string `json:"user_name"`
-	Date_Mod string `json:"date_mod"`
-}
-
 func UploadsMapsToDB() {
 
 }
@@ -21,6 +15,12 @@ func DownloadMapsFromDB() {
 }
 
 func GetLogin(pcName string) string {
+	type PC struct {
+		//ID   int    `json:"id"`
+		UserName string `json:"user_name"`
+		Date_Mod string `json:"date_mod"`
+	}
+
 	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/glpi_db")
 	if err != nil {
 		log.Print(err.Error())
