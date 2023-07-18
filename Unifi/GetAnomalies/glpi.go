@@ -12,7 +12,14 @@ type PC struct {
 	Date_Mod string `json:"date_mod"`
 }
 
-// func main() {
+func UploadsMapsToDB() {
+
+}
+
+func DownloadMapsFromDB() {
+
+}
+
 func GetLogin(pcName string) string {
 	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/glpi_db")
 	if err != nil {
@@ -30,7 +37,6 @@ func GetLogin(pcName string) string {
 	} else {
 		return pc.UserName
 	}
-
 	//log.Println(pc.ID)//log.Println(pc.UserName)
 	//return pc.UserName
 }

@@ -21,25 +21,13 @@ var (
 
 func CreateSmacWiFiTicket(
 	userLogin string, pcName string, anomalies []string, apName string, region string) (
-	srNumber string, srID string, bpmLink string) {
+	//srNumber string, srID string, bpmLink string){
+	srSlice []string) {
 
 	//url := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
 	//url := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"   //PROD
 	url := Server
 
-	//fmt.Println("")
-	//fmt.Println("SOAP function:")
-	//userlogin := "denis.tirskikh"
-	//fmt.Println(userLogin)
-	//pcName := "wsir-tirskikh"
-	//fmt.Println(pcName)
-	/*
-		anomaly := []string{
-			"anomal1",
-			"anomaly2",
-			"anomaly3",
-		}*/
-	//fmt.Println(anomalies)
 	desAnomalies := strings.Join(anomalies, "\n")
 
 	//description := "Tootsie roll tiramisu maca" + "\n" + "Danish topping sugar plum tart bonbon "
@@ -59,7 +47,6 @@ func CreateSmacWiFiTicket(
 	payload := []byte(strAfter)
 	//os.Exit(0)
 
-	//httpMethod := "POST"
 	httpMethod := "POST"
 
 	req, err :=
@@ -68,10 +55,6 @@ func CreateSmacWiFiTicket(
 		log.Fatal("Error on creating request object. ", err.Error())
 		return
 	}
-
-	//req.Header.Set("Content-type", "application/xml")
-	//req.Header.Set("SOAPAction", soapAction)
-	//req.SetBasicAuth(username, password)
 
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -112,15 +95,20 @@ func CreateSmacWiFiTicket(
 	if error != nil {
 		log.Fatalln(err)
 	}
-	srNumber = envelope.Body.CreateRequestResponse.Number
-	srID = envelope.Body.CreateRequestResponse.ID
-	bpmLink = "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/" + srID
 
-	//fmt.Println(sr)	fmt.Println(srID)	fmt.Println(bpmLink)
-	return srNumber, srID, bpmLink
+	srID := envelope.Body.CreateRequestResponse.ID
+	srNumber := envelope.Body.CreateRequestResponse.Number
+	bpmLink := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/" + srID
+
+	srSlice = append(srSlice, srID)
+	srSlice = append(srSlice, srNumber)
+	srSlice = append(srSlice, bpmLink)
+	//return srNumber, srID, bpmLink
+	return srSlice
 }
 
-func CheckTicketStatus(srID string) (srStatus string, srStatusID string) {
+// func CheckTicketStatus(srID string) (srStatus string, srStatusID string) {
+func CheckTicketStatus(srID string) (statusSlice []string) {
 	//url := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
 	//url := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"   //PROD
 	url := Server
@@ -183,12 +171,14 @@ func CheckTicketStatus(srID string) (srStatus string, srStatusID string) {
 		log.Fatalln(err)
 	}
 
-	srStatus = envelope.Body.GetStatusResponse.Status
-	srStatusID = envelope.Body.GetStatusResponse.StatisId
-	return srStatus, srStatusID
+	statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.StatisId)
+	statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.Status)
+	//srStatusID = envelope.Body.GetStatusResponse.StatisId
+	//srStatus = envelope.Body.GetStatusResponse.Status
+	return statusSlice
 }
 
-func ChangeStatus(srID string, NewStatus string) {
+func ChangeStatus(srID string, NewStatus string) (srNewStatus string) {
 	url := Server
 	//srID := "fc0d1340-2ccd-4772-a48f-0f60f5ba753e"
 	UserLogin := "service.glpi"
@@ -206,7 +196,7 @@ func ChangeStatus(srID string, NewStatus string) {
 		http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 	if err != nil {
 		log.Fatal("Error on creating request object. ", err.Error())
-		return
+		return "Error on creating request object. "
 	}
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -218,7 +208,7 @@ func ChangeStatus(srID string, NewStatus string) {
 	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Error on dispatching request. ", err.Error())
-		return
+		return "Error on dispatching request. "
 	}
 
 	/*Посмотреть response Body, если понадобится
@@ -254,14 +244,14 @@ func ChangeStatus(srID string, NewStatus string) {
 	}
 
 	srDateChange := envelope.Body.ChangeCaseStatusResponse.ModifyOn
-	srNewStatus := envelope.Body.ChangeCaseStatusResponse.NewStatusId
+	srNewStatus = envelope.Body.ChangeCaseStatusResponse.NewStatusId
 
 	if srDateChange != "" && srNewStatus != "" {
 		fmt.Println("Обращение " + NewStatus + " в: " + srDateChange)
-		//fmt.Println(srNewStatus)
 	} else {
 		fmt.Println("НЕ УДАЛОСЬ изменить статус обращения на " + NewStatus)
 	}
+	return srNewStatus
 }
 
 func AddComment(srID string, myComment string) {

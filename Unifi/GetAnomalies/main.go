@@ -8,6 +8,15 @@ import (
 )
 
 func main() {
+
+	clientMacName := map[string]string{}  // clientMAC  -> clientHostName
+	apMacName := map[string]string{}      // apMac      -> apName
+	namesClientAps := map[string]string{} // clientName -> apName
+	//namesClientLogin //clientHostName - > userLogin
+	//clientnameTicketid
+	//apnameTicketid
+	
+	
 	//c := *unifi.Config{  //ORIGINAL
 	c := unifi.Config{
 		User: "unifi",
@@ -20,25 +29,18 @@ func main() {
 		DebugLog: log.Printf,
 	}
 
-	clientMacName := map[string]string{}  // clientMAC  -> clientHostName
-	apMacName := map[string]string{}      // apMac      -> apName
-	namesClientAps := map[string]string{} // clientName -> apName
-
 	for true {   //зацикливаем
 		//uni, err := unifi.NewUnifi(c)
 		uni, err := unifi.NewUnifi(&c)
 		if err != nil {
 			log.Fatalln("Error:", err)
 		}
-
-		//ORIGINAL
 		sites, err := uni.GetSites()
 		if err != nil {
 			log.Fatalln("Error:", err)
 		}
 		log.Println(len(sites), "Unifi Sites Found: ", sites)
-
-		//ORIGINAL
+		
 		devices, err := uni.GetDevices(sites) //devices = APs
 		if err != nil {
 			log.Fatalln("Error:", err)
@@ -48,7 +50,7 @@ func main() {
 		for i, uap := range devices.UAPs {
 			log.Println(i+1, uap.Name, uap.IP, uap.Mac)
 		}*/
-		// Добавляем маки и имена точек в map
+		// Добавляем маки и имена точек в apMacName map
 		for _, uap := range devices.UAPs {
 			_, existence := apMacName[uap.Mac] //проверяем, есть ли мак в мапе
 			if !existence {
@@ -60,10 +62,8 @@ func main() {
 			//fmt.Printf("key: %d, value: %t\n", k, v)
 			fmt.Println(k, v)
 		}*/
-
-		//
-		//ORIGINAL
-		clients, err := uni.GetClients(sites)
+		
+		clients, err := uni.GetClients(sites) //clients = Notebooks, Mobiles 
 		if err != nil {
 			log.Fatalln("Error:", err)
 		}
@@ -76,15 +76,15 @@ func main() {
 			if !client.IsGuest.Val {
 				//Вывод на экран
 				//siteName := client.SiteName[:len(client.SiteName)-11]
-				apHostName := apMacName[client.ApMac]
-				//fmt.Println(siteName, apHostName, client.Hostname, client.Mac, client.IP)
+				apName := apMacName[client.ApMac]
+				//fmt.Println(siteName, apName, client.Hostname, client.Mac, client.IP)
 
 				//Обновление мапы clientMAC-clientHOST
 				clientMacName[client.Mac] = client.Hostname //Добавить КОРП клиентов в map
-				namesClientAps[client.Name] = apHostName    //Добавить Соответсвие имён клиентов и точек
+				namesClientAps[client.Name] = apName    //Добавить Соответсвие имён клиентов и точек
 			}
 		}
-		/*Вывести CLIENT мапу на экран
+		/*Вывести clientMacName мапу на экран
 		for k, v := range clientMacName {
 			//fmt.Printf("key: %d, value: %t\n", k, v)
 			fmt.Println(k, v)
@@ -95,12 +95,13 @@ func main() {
 			fmt.Println(k, v)
 		}*/
 
-		// Если время НЕ 1 минута от начала часа
-		if time.Now().Minute() == 47 {
+		
+		if time.Now().Minute() == 47 {   // Если время НЕ 1 минута от начала часа
 			now := time.Now()
 			count := 61 //минус 70 минут
 			then := now.Add(time.Duration(-count) * time.Minute)
-			//ORIGINAL
+
+			//Пошёл код про Аномалии
 			anomalies, err := uni.GetAnomalies(sites,
 				//time.Date(2023, 07, 11, 7, 0, 0, 0, time.Local), time.Now()
 				then,
@@ -113,28 +114,29 @@ func main() {
 			for i, anomaly := range anomalies {
 				log.Println(i+1, anomaly.Datetime, anomaly.DeviceMAC, anomaly.Anomaly) //i+1
 			}*/
-			//bpmTickets := []BpmTicket{}
-			bpmTickets := map[string]BpmTicket{} //https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
+			
+			//mapNoutnameFortickets создаётся локально в блоке аномалий каждый час
+			mapNoutnameFortickets := map[string]ForTicket{} //https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
 			//
 			for _, anomaly := range anomalies {
-				_, existence := clientMacName[anomaly.DeviceMAC] //проверяем, есть ли мак в мапе corp clients
+				_, existence := clientMacName[anomaly.DeviceMAC] //проверяем, есть ли мак в мапе corp клиенты
 				//fmt.Println("Аномалии Tele2Corp клиентов:")
 				if existence { //блок кода для Tele2Corp
 					//если есть, выводим на экран с именем ПК, взятым из мапы
 					siteName := anomaly.SiteName[:len(anomaly.SiteName)-11]
 					clientHostName := clientMacName[anomaly.DeviceMAC]
-					apHostName := namesClientAps[clientHostName]
+					apName := namesClientAps[clientHostName]
 					//usrLogin := GetLogin(clientHostName)
-					//fmt.Println(siteName, clientHostName, usrLogin, apHostName, anomaly.Datetime, anomaly.Anomaly)
-					fmt.Println(siteName, clientHostName, apHostName, anomaly.Datetime, anomaly.Anomaly) //без usrLogin
+					//fmt.Println(siteName, clientHostName, usrLogin, apName, anomaly.Datetime, anomaly.Anomaly)
+					fmt.Println(siteName, clientHostName, apName, anomaly.Datetime, anomaly.Anomaly) //без usrLogin
 
-					_, exisClHostName := bpmTickets[clientHostName] //проверяем, есть ли client hostname в мапе тикетов
+					_, exisClHostName := mapNoutnameFortickets[clientHostName] //проверяем, есть ли client hostname в мапе тикетов
 					if !exisClHostName {                            //если нет, создаём
-						bpmTickets[clientHostName] = BpmTicket{ //https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
+						mapNoutnameFortickets[clientHostName] = ForTicket{ //https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
 							//site:
 							siteName,
 							//apName:
-							apHostName,
+							apName,
 							clientHostName,
 							//	usrLogin,
 							[]string{anomaly.Anomaly},
@@ -142,17 +144,17 @@ func main() {
 							//"",
 						}
 					} else {
-						for k, v := range bpmTickets {
+						for k, v := range mapNoutnameFortickets {
 							if k == clientHostName {
 								//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
 								/*1.Using pointers. не смог победить указатели...
 								v2 := v
 								v2.corpAnomalies = append(v2.corpAnomalies, anomaly.Anomaly)
-								bpmTickets[k] = v2 */
+								mapNoutnameFortickets[k] = v2 */
 
 								//2.Reassigning the modified struct
 								v.corpAnomalies = append(v.corpAnomalies, anomaly.Anomaly)
-								bpmTickets[k] = v
+								mapNoutnameFortickets[k] = v
 							}
 						}
 
@@ -164,7 +166,7 @@ func main() {
 			}
 
 			fmt.Println("Tele2Corp клиенты с больше чем 1 аномалией:")
-			for _, v := range bpmTickets {
+			for _, v := range mapNoutnameFortickets {
 				if len(v.corpAnomalies) > 2 {
 					fmt.Println(v.clientName)
 					for _, s := range v.corpAnomalies {
@@ -172,12 +174,17 @@ func main() {
 					}
 					//SoapCreateTicket(clientHostName, v.clientName, v.corpAnomalies, siteName)
 					usrLogin := GetLogin(v.clientName)
+
+					//1. Проверяет, есть ли заявка в мапе ClientHostName - ID Тикета
+						//2. Если заявка В МАПЕ есть, проверить её статус
+							//3. Если Статус закрыто, решено, завести новую
 					HowGetIDticket? := CreateSmacWiFiTicket(usrLogin, v.clientName, v.corpAnomalies, v.apName, v.site)
+					//после создания заявки добавить в мапу ClientHostName - ID Тикета
 					fmt.Println("")
 				}
 			}
-			//fmt.Println(bpmTickets)
-			//jsonStr, err := json.Marshal(bpmTickets)
+			//fmt.Println(mapNoutnameFortickets)
+			//jsonStr, err := json.Marshal(mapNoutnameFortickets)
 			//fmt.Println(string(jsonStr))
 
 		} //else
@@ -191,7 +198,7 @@ func GetClientsCorpWithAnomalies(anoms []*Anomaly) ([]*ClientCorp) {
 	return
 }*/
 
-type BpmTicket struct { //структура ДОЛЖНА находиться ВНЕ main
+type ForTicket struct { //структура ДОЛЖНА находиться ВНЕ main
 	site       string
 	apName     string
 	clientName string

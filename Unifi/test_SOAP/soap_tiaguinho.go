@@ -34,7 +34,7 @@ var (
 	r ReadSystemsResponse
 )
 
-func main() {
+func main4353454353443() {
 	httpClient := &http.Client{
 		Timeout: 1500 * time.Millisecond,
 	}
