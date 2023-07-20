@@ -28,6 +28,7 @@ func main() {
 			fmt.Println("newMap "+k, v)
 		}*/
 	//os.Exit(0)
+	fmt.Println("")
 
 	countMinute := 0
 	count5minute := 5
@@ -234,11 +235,11 @@ func main() {
 			//Обновление мап и БД. Блок кода запустится, если в этот ЧАС он ещё НЕ выполнялся
 			if time.Now().Hour() != countHourDB {
 				//noutnameLogin выгружать НЕ нужно
-				UploadsMapsToDB(maschineMacName, "wifi_db", "wifi_db.maschine_mac_name")
-				UploadsMapsToDB(apMacName, "wifi_db", "wifi_db.ap_mac_name")
-				UploadsMapsToDB(namesClientAp, "wifi_db", "wifi_db.names_mascine_ap")
-				UploadsMapsToDB(maschinenameSRid, "wifi_db", "wifi_db.mascine_name_srid")
-				UploadsMapsToDB(apnameSRid, "wifi_db", "wifi_db.ap_name_srid")
+				UploadsMapsToDB(maschineMacName, "wifi_db", "wifi_db.maschine_mac_name", "TRUNCATE")
+				UploadsMapsToDB(apMacName, "wifi_db", "wifi_db.ap_mac_name", "TRUNCATE")
+				UploadsMapsToDB(namesClientAp, "wifi_db", "wifi_db.names_mascine_ap", "TRUNCATE")
+				UploadsMapsToDB(maschinenameSRid, "wifi_db", "wifi_db.mascine_name_srid", "DELETE")
+				UploadsMapsToDB(apnameSRid, "wifi_db", "wifi_db.ap_name_srid", "DELETE")
 				countHourDB = time.Now().Hour()
 			}
 		} // Поминутный if

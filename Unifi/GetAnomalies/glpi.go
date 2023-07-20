@@ -49,6 +49,7 @@ func UploadsMapsToDB(uploadMap map[string]string, dbName string, tableName strin
 		}
 	}
 	fmt.Println(b.String())
+	fmt.Println("")
 	_, err = db.Exec(b.String())
 	if err != nil {
 		panic(err.Error())
