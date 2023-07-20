@@ -31,7 +31,7 @@ func CreateSmacWiFiTicket(
 	desAnomalies := strings.Join(anomalies, "\n")
 
 	//description := "Tootsie roll tiramisu maca" + "\n" + "Danish topping sugar plum tart bonbon "
-	description := "На ноутбуке:" + "\n" + pcName + "\n" + "" + "\n" + "зафиксированы следующие Аномалии:" + "\n" + desAnomalies + "\n" + "" + "\n" + "Предполагаемое, но не на 100% точное имя точки:" + "\n" + apName + "\n" + "" + "\n" + "Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" + "https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" + ""
+	description := "На ноутбуке:" + "\n" + pcName + "\n" + "" + "\n" + "за последний ЧАС зафиксированы следующие Аномалии:" + "\n" + desAnomalies + "\n" + "" + "\n" + "Предполагаемое, но не на 100% точное имя точки:" + "\n" + apName + "\n" + "" + "\n" + "Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" + "https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" + ""
 	//fmt.Println(description)
 
 	//region := "Москва ЦФ"

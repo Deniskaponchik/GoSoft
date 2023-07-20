@@ -5,26 +5,29 @@ import (
 	"github.com/unpoller/unifi"
 	"io"
 	"log"
-	"os"
 	"time"
 )
 
 func main() {
-
-	//MAPs
-	//clientHostName - > userLogin
+	//Download MAPs from DB
+	//noutnameLogin :=map[string]string{}     //clientHostName - > userLogin
 	noutnameLogin := DownloadMapFromDB("glpi_db", "name", "contact", "glpi_db.glpi_computers", "date_mod")
-	clientMacName := map[string]string{}  // clientMAC  -> clientHostName
-	apMacName := map[string]string{}      // apMac      -> apName
-	namesClientAps := map[string]string{} // clientName -> apName
-	//clientnameTicketid
-	//apnameTicketid
-
-	for k, v := range noutnameLogin {
-		//fmt.Printf("key: %d, value: %t\n", k, v)
-		fmt.Println("newMap "+k, v)
-	}
-	os.Exit(0)
+	//maschineMacName := map[string]string{}   // clientMAC -> clientHostName  // maschineMAC -> maschineHostName
+	maschineMacName := DownloadMapFromDB("wifi_db", "mac", "hostname", "wifi_db.maschine_mac_name", "hostname")
+	//apMacName := map[string]string{}      // apMac -> apName
+	apMacName := DownloadMapFromDB("wifi_db", "mac", "name", "wifi_db.ap_mac_name", "name")
+	//namesClientAps := map[string]string{} // clientName -> apName
+	namesClientAp := DownloadMapFromDB("wifi_db", "mascine_name", "ap_name", "wifi_db.names_mascine_ap", "mascine_name")
+	//clientnameSRid
+	maschinenameSRid := DownloadMapFromDB("wifi_db", "hostname", "srid", "wifi_db.mascine_name_srid", "hostname")
+	//apnameSRid
+	apnameSRid := DownloadMapFromDB("wifi_db", "apname", "srid", "wifi_db.ap_name_srid", "apname")
+	/*
+		for k, v := range apnameSRid {
+			//fmt.Printf("key: %d, value: %t\n", k, v)
+			fmt.Println("newMap "+k, v)
+		}*/
+	//os.Exit(0)
 
 	countMinute := 0
 	count5minute := 5
@@ -83,7 +86,7 @@ func main() {
 				fmt.Println(k, v)
 			}*/
 
-			clients, err := uni.GetClients(sites) //clients = Notebooks, Mobiles
+			clients, err := uni.GetClients(sites) //client = Notebook or Mobile = maschine
 			if err != nil {
 				log.Fatalln("Error:", err)
 			}
@@ -99,12 +102,12 @@ func main() {
 					//fmt.Println(siteName, apName, client.Hostname, client.Mac, client.IP)
 
 					//Обновление мапы clientMAC-clientHOST
-					clientMacName[client.Mac] = client.Hostname //Добавить КОРП клиентов в map
-					namesClientAps[client.Name] = apName        //Добавить Соответсвие имён клиентов и точек
+					maschineMacName[client.Mac] = client.Hostname //Добавить КОРП клиентов в map
+					namesClientAp[client.Name] = apName           //Добавить Соответсвие имён клиентов и точек
 				}
 			}
-			/*Вывести clientMacName мапу на экран
-			for k, v := range clientMacName {
+			/*Вывести maschineMacName мапу на экран
+			for k, v := range maschineMacName {
 				//fmt.Printf("key: %d, value: %t\n", k, v)
 				fmt.Println(k, v)
 			}*/
@@ -122,9 +125,9 @@ func main() {
 				count5minute = time.Now().Minute()
 			}
 
-			//АНОМАЛИИ
+			//АНОМАЛИИ. Блок кода запустится, если в этот ЧАС он ещё НЕ выполнялся
 			//if time.Now().Minute() == 47 { // Если время 3 минуты от начала часа то блок для аномаоий
-			if time.Now().Hour() != countHourAnom { //Блок кода запустится, если в этот ЧАС он ещё НЕ выполнялся
+			if time.Now().Hour() != countHourAnom {
 				now := time.Now()
 				count := 60 //минус 70 минут
 				then := now.Add(time.Duration(-count) * time.Minute)
@@ -154,13 +157,13 @@ func main() {
 				mapNoutnameFortickets := map[string]ForTicket{} //https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
 				//
 				for _, anomaly := range anomalies {
-					_, existence := clientMacName[anomaly.DeviceMAC] //проверяем, соответсвует ли мак мапе corp клиентов
+					_, existence := maschineMacName[anomaly.DeviceMAC] //проверяем, соответсвует ли мак мапе corp клиентов
 					//fmt.Println("Аномалии Tele2Corp клиентов:")
 					if existence { //блок кода для Tele2Corp
 						//если есть, выводим на экран с именем ПК, взятым из мапы
 						siteName := anomaly.SiteName[:len(anomaly.SiteName)-11]
-						clientHostName := clientMacName[anomaly.DeviceMAC]
-						apName := namesClientAps[clientHostName]
+						clientHostName := maschineMacName[anomaly.DeviceMAC]
+						apName := namesClientAp[clientHostName]
 						//usrLogin := GetLogin(clientHostName)
 						//fmt.Println(siteName, clientHostName, usrLogin, apName, anomaly.Datetime, anomaly.Anomaly)
 						fmt.Println(siteName, clientHostName, apName, anomaly.Datetime, anomaly.Anomaly) //без usrLogin
@@ -175,8 +178,6 @@ func main() {
 								clientHostName,
 								//	usrLogin,
 								[]string{anomaly.Anomaly},
-								//"за последний час у пользователя возникли следующие аномалии на Wi-Fi сети Tele2Corp:",
-								//"",
 							}
 						} else {
 							for k, v := range mapNoutnameFortickets {
@@ -187,7 +188,7 @@ func main() {
 									v2.corpAnomalies = append(v2.corpAnomalies, anomaly.Anomaly)
 									mapNoutnameFortickets[k] = v2 */
 
-									//2.Reassigning the modified struct
+									//2.Reassigning the modified struct.
 									v.corpAnomalies = append(v.corpAnomalies, anomaly.Anomaly)
 									mapNoutnameFortickets[k] = v
 								}
@@ -209,7 +210,9 @@ func main() {
 							fmt.Println(s)
 						}
 						//SoapCreateTicket(clientHostName, v.clientName, v.corpAnomalies, siteName)
-						usrLogin := GetLogin(v.clientName)
+						//usrLogin := GetLogin(v.clientName)
+						usrLogin := noutnameLogin[v.clientName]
+						fmt.Println(usrLogin)
 
 						//1. Проверяет, есть ли заявка в мапе ClientHostName - ID Тикета
 						//2. Если заявка В МАПЕ есть, проверить её статус
@@ -228,9 +231,14 @@ func main() {
 				countHourAnom = time.Now().Hour()
 			} // END of ANOMALIES block
 
-			//Занесение мап в БД
-			if time.Now().Hour() != countHourDB { //Блок кода запустится, если в этот ЧАС он ещё НЕ выполнялся
-
+			//Обновление мап и БД. Блок кода запустится, если в этот ЧАС он ещё НЕ выполнялся
+			if time.Now().Hour() != countHourDB {
+				//noutnameLogin выгружать НЕ нужно
+				UploadsMapsToDB(maschineMacName, "wifi_db", "wifi_db.maschine_mac_name")
+				UploadsMapsToDB(apMacName, "wifi_db", "wifi_db.ap_mac_name")
+				UploadsMapsToDB(namesClientAp, "wifi_db", "wifi_db.names_mascine_ap")
+				UploadsMapsToDB(maschinenameSRid, "wifi_db", "wifi_db.mascine_name_srid")
+				UploadsMapsToDB(apnameSRid, "wifi_db", "wifi_db.ap_name_srid")
 				countHourDB = time.Now().Hour()
 			}
 		} // Поминутный if
