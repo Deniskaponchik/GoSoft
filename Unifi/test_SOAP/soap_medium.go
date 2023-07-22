@@ -264,6 +264,7 @@ func mainCOMMENT() {
 }
 
 func mainCHANGE() {
+
 	url := Server
 	srID := "fcd7b4df-dd4f-421f-8ca5-6bdab51de654"
 	//UserLogin := "service.glpi"
@@ -408,8 +409,8 @@ func mainCHECK() {
 	fmt.Println(srStatusId)
 }
 
-func main() {
-	//CreateAnomalyTicket
+func mainCreateAnomalyTicket() {
+	//
 	// https://novalagung.medium.com/soap-wsdl-request-in-go-language-3861cfb5949e
 
 	//url := Server

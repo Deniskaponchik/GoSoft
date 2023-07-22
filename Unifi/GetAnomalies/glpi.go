@@ -108,6 +108,32 @@ func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName st
 	return m
 }
 
+func GetUserLogin(siteApCutName string) string {
+	type User struct {
+		//ID   int    `json:"id"`
+		UserLogin string `json:"login"`
+	}
+
+	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/wifi_db")
+	if err != nil {
+		log.Print(err.Error())
+	}
+	defer db.Close() // defer the close till after the main function has finished
+
+	var user User
+	err = db.QueryRow("SELECT login FROM wifi_db.site_apcut_login where site_apcut = ?", siteApCutName).Scan(&user.UserLogin)
+	// после запятой указываем значение, которое будет подставляться заместо вопроса + ОБЯЗАТЕЛЬНО в Scan использовать &
+
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+		return "denis.tirskikh"
+	} else {
+		return user.UserLogin
+	}
+	//log.Println(pc.ID)//log.Println(pc.UserName)
+	//return pc.UserName
+}
+
 func GetLogin(pcName string) string {
 	type PC struct {
 		//ID   int    `json:"id"`
@@ -123,7 +149,7 @@ func GetLogin(pcName string) string {
 
 	var pc PC
 	err = db.QueryRow("SELECT contact FROM glpi_db.glpi_computers where name = ? ORDER BY date_mod DESC", pcName).Scan(&pc.UserName)
-	// после запятой указываем значение, которое будет подставляться заметсо вопроса + ОБЯЗАТЕЛЬНО в Scan использовать &
+	// после запятой указываем значение, которое будет подставляться заместо вопроса + ОБЯЗАТЕЛЬНО в Scan использовать &
 
 	if err != nil {
 		panic(err.Error()) // proper error handling instead of panic in your app

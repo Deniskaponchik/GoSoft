@@ -15,31 +15,34 @@ import (
 )
 
 var (
-	//Server = "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"     //PROD
-	Server = "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
+// Server = "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"     //PROD
+// Server = "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
 )
 
-func CreateApTicket() {
+func CreateApTicket(
+	bpmServer string, aps []string, region string) (
+	srSlice []string) {
 
 }
 
 func CreateAnomalyTicket(
-	userLogin string, pcName string, anomalies []string, apName string, region string) (
+	bpmServer string, userLogin string, pcName string, anomalies []string, apName string, region string) (
 	//srNumber string, srID string, bpmLink string){
 	srSlice []string) {
 
 	//url := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
 	//url := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"   //PROD
-	url := Server
-
+	url := bpmServer
 	desAnomalies := strings.Join(anomalies, "\n")
 
 	description := "На ноутбуке:" + "\n" +
 		pcName + "\n" + "" + "\n" +
 		"зафиксированы следующие Аномалии:" + "\n" +
-		desAnomalies + "\n" + "" + "\n" +
+		desAnomalies + "\n" +
+		"" + "\n" +
 		"Предполагаемое, но не на 100% точное имя точки:" + "\n" +
-		apName + "\n" + "" + "\n" +
+		apName + "\n" +
+		"" + "\n" +
 		"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
 		"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
 		""
@@ -138,81 +141,86 @@ func CreateAnomalyTicket(
 	return srSlice
 }
 
-// func CheckTicketStatus(srID string) (srStatus string, srStatusID string) {
-func CheckTicketStatus(srID string) (statusSlice []string) {
-	//url := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
-	//url := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"   //PROD
-	url := Server
+func CheckTicketStatus(bpmServer string, srID string) (statusSlice []string) {
+	if len(srID) == 36 {
+		//url := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
+		//url := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"   //PROD
+		url := bpmServer
 
-	//srID := "f0074e96-1ab9-4f63-af29-0acd933b49e8"
-	//Убрать из строки \n
-	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
-	replacer := strings.NewReplacer("SRid", srID)
-	strAfter := replacer.Replace(strBefore)
-	payload := []byte(strAfter)
+		//srID := "f0074e96-1ab9-4f63-af29-0acd933b49e8"
+		//Убрать из строки \n
+		strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+		replacer := strings.NewReplacer("SRid", srID)
+		strAfter := replacer.Replace(strBefore)
+		payload := []byte(strAfter)
 
-	httpMethod := "POST" // GET запрос не срабатывает
-	req, err :=
-		http.NewRequest(httpMethod, url, bytes.NewReader(payload))
-	if err != nil {
-		log.Fatal("Error on creating request object. ", err.Error())
-		return
-	}
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
+		httpMethod := "POST" // GET запрос не срабатывает
+		req, err :=
+			http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal("Error on creating request object. ", err.Error())
+			return
+		}
+		client := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true,
+				},
 			},
-		},
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		log.Fatal("Error on dispatching request. ", err.Error())
-		return
-	}
+		}
+		res, err := client.Do(req)
+		if err != nil {
+			log.Fatal("Error on dispatching request. ", err.Error())
+			return
+		}
 
-	/*Посмотреть response Body, если понадобится
-	defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
-	b, err := io.ReadAll(res.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Println(string(b))
-	//os.Exit(0)*/
+		/*Посмотреть response Body, если понадобится
+		defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Println(string(b))
+		//os.Exit(0)*/
 
-	type Envelope struct {
-		XMLName xml.Name `xml:"Envelope"`
-		Text    string   `xml:",chardata"`
-		SOAPENV string   `xml:"SOAP-ENV,attr"`
-		Body    struct {
-			Text              string `xml:",chardata"`
-			BerNs0            string `xml:"ber-ns0,attr"`
-			GetStatusResponse struct {
-				Text     string `xml:",chardata"`
-				Code     string `xml:"Code"`
-				Status   string `xml:"Status"`
-				StatisId string `xml:"StatisId"`
-			} `xml:"getStatusResponse"`
-		} `xml:"Body"`
-	}
-	envelope := &Envelope{}
-	bodyByte, err := io.ReadAll(res.Body)
-	er := xml.Unmarshal(bodyByte, envelope)
-	if er != nil {
-		log.Fatalln(err)
-	}
+		type Envelope struct {
+			XMLName xml.Name `xml:"Envelope"`
+			Text    string   `xml:",chardata"`
+			SOAPENV string   `xml:"SOAP-ENV,attr"`
+			Body    struct {
+				Text              string `xml:",chardata"`
+				BerNs0            string `xml:"ber-ns0,attr"`
+				GetStatusResponse struct {
+					Text     string `xml:",chardata"`
+					Code     string `xml:"Code"`
+					Status   string `xml:"Status"`
+					StatisId string `xml:"StatisId"`
+				} `xml:"getStatusResponse"`
+			} `xml:"Body"`
+		}
+		envelope := &Envelope{}
+		bodyByte, err := io.ReadAll(res.Body)
+		er := xml.Unmarshal(bodyByte, envelope)
+		if er != nil {
+			log.Fatalln(err)
+		}
 
-	statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.StatisId)
-	statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.Status)
-	//srStatusID = envelope.Body.GetStatusResponse.StatisId
-	//srStatus = envelope.Body.GetStatusResponse.Status
+		statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.StatisId)
+		statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.Status)
+		//srStatusID = envelope.Body.GetStatusResponse.StatisId
+		//srStatus = envelope.Body.GetStatusResponse.Status
+
+	} else {
+		statusSlice = append(statusSlice, "0")
+		statusSlice = append(statusSlice, "Тикет введён не корректно")
+	}
 	return statusSlice
 }
 
-func ChangeStatus(srID string, NewStatus string) (srNewStatus string) {
-	url := Server
+func ChangeStatus(bpmServer string, srID string, NewStatus string) (srNewStatus string) {
+	url := bpmServer
 	//srID := "fc0d1340-2ccd-4772-a48f-0f60f5ba753e"
-	UserLogin := "service.glpi"
+	UserLogin := "denis.tirskikh"
 	//NewStatus := "На уточнении"
 	//NewStatus := "Отменено"
 
@@ -278,15 +286,15 @@ func ChangeStatus(srID string, NewStatus string) (srNewStatus string) {
 	srNewStatus = envelope.Body.ChangeCaseStatusResponse.NewStatusId
 
 	if srDateChange != "" && srNewStatus != "" {
-		fmt.Println("Обращение " + NewStatus + " в: " + srDateChange)
+		fmt.Println("Статус обращения изменён на " + NewStatus + " в: " + srDateChange)
 	} else {
 		fmt.Println("НЕ УДАЛОСЬ изменить статус обращения на " + NewStatus)
 	}
 	return srNewStatus
 }
 
-func AddComment(srID string, myComment string) {
-	url := Server
+func AddComment(bpmServer string, srID string, myComment string) {
+	url := bpmServer
 	//srID := "fc0d1340-2ccd-4772-a48f-0f60f5ba753e"
 	userLogin := "denis.tirskikh"
 	//myComment := "Моё первое сервисное сообщение!"

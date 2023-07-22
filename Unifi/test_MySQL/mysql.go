@@ -281,6 +281,43 @@ func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName st
 	return m
 }
 
+func GetUserLogin(dbName string, keySelect string, tableName string, whereKey string, orderBY string) string {
+	type Target struct {
+		UserLogin string `json:"user_name"`
+	}
+	datasource := ""
+	if dbName == "glpi_db" {
+		datasource = "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
+	} else {
+		datasource = "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
+	}
+	//db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/glpi_db")
+	db, err := sql.Open("mysql", datasource)
+	if err != nil {
+		log.Print(err.Error())
+	}
+	defer db.Close() // defer the close till after the main function has finished
+
+	var target Target
+	queryBefore := "SELECT keySelect FROM dbName where whereKey = ? ORDER BY orderBY DESC"
+	replacer := strings.NewReplacer("keySelect", keySelect, "tableName", tableName, "orderBY", orderBY)
+	queryAfter := replacer.Replace(queryBefore)
+	fmt.Println(queryAfter)
+
+	//err = db.QueryRow("SELECT contact FROM glpi_db.glpi_computers where name = ? ORDER BY date_mod DESC", keySelect).Scan(&target.UserLogin)
+	err = db.QueryRow(queryAfter, keySelect).Scan(&target.UserLogin)
+	// после запятой указываем значение, которое будет подставляться заместо вопроса + ОБЯЗАТЕЛЬНО в Scan использовать &
+
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+		return "denis.tirskikh"
+	} else {
+		return target.UserLogin
+	}
+	//log.Println(pc.ID)//log.Println(pc.UserName)
+	//return pc.UserName
+}
+
 //https://tutorialedge.net/golang/golang-mysql-tutorial/
 /* Many ROWS.
 type PC struct {
