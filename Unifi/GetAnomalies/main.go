@@ -9,6 +9,18 @@ import (
 )
 
 func main() {
+	//bpmServer := "PROD"
+	bpmServer := "TEST"
+	//unifiController := "ROSTOV"
+	unifiController := "NOVOSIB"
+
+	countMinute := 0
+	//countMinute := 3
+	count5minute := 5
+	countHourAnom := 0
+	countHourDB := 0
+	countDay := 0
+
 	//Download MAPs from DB
 	//noutnameLogin :=map[string]string{}     //clientHostName - > userLogin
 	noutnameLogin := DownloadMapFromDB("glpi_db", "name", "contact", "glpi_db.glpi_computers", "date_mod")
@@ -19,9 +31,11 @@ func main() {
 	//namesClientAps := map[string]string{} // clientName -> apName
 	namesClientAp := DownloadMapFromDB("wifi_db", "mascine_name", "ap_name", "wifi_db.names_mascine_ap", "mascine_name")
 	//clientnameSRid
-	maschinenameSRid := DownloadMapFromDB("wifi_db", "hostname", "srid", "wifi_db.mascine_name_srid", "hostname")
+	//maschinenameSRid := DownloadMapFromDB("wifi_db", "hostname", "srid", "wifi_db.mascine_name_srid", "hostname")
+	maschineMacSRid := DownloadMapFromDB("wifi_db", "hostname", "srid", "wifi_db.mascine_name_srid", "hostname")
 	//apnameSRid
-	apnameSRid := DownloadMapFromDB("wifi_db", "apname", "srid", "wifi_db.ap_name_srid", "apname")
+	//apnameSRid := DownloadMapFromDB("wifi_db", "apname", "srid", "wifi_db.ap_name_srid", "apname")
+	apMacSRid := DownloadMapFromDB("wifi_db", "apname", "srid", "wifi_db.ap_name_srid", "apname")
 	/*
 		for k, v := range apnameSRid {
 			//fmt.Printf("key: %d, value: %t\n", k, v)
@@ -30,18 +44,30 @@ func main() {
 	//os.Exit(0)
 	fmt.Println("")
 
-	countMinute := 0
-	count5minute := 5
-	countHourAnom := 0
-	countHourDB := 0
+	// Пока без них:
+	type clientT2Corp struct {
+		mac            string
+		hostname       string
+		region         string
+		apName         string
+		anomls         []string
+		srNumber       string
+		srID           string
+		srLink         string
+		countAnomalies int  //сколько раз бы создалась заявка, если бы не стояло ограничение в 1 заявку на пользователя
+		exception      bool //исключить создание обращений по нему, ели нет. 1 -исключить
+	}
+	type ap struct {
+	}
 
-	//c := *unifi.Config{  //ORIGINAL
 	c := unifi.Config{
+		//c := *unifi.Config{  //ORIGINAL
 		User: "unifi",
 		Pass: "FORCEpower23",
 		//URL:  "https://localhost:8443/"
 		//URL:  "https://10.78.221.142:8443/", //ROSTOV
-		URL: "https://10.8.176.8:8443/", //NOVOSIB
+		//URL: "https://10.8.176.8:8443/", //NOVOSIB
+		URL: unifiController,
 		// Log with log.Printf or make your own interface that accepts (msg, test_SOAP)
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,
@@ -241,6 +267,10 @@ func main() {
 				UploadsMapsToDB(maschinenameSRid, "wifi_db", "wifi_db.mascine_name_srid", "DELETE")
 				UploadsMapsToDB(apnameSRid, "wifi_db", "wifi_db.ap_name_srid", "DELETE")
 				countHourDB = time.Now().Hour()
+			}
+			//Обновление мап раз в сутки
+			if time.Now().Day() != countDay {
+
 			}
 		} // Поминутный if
 		time.Sleep(60 * time.Second) //Изменить на 5 секунд на ПРОДе

@@ -19,7 +19,11 @@ var (
 	Server = "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
 )
 
-func CreateSmacWiFiTicket(
+func CreateApTicket() {
+
+}
+
+func CreateAnomalyTicket(
 	userLogin string, pcName string, anomalies []string, apName string, region string) (
 	//srNumber string, srID string, bpmLink string){
 	srSlice []string) {
@@ -30,14 +34,41 @@ func CreateSmacWiFiTicket(
 
 	desAnomalies := strings.Join(anomalies, "\n")
 
-	//description := "Tootsie roll tiramisu maca" + "\n" + "Danish topping sugar plum tart bonbon "
-	description := "На ноутбуке:" + "\n" + pcName + "\n" + "" + "\n" + "за последний ЧАС зафиксированы следующие Аномалии:" + "\n" + desAnomalies + "\n" + "" + "\n" + "Предполагаемое, но не на 100% точное имя точки:" + "\n" + apName + "\n" + "" + "\n" + "Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" + "https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" + ""
+	description := "На ноутбуке:" + "\n" +
+		pcName + "\n" + "" + "\n" +
+		"зафиксированы следующие Аномалии:" + "\n" +
+		desAnomalies + "\n" + "" + "\n" +
+		"Предполагаемое, но не на 100% точное имя точки:" + "\n" +
+		apName + "\n" + "" + "\n" +
+		"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+		"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+		""
 	//fmt.Println(description)
-
 	//region := "Москва ЦФ"
-	//fmt.Println(region)
-
-	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:createRequestRequest><SystemId>5594b877-3bb7-46db-99f5-3c75b3e46556</SystemId><ServiceId>ed84a37f-4b31-4dab-85fe-ba4fe87325b1</ServiceId><Subject>Description</Subject><UserName>UserLogin</UserName><RequestType>Request</RequestType><Priority>Normal</Priority><Filds><ID>5c8dee23-e48a-45bc-a084-573e1a6cc5ca</ID><Value>Region</Value></Filds></bpm:createRequestRequest></soapenv:Body></soapenv:Envelope>"
+	strBefore :=
+		"<soapenv:Envelope " +
+			"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+			"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
+			"<soapenv:Header/>" +
+			"<soapenv:Body>" +
+			"<bpm:createRequestRequest>" +
+			"<SystemId>5594b877-3bb7-46db-99f5-3c75b3e46556</SystemId>" +
+			"<ServiceId>ed84a37f-4b31-4dab-85fe-ba4fe87325b1</ServiceId>" +
+			"<Subject>Description</Subject>" +
+			"<UserName>UserLogin</UserName>" +
+			"<RequestType>Request</RequestType>" +
+			"<Priority>Normal</Priority>" +
+			"<Filds>" +
+			"<ID>5c8dee23-e48a-45bc-a084-573e1a6cc5ca</ID>" +
+			"<Value>Region</Value>" +
+			"</Filds>" +
+			"<Filds>" +
+			"<ID>bde054e7-2b91-41c1-abba-2dcbe3a8f3f4</ID>" +
+			"<Value>incidentType</Value>" +
+			"</Filds>" +
+			"</bpm:createRequestRequest>" +
+			"</soapenv:Body>" +
+			"</soapenv:Envelope>"
 	//replacer := strings.NewReplacer("Description", "My des", "UserLogin", "denis.tirskikh", "Region", "Москва ЦФ")
 	replacer := strings.NewReplacer("Description", description, "UserLogin", userLogin, "Region", region)
 	strAfter := replacer.Replace(strBefore)
