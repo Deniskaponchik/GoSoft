@@ -17,7 +17,7 @@ func main() {
 	unifiController := "https://10.8.176.8:8443/" //Novosib
 
 	countMinute := 0
-	count3minute := 3
+	count3minute := 0
 	//count5minute := 5
 	countHourAnom := 0
 	countHourDB := 0
@@ -150,7 +150,7 @@ func main() {
 			// блок кода про точки, а уже потом аномалии
 			//if time.Now().Minute()%5 == 0 && time.Now().Minute() != count5minute { //запускается раз в 5 минут
 			if time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute { //запускается раз в 5 минут
-
+				fmt.Println("Обработка точек доступа...")
 				type ForApsTicket struct {
 					site string
 					//apName string
@@ -173,15 +173,17 @@ func main() {
 					//if ap.SiteName[:len(ap.SiteName)-11] != "Резерв/Склад" {
 					if ap.SiteID != "5f2285f3a1a7693ae6139c00" { //NOVOSIB
 
+						fmt.Println(ap.Name)
+						fmt.Println(ap.SiteID)
 						apLastSeen := ap.LastSeen.Int()
 						_, exisApMacSRid := apMacSRid[ap.Mac]
 
 						//Точка доступна. Заявки нет.
-						if apLastSeen != 0 && exisApMacSRid {
+						if apLastSeen != 0 && !exisApMacSRid {
 							//Идём дальше
 
 							//Точка доступна. Заявка есть
-						} else if apLastSeen != 0 && !exisApMacSRid {
+						} else if apLastSeen != 0 && exisApMacSRid {
 							//ОЧИЩАЕМ мапу, оставляем коммент, ПЫТАЕМСЯ закрыть тикет, если на визировании
 							//оставить комментарий, что точка стала доступна
 							comment := "Точка появилась в сети: " + ap.Name
@@ -248,7 +250,7 @@ func main() {
 									}
 								}*/
 
-							//Точка недоступна. 							//Заявка есть
+							//Точка недоступна.
 						} else if apLastSeen == 0 {
 							//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
 							checkSlice := CheckTicketStatus(bpmServer, apMacSRid[ap.Mac])
@@ -256,7 +258,13 @@ func main() {
 								delete(apMacSRid, ap.Mac) //удаляем заявку. если заявки нет - ничего страшного
 
 								//Заполняем переменные, которые понадобятся дальше
-								siteName := ap.SiteName[:len(ap.SiteName)-11]
+								fmt.Println(ap.SiteID)
+								var siteName string
+								if ap.SiteID != "6360a823a1a769286dc707f2" {
+									siteName = "Урал"
+								} else {
+									siteName = ap.SiteName[:len(ap.SiteName)-11]
+								}
 								//apCutName := ap.Name[:len(ap.Name)3]
 								apCutName := strings.Split(ap.Name, "-")[0]
 								siteApCutName := siteName + "_" + apCutName
@@ -307,7 +315,17 @@ func main() {
 					usrLogin := siteApCutNameLogin[k]
 					fmt.Println(usrLogin)
 
-					srTicketSlice := CreateApTicket(bpmServer, v.apNames, v.site)
+					desAps := strings.Join(v.apNames, "\n")
+					description := "Зафиксировано отключение точек:" + "\n" +
+						desAps + "\n" +
+						"" + "\n" +
+						"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+						"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+						""
+					incidentType := "Недоступна точка доступа"
+
+					//srTicketSlice := CreateApTicket(bpmServer, usrLogin, description, v.site, incidentType)
+					srTicketSlice := CreateSmacWiFiTicket(bpmServer, usrLogin, description, v.site, incidentType)
 					fmt.Println(srTicketSlice[2])
 					apMacSRid[v.apMac] = srTicketSlice[0] //добавить в мапу apMac - ID Тикета
 					fmt.Println("")
@@ -317,7 +335,6 @@ func main() {
 				//count5minute = time.Now().Minute()
 				count3minute = time.Now().Minute()
 			}
-			//
 			//
 			//
 
@@ -352,10 +369,10 @@ func main() {
 
 				//srStatusCodesForNewTicket := []string{
 				srStatusCodesForNewTicket := map[string]bool{
-					"Отменено": true, //Cancel   6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-					"Решено":   true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-					"Закрыто":  true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-					//"На уточнении", //Clarification  81e6a1ee-16c1-4661-953e-dde140624fb
+					"Отменено":     true, //Cancel   6e5f4218-f46b-1410-fe9a-0050ba5d6c38
+					"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
+					"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
+					"На уточнении": true, //Clarification  81e6a1ee-16c1-4661-953e-dde140624fb
 				}
 
 				//mapNoutnameFortickets создаётся локально в блоке аномалий каждый час. Резервировать в БД НЕ нужно
@@ -416,9 +433,46 @@ func main() {
 						//usrLogin := GetLogin(v.clientName)
 						usrLogin := noutnameLogin[v.clientName]
 						fmt.Println(usrLogin)
-
 						// Проверяет, есть ли заявка в мапе ClientMacName - ID Тикета
 						srID, existence := maschineMacSRid[v.noutMac]
+						//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
+						checkSlice := CheckTicketStatus(bpmServer, srID)
+
+						desAnomalies := strings.Join(v.corpAnomalies, "\n")
+
+						if srStatusCodesForNewTicket[checkSlice[1]] || !existence {
+							//Если статус заявки Отменено, Закрыто, Решено, На уточнении
+							//или заявки нет в мапе maschineMacSRid
+							//То создаём новую
+							delete(maschineMacSRid, v.noutMac) //удаляем заявку. если заявки нет - ничего страшного
+
+							description := "На ноутбуке:" + "\n" +
+								v.clientName + "\n" + "" + "\n" +
+								"зафиксированы следующие Аномалии:" + "\n" +
+								desAnomalies + "\n" +
+								"" + "\n" +
+								"Предполагаемое, но не на 100% точное имя точки:" + "\n" +
+								v.apName + "\n" +
+								"" + "\n" +
+								"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+								"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+								""
+							//fmt.Println(description)
+							incidentType := "Плохое качество соединения клиента"
+
+							//srTicketSlice := CreateAnomalyTicket(bpmServer, usrLogin, v.clientName, v.corpAnomalies, v.apName, v.site)
+							srTicketSlice := CreateSmacWiFiTicket(bpmServer, usrLogin, description, v.site, incidentType)
+							fmt.Println(srTicketSlice[2])
+							maschineMacSRid[v.noutMac] = srTicketSlice[0] //добавить в мапу ClientMac - ID Тикета
+							fmt.Println("")
+
+						} else {
+							//Если заявка уже есть, то добавить комментарий с новыми аномалтями
+							comment := "Возникли новые аномалии за последний час:" + "\n" + desAnomalies
+							AddComment(bpmServer, srID, comment)
+						}
+
+						/*старый блок кода
 						if existence {
 							//1. Если заявка В МАПЕ есть, проверить её статус
 							statusSlice := CheckTicketStatus(bpmServer, srID)
@@ -439,9 +493,10 @@ func main() {
 							fmt.Println(srTicketSlice[2])
 							maschineMacSRid[v.noutMac] = srTicketSlice[0] //добавить в мапу ClientMac - ID Тикета
 							fmt.Println("")
-						}
+						}*/
 					}
 				}
+				fmt.Println("")
 				countHourAnom = time.Now().Hour()
 			} // END of ANOMALIES block
 
@@ -462,6 +517,7 @@ func main() {
 				countDay = time.Now().Day()
 			}
 		} // Поминутный if
+		fmt.Println("Time to Sleep")
 		time.Sleep(60 * time.Second) //Изменить на 5 секунд на ПРОДе
 	} // while TRUE
 } //main func
