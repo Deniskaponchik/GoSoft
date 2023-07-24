@@ -580,8 +580,9 @@ func AddComment(bpmServer string, srID string, myComment string) {
 	//srNewStatus := envelope.Body.ChangeCaseStatusResponse.NewStatusId
 
 	if srDateComment != "" {
-		fmt.Println("Оставлен комментарий в " + srDateComment)
-		//fmt.Println(srNewStatus)
+		fmt.Println("Оставлен комментарий в ")
+		fmt.Println(bpmServer + srID)
+		fmt.Println(srDateComment)
 	} else {
 		fmt.Println("НЕ УДАЛОСЬ оставить комментарий")
 	}

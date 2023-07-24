@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func UploadsMapsToDBreplace(uploadMap map[string]string, dbName string, tableName string, valueDB string, bdController int8) {
+func UploadMapsToDBreplace(uploadMap map[string]string, dbName string, tableName string, valueDB string, bdController int8) {
 
 	var datasource string
 	if dbName == "glpi_db" {
@@ -39,16 +39,19 @@ func UploadsMapsToDBreplace(uploadMap map[string]string, dbName string, tableNam
 	}*/
 
 	bdCntrl := strconv.Itoa(int(bdController))
-	//обнуляем ВСЕ значения ключей
-	updateQuery := "UPDATE " + tableName + "SET " + valueDB + " NULL WHERE controller = " + bdCntrl
-	fmt.Println(updateQuery)
-	_, err = db.Exec(updateQuery)
-	if err != nil {
-		panic(err.Error())
+	//Если передаём параметр valueDB, значит хотим обнулить это поле. Акутально для таблиц с номерами заявок
+	if valueDB != "" {
+		//обнуляем ВСЕ значения ключей
+		updateQuery := "UPDATE " + tableName + " SET " + valueDB + " = NULL WHERE controller = " + bdCntrl
+		fmt.Println(updateQuery)
+		_, err = db.Exec(updateQuery)
+		if err != nil {
+			panic(err.Error())
+		}
 	}
 
 	var b bytes.Buffer
-	b.WriteString("INSERT INTO " + tableName + " VALUES ")
+	b.WriteString("REPLACE INTO " + tableName + " VALUES ")
 	lenMap := len(uploadMap)
 	count := 0
 	for k, v := range uploadMap {
@@ -136,10 +139,18 @@ func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName st
 	}
 	defer db.Close() // defer the close till after the main function has finished
 
-	//bdController = strconv.Itoa(int(bdController))
-	queryBefore := "SELECT keyDB, valueDB FROM tableName WHERE controller = bdController ORDER BY orderBY DESC"
-	replacer := strings.NewReplacer("keyDB", keyDB, "valueDB", valueDB, "tableName", tableName, "bdController", strconv.Itoa(int(bdController)), "orderBY", orderBY)
-	queryAfter := replacer.Replace(queryBefore)
+	var queryAfter string
+	if bdController != 0 {
+		//bdController = strconv.Itoa(int(bdController))
+		queryBefore := "SELECT keyDB, valueDB FROM tableName WHERE controller = bdController ORDER BY orderBY DESC"
+		replacer := strings.NewReplacer("keyDB", keyDB, "valueDB", valueDB, "tableName", tableName, "bdController", strconv.Itoa(int(bdController)), "orderBY", orderBY)
+		queryAfter = replacer.Replace(queryBefore)
+	} else {
+		//без WHERE и bdController
+		queryBefore := "SELECT keyDB, valueDB FROM tableName ORDER BY orderBY DESC"
+		replacer := strings.NewReplacer("keyDB", keyDB, "valueDB", valueDB, "tableName", tableName, "orderBY", orderBY)
+		queryAfter = replacer.Replace(queryBefore)
+	}
 	fmt.Println(queryAfter)
 
 	//("SELECT id, name FROM tags")
@@ -199,7 +210,7 @@ func GetLoginPC(pcName string) string {
 	type PC struct {
 		//ID   int    `json:"id"`
 		UserName string `json:"user_name"`
-		Date_Mod string `json:"date_mod"`
+		//Date_Mod string `json:"date_mod"`
 	}
 
 	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/glpi_db")
