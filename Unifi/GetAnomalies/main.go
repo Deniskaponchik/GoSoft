@@ -10,11 +10,36 @@ import (
 )
 
 func main() {
-	//bpmServer := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"   //PROD
-	bpmServer := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
-	//unifiController :=  "https://localhost:8443/"
-	//unifiController := "https://10.78.221.142:8443/"  //Rostov
-	unifiController := "https://10.8.176.8:8443/" //Novosib
+
+	bpm := 0
+	var bpmServer string
+	if bpm == 0 {
+		bpmServer = "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //PROD
+	} else {
+		bpmServer = "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
+	}
+
+	unifiController := 2
+	var urlController string
+	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
+	//ROSTOV
+	if unifiController == 10 || unifiController == 11 {
+		bdController = 1
+		if unifiController == 10 {
+			urlController = "https://localhost:8443/"
+		} else {
+			urlController = "https://10.78.221.142:8443/"
+		}
+		//NOVOSIB
+	} else if unifiController == 20 || unifiController == 21 {
+	//else{
+		bdController = 2
+		if unifiController == 20 {
+			urlController = "https://localhost:8443/"
+		} else {
+			urlController = "https: //10.8.176.8:8443/"
+		}
+	}
 
 	countMinute := 0
 	count3minute := 0
@@ -23,10 +48,34 @@ func main() {
 	countHourDB := 0
 	countDay := time.Now().Day()
 
+	srStatusCodesForNewTicket := map[string]bool{
+		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
+		"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
+		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
+		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+	}
+
+	type ForApsTicket struct {
+		site          string
+		countIncident int
+		apMac         string
+		//userLogin     string //не помещаю, чтобы не делать лишних запросов к БД, если заявка НЕ будет создаваться
+		apNames []string //сделано для массовых отключений точек при отключении света в офисе
+	}
+	type ForAnomalyTicket struct {
+		site       string
+		apName     string
+		clientName string
+		noutMac    string
+		//userLogin     string //не помещаю, чтобы не делать лишних запросов к БД, если заявка НЕ будет создаваться
+		corpAnomalies []string
+	}
+
 	//Download MAPs from DB
 	//noutnameLogin :=map[string]string{}     //clientHostName - > userLogin
-	noutnameLogin := DownloadMapFromDB("glpi_db", "name", "contact", "glpi_db.glpi_computers", "date_mod")
+	noutnameLogin := DownloadMapFromDB("glpi_db", "name", "contact", "glpi_db.glpi_computers", bdController, "date_mod")
 	siteApCutNameLogin := DownloadMapFromDB("wifi_db", "site_apcut", "login", "wifi_db.site_apcut_login", "site_apcut")
+
 	//maschineMacName := map[string]string{}   // clientMAC -> clientHostName  // maschineMAC -> maschineHostName
 	maschineMacName := DownloadMapFromDB("wifi_db", "mac", "hostname", "wifi_db.maschine_mac_name", "hostname")
 	//apMacName := map[string]string{}      // apMac -> apName
@@ -37,6 +86,8 @@ func main() {
 	maschineMacSRid := DownloadMapFromDB("wifi_db", "mac", "srid", "wifi_db.maschine_mac_srid", "mac")
 	//apMacSRid := DownloadMapFromDB("wifi_db", "apname", "srid", "wifi_db.ap_name_srid", "apname")
 	apMacSRid := DownloadMapFromDB("wifi_db", "mac", "srid", "wifi_db.ap_mac_srid", "mac")
+	siteapNameForTickets := map[string]ForApsTicket{} //НЕ должна создаваться новая раз в 5 минут, поэтому здесь в отличие от аномальной
+	//siteapNameForTickets := DownloadHardMapFromDB  //НЕ нужно резервировать, не делает погоду
 	/*
 		for k, v := range apnameSRid {
 			//fmt.Printf("key: %d, value: %t\n", k, v)
@@ -45,22 +96,6 @@ func main() {
 	//os.Exit(0)
 	fmt.Println("")
 
-	// Пока без них:
-	type clientT2Corp struct {
-		mac            string
-		hostname       string
-		region         string
-		apName         string
-		anomls         []string
-		srNumber       string
-		srID           string
-		srLink         string
-		countAnomalies int  //сколько раз бы создалась заявка, если бы не стояло ограничение в 1 заявку на пользователя
-		exception      bool //исключить создание обращений по нему, ели нет. 1 -исключить
-	}
-	type ap struct {
-	}
-
 	c := unifi.Config{
 		//c := *unifi.Config{  //ORIGINAL
 		User: "unifi",
@@ -68,7 +103,7 @@ func main() {
 		//URL:  "https://localhost:8443/"
 		//URL:  "https://10.78.221.142:8443/", //ROSTOV
 		//URL: "https://10.8.176.8:8443/", //NOVOSIB
-		URL: unifiController,
+		URL: urlController,
 		// Log with log.Printf or make your own interface that accepts (msg, test_SOAP)
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,
@@ -147,27 +182,30 @@ func main() {
 
 			countMinute = time.Now().Minute()
 
+			//
+			//
 			// блок кода про точки, а уже потом аномалии
 			//if time.Now().Minute()%5 == 0 && time.Now().Minute() != count5minute { //запускается раз в 5 минут
 			if time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute { //запускается раз в 5 минут
 				fmt.Println("Обработка точек доступа...")
+
+				/* ВСЁ это вынес наверх. То же самое, видимо, нужно будет сделать и с аномалиями
 				type ForApsTicket struct {
-					site string
-					//apName string
-					apMac string
+					site          string
+					countIncident int
+					apMac         string
 					//userLogin     string //не помещаю, чтобы не делать лишних запросов к БД, если заявка НЕ будет создаваться
 					apNames []string //сделано для массовых отключений точек при отключении света в офисе
 				}
 				//создаётся локально в блоке раз в 5 минут. Резервировать в БД НЕ нужно
-				siteapNameForTickets := map[string]ForApsTicket{}
-				//sliceForTicket := []ForApsTicket{}
+				//siteapNameForTickets := map[string]ForApsTicket{}
 
 				srStatusCodesForNewTicket := map[string]bool{
 					"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
 					"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
 					"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
 					"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
-				}
+				}*/
 
 				for _, ap := range devices.UAPs {
 					//if ap.SiteName[:len(ap.SiteName)-11] != "Резерв/Склад" {
@@ -192,6 +230,7 @@ func main() {
 							//удалить запись из мапы, предварительно сохранив Srid
 							srID := apMacSRid[ap.Mac]
 							delete(apMacSRid, ap.Mac)
+							//сложной мапы здесь уже нет. И удалять её не нужно и нечего
 
 							//проверить, не последняя ли это запись была в мапе в массиве
 							countOfIncident := 0
@@ -277,7 +316,7 @@ func main() {
 								if !exisSiteName {
 									siteapNameForTickets[siteApCutName] = ForApsTicket{
 										siteName,
-										//ap.Name,
+										0,
 										ap.Mac,
 										[]string{ap.Name},
 									}
@@ -295,6 +334,7 @@ func main() {
 
 											//2.Reassigning the modified struct.
 											v.apNames = append(v.apNames, ap.Name)
+											//Инкрементировать countIncident ? Вроде, нет
 											siteapNameForTickets[k] = v
 										}
 									}
@@ -308,27 +348,40 @@ func main() {
 				fmt.Println("Создание заявок по точкам:")
 				for k, v := range siteapNameForTickets {
 					fmt.Println(k)
-					for _, s := range v.apNames {
-						fmt.Println(s)
-					}
-					//usrLogin := noutnameLogin[v.clientName]
-					usrLogin := siteApCutNameLogin[k]
-					fmt.Println(usrLogin)
 
-					desAps := strings.Join(v.apNames, "\n")
-					description := "Зафиксировано отключение точек:" + "\n" +
-						desAps + "\n" +
-						"" + "\n" +
-						"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
-						"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
-						""
-					incidentType := "Недоступна точка доступа"
+					//Если v.count < 10
+					if v.countIncident < 10 {
+						//обновляем мапу и инкрементируем count
+						v.countIncident++
+						siteapNameForTickets[k] = v
+					} else {
+						//Если count == 10, Создаём заявку
+						for _, s := range v.apNames {
+							fmt.Println(s)
+						}
 
-					//srTicketSlice := CreateApTicket(bpmServer, usrLogin, description, v.site, incidentType)
-					srTicketSlice := CreateSmacWiFiTicket(bpmServer, usrLogin, description, v.site, incidentType)
-					fmt.Println(srTicketSlice[2])
-					apMacSRid[v.apMac] = srTicketSlice[0] //добавить в мапу apMac - ID Тикета
-					fmt.Println("")
+						//usrLogin := noutnameLogin[v.clientName]
+						usrLogin := siteApCutNameLogin[k]
+						fmt.Println(usrLogin)
+
+						desAps := strings.Join(v.apNames, "\n")
+						description := "Зафиксировано отключение точек:" + "\n" +
+							desAps + "\n" +
+							"" + "\n" +
+							"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+							"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+							""
+						incidentType := "Недоступна точка доступа"
+
+						//srTicketSlice := CreateApTicket(bpmServer, usrLogin, description, v.site, incidentType)
+						srTicketSlice := CreateSmacWiFiTicket(bpmServer, usrLogin, description, v.site, incidentType)
+						fmt.Println(srTicketSlice[2])
+						apMacSRid[v.apMac] = srTicketSlice[0] //добавить в мапу apMac - ID Тикета
+						fmt.Println("")
+
+						//Удаляем запись в мапе
+						delete(siteapNameForTickets, k)
+
 				}
 				fmt.Println("")
 
@@ -338,6 +391,8 @@ func main() {
 			//
 			//
 
+			//
+			//
 			//АНОМАЛИИ. Блок кода запустится, если в этот ЧАС он ещё НЕ выполнялся
 			//if time.Now().Minute() == 47 { // Если время 3 минуты от начала часа то блок для аномаоий
 			if time.Now().Hour() != countHourAnom {
@@ -358,6 +413,7 @@ func main() {
 					log.Println(i+1, anomaly.Datetime, anomaly.DeviceMAC, anomaly.Anomaly) //i+1
 				}*/
 
+				/* Вынес наверх
 				type ForAnomalyTicket struct {
 					site       string
 					apName     string
@@ -366,14 +422,12 @@ func main() {
 					//userLogin     string //не помещаю, чтобы не делать лишних запросов к БД, если заявка НЕ будет создаваться
 					corpAnomalies []string
 				}
-
-				//srStatusCodesForNewTicket := []string{
 				srStatusCodesForNewTicket := map[string]bool{
 					"Отменено":     true, //Cancel   6e5f4218-f46b-1410-fe9a-0050ba5d6c38
 					"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
 					"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
 					"На уточнении": true, //Clarification  81e6a1ee-16c1-4661-953e-dde140624fb
-				}
+				}*/
 
 				//mapNoutnameFortickets создаётся локально в блоке аномалий каждый час. Резервировать в БД НЕ нужно
 				mapNoutnameForTickets := map[string]ForAnomalyTicket{} //https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
@@ -495,6 +549,7 @@ func main() {
 							fmt.Println("")
 						}*/
 					}
+					UploadsMapsToDB(maschineMacSRid, "wifi_db", "wifi_db.maschine_mac_srid", "DELETE")
 				}
 				fmt.Println("")
 				countHourAnom = time.Now().Hour()
@@ -506,8 +561,9 @@ func main() {
 				UploadsMapsToDB(maschineMacName, "wifi_db", "wifi_db.maschine_mac_name", "TRUNCATE")
 				UploadsMapsToDB(apMacName, "wifi_db", "wifi_db.ap_mac_name", "TRUNCATE")
 				UploadsMapsToDB(namesClientAp, "wifi_db", "wifi_db.names_mascine_ap", "TRUNCATE")
-				UploadsMapsToDB(maschineMacSRid, "wifi_db", "wifi_db.maschine_mac_srid", "DELETE")
 				UploadsMapsToDB(apMacSRid, "wifi_db", "wifi_db.ap_mac_srid", "DELETE")
+				//UploadsMapsToDB(maschineMacSRid, "wifi_db", "wifi_db.maschine_mac_srid", "DELETE")
+
 				countHourDB = time.Now().Hour()
 			}
 			//Обновление мап раз в сутки

@@ -7,10 +7,68 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"strconv"
 	"strings"
 )
 
-func UploadsMapsToDB(uploadMap map[string]string, dbName string, tableName string, delType string) {
+func UploadsMapsToDBreplace(uploadMap map[string]string, dbName string, tableName string, valueDB string, bdController int8) {
+
+	var datasource string
+	if dbName == "glpi_db" {
+		datasource = "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
+	} else {
+		datasource = "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
+	}
+	db, err := sql.Open("mysql", datasource)
+	if err != nil {
+		panic(err.Error())
+	} // if there is an error opening the connection, handle it
+	defer db.Close() // defer the close till after the main function has finished
+
+	/*заместо DELETE делаем UPDATE
+	var delQuery string
+	if delType == "DELETE" {
+		delQuery = "DELETE FROM " + tableName
+	} else {
+		delQuery = "TRUNCATE TABLE " + tableName
+	}
+	fmt.Println(delQuery)
+	_, err = db.Exec(delQuery)
+	if err != nil {
+		panic(err.Error())
+	}*/
+
+	bdCntrl := strconv.Itoa(int(bdController))
+	//обнуляем ВСЕ значения ключей
+	updateQuery := "UPDATE " + tableName + "SET " + valueDB + " NULL WHERE controller = " + bdCntrl
+	fmt.Println(updateQuery)
+	_, err = db.Exec(updateQuery)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var b bytes.Buffer
+	b.WriteString("INSERT INTO " + tableName + " VALUES ")
+	lenMap := len(uploadMap)
+	count := 0
+	for k, v := range uploadMap {
+		count++
+		// ('k','v','bdCntrl'),
+		if count != lenMap {
+			b.WriteString("('" + k + "','" + v + "','" + bdCntrl + "'),")
+		} else {
+			b.WriteString("('" + k + "','" + v + "','" + bdCntrl + "')") //в конце НЕ ставим запятую
+		}
+	}
+	fmt.Println(b.String())
+	fmt.Println("")
+	_, err = db.Exec(b.String())
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func UploadsMapsToDBdelete(uploadMap map[string]string, dbName string, tableName string, delType string) {
 
 	var datasource string
 	if dbName == "glpi_db" {
@@ -56,7 +114,7 @@ func UploadsMapsToDB(uploadMap map[string]string, dbName string, tableName strin
 	}
 }
 
-func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName string, orderBY string) map[string]string {
+func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName string, bdController int8, orderBY string) map[string]string {
 	m := make(map[string]string)
 
 	type Tag struct {
@@ -78,8 +136,9 @@ func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName st
 	}
 	defer db.Close() // defer the close till after the main function has finished
 
-	queryBefore := "SELECT keyDB, valueDB FROM tableName ORDER BY orderBY DESC"
-	replacer := strings.NewReplacer("keyDB", keyDB, "valueDB", valueDB, "tableName", tableName, "orderBY", orderBY)
+	//bdController = strconv.Itoa(int(bdController))
+	queryBefore := "SELECT keyDB, valueDB FROM tableName WHERE controller = bdController ORDER BY orderBY DESC"
+	replacer := strings.NewReplacer("keyDB", keyDB, "valueDB", valueDB, "tableName", tableName, "bdController", strconv.Itoa(int(bdController)), "orderBY", orderBY)
 	queryAfter := replacer.Replace(queryBefore)
 	fmt.Println(queryAfter)
 
@@ -108,7 +167,8 @@ func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName st
 	return m
 }
 
-func GetUserLogin(siteApCutName string) string {
+func GetLoginAP(siteApCutName string) string {
+	//Единичный запрос для получения логина вк БД уже не использую. Только массовая загрузка/выгрузка в мапы
 	type User struct {
 		//ID   int    `json:"id"`
 		UserLogin string `json:"login"`
@@ -134,7 +194,8 @@ func GetUserLogin(siteApCutName string) string {
 	//return pc.UserName
 }
 
-func GetLogin(pcName string) string {
+func GetLoginPC(pcName string) string {
+	//Единичный запрос для получения логина вк БД уже не использую. Только массовая загрузка/выгрузка в мапы
 	type PC struct {
 		//ID   int    `json:"id"`
 		UserName string `json:"user_name"`
