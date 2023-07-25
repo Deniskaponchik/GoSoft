@@ -12,6 +12,58 @@ import (
 func main() {
 	fmt.Println("")
 
+	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	var urlController string
+	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
+	everyStartCode := map[int]bool{}
+	//ROSTOV
+	if unifiController == 10 || unifiController == 11 {
+		bdController = 1
+		if unifiController == 10 {
+			urlController = "https://localhost:8443/"
+		} else {
+			urlController = "https://10.78.221.142:8443/"
+		}
+		//everyStartCode := [10] int8 {3, 9, 15, 21, 27, 33, 39, 45, 51, 57}
+		everyStartCode = map[int]bool{
+			3:  true,
+			9:  true,
+			15: true,
+			21: true,
+			27: true,
+			33: true,
+			39: true,
+			45: true,
+			51: true,
+			57: true,
+		}
+
+		//NOVOSIB
+	} else if unifiController == 20 || unifiController == 21 {
+		//else{
+		bdController = 2
+		if unifiController == 20 {
+			urlController = "https://localhost:8443/"
+		} else {
+			urlController = "https://10.8.176.8:8443/"
+		}
+		//everyStartCode := [10] int8 {6, 12, 18, 24, 30, 36, 42, 48, 54, 59}
+		everyStartCode = map[int]bool{
+			6:  true,
+			12: true,
+			18: true,
+			24: true,
+			30: true,
+			36: true,
+			42: true,
+			48: true,
+			54: true,
+			59: true,
+		}
+	}
+	fmt.Println("Unifi controller")
+	fmt.Println(urlController)
+
 	bpm := 1 // 0 -PROD; 1 -TEST
 	var soapServer string
 	var bpmUrl string
@@ -26,34 +78,11 @@ func main() {
 	fmt.Println(soapServer)
 	fmt.Println("BPM")
 	fmt.Println(bpmUrl)
-
-	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
-	var urlController string
-	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
-	//ROSTOV
-	if unifiController == 10 || unifiController == 11 {
-		bdController = 1
-		if unifiController == 10 {
-			urlController = "https://localhost:8443/"
-		} else {
-			urlController = "https://10.78.221.142:8443/"
-		}
-		//NOVOSIB
-	} else if unifiController == 20 || unifiController == 21 {
-		//else{
-		bdController = 2
-		if unifiController == 20 {
-			urlController = "https://localhost:8443/"
-		} else {
-			urlController = "https://10.8.176.8:8443/"
-		}
-	}
-	fmt.Println("Unifi controller")
-	fmt.Println(urlController)
+	fmt.Println("")
 
 	//countMinute := 0
-	count3minute := 0
-	//count5minute := 5
+	//count3minute := 0
+	count6minute := 0
 	countHourAnom := 0
 	countHourDB := 0
 	countDay := time.Now().Day()
@@ -137,11 +166,11 @@ func main() {
 	}
 
 	for true { //зацикливаем навечно
-
+		currentMinute := time.Now().Minute()
 		//Снятие показаний с контрллера каждую МИНУТУ. Изменить на 3 минуты на ПРОДе
-		//if time.Now().Minute() != countMinute { //Блок кода запустится, если в эту минуту он ещё НЕ выполнялся
-		if time.Now().Minute() != 0 && time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute { //запускается раз в 3 минут
-			count3minute = time.Now().Minute()
+		//if time.Now().Minute() != 0 && time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute {
+		if currentMinute != 0 && everyStartCode[currentMinute] && currentMinute != count6minute {
+			count6minute = time.Now().Minute()
 
 			sites, err := uni.GetSites()
 			if err != nil {
@@ -537,7 +566,7 @@ func main() {
 			}
 			//} // 3 минутный if про точки
 
-		} //Снятие показаний раз в 3 минуты
+		} //Снятие показаний раз в 6 минут
 		fmt.Println("Sleep 45s")
 		fmt.Println("")
 		time.Sleep(45 * time.Second) //Изменить на 5 секунд на ПРОДе

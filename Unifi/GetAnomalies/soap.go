@@ -14,17 +14,10 @@ import (
 	"net/http"
 )
 
-var (
-// Server = "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"     //PROD
-// Server = "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
-)
-
 func CreateSmacWiFiTicket(
 	bpmServer string, userLogin string, description string, region string, incidentType string) (
 	srSlice []string) {
 
-	//url := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
-	//url := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"   //PROD
 	url := bpmServer
 
 	/*desAps := strings.Join(aps, "\n")
@@ -87,6 +80,15 @@ func CreateSmacWiFiTicket(
 		log.Fatal("Error on dispatching request. ", err.Error())
 		return
 	}
+	//Посмотреть response Body, если понадобится
+	//defer res.Body.Close()
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(b))
+	//os.Exit(0)
+
 	//Вбиваем результат запроса из постмана сюда: https://tool.hiofd.com/en/xml-to-go/
 	type Envelope struct {
 		XMLName xml.Name `xml:"Envelope"`
