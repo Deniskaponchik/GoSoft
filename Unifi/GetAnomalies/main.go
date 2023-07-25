@@ -12,18 +12,18 @@ import (
 func main() {
 	fmt.Println("")
 
-	bpm := 1
-	var bpmServer string
+	bpm := 1 // 0 -PROD; 1 -TEST
+	var soapServer string
 	var bpmUrl string
 	if bpm == 0 {
-		bpmServer = "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //PROD
+		soapServer = "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //PROD
 		bpmUrl = "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 	} else {
-		bpmServer = "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
+		soapServer = "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
 		bpmUrl = "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 	}
 
-	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 	//ROSTOV
@@ -41,7 +41,7 @@ func main() {
 		if unifiController == 20 {
 			urlController = "https://localhost:8443/"
 		} else {
-			urlController = "https: //10.8.176.8:8443/"
+			urlController = "https://10.8.176.8:8443/"
 		}
 	}
 
@@ -206,24 +206,6 @@ func main() {
 			//if time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute { //запускается раз в 3 минуты
 			fmt.Println("Обработка точек доступа...")
 
-			/* ВСЁ это вынес наверх. То же самое, видимо, нужно будет сделать и с аномалиями
-			type ForApsTicket struct {
-				site          string
-				countIncident int
-				apMac         string
-				//userLogin     string //не помещаю, чтобы не делать лишних запросов к БД, если заявка НЕ будет создаваться
-				apNames []string //сделано для массовых отключений точек при отключении света в офисе
-			}
-			//создаётся локально в блоке раз в 5 минут. Резервировать в БД НЕ нужно
-			//siteapNameForTickets := map[string]ForApsTicket{}
-
-			srStatusCodesForNewTicket := map[string]bool{
-				"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-				"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-				"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-				"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
-			}*/
-
 			for _, ap := range devices.UAPs {
 				//fmt.Println(ap.Name)	fmt.Println(ap.SiteID)
 				//if ap.SiteName[:len(ap.SiteName)-11] != "Резерв/Склад" {
@@ -245,7 +227,7 @@ func main() {
 						//ОЧИЩАЕМ мапу, оставляем коммент, ПЫТАЕМСЯ закрыть тикет, если на визировании
 						//оставить комментарий, что точка стала доступна
 						comment := "Точка появилась в сети: " + ap.Name
-						AddComment(bpmServer, apMacSRid[ap.Mac], comment, bpmUrl)
+						AddComment(soapServer, apMacSRid[ap.Mac], comment, bpmUrl)
 
 						//удалить запись из мапы, предварительно сохранив Srid
 						srID := apMacSRid[ap.Mac]
@@ -261,53 +243,14 @@ func main() {
 						}
 						if countOfIncident == 0 {
 							//Пробуем закрыть тикет, только ЕСЛИ он на Визировании
-							sliceTicketStatus := CheckTicketStatus(bpmServer, apMacSRid[ap.Mac]) //получаем статус
+							sliceTicketStatus := CheckTicketStatus(soapServer, apMacSRid[ap.Mac]) //получаем статус
 							if sliceTicketStatus[1] == "На визировании" {
 								//Если статус заявки по-прежнему на Визировании
-								ChangeStatus(bpmServer, srID, "На уточнении")
-								AddComment(bpmServer, srID, "Обращение отменено, т.к. все точки из него появились в сети", bpmUrl)
-								ChangeStatus(bpmServer, srID, "Отменено")
+								ChangeStatus(soapServer, srID, "На уточнении")
+								AddComment(soapServer, srID, "Обращение отменено, т.к. все точки из него появились в сети", bpmUrl)
+								ChangeStatus(soapServer, srID, "Отменено")
 							}
 						}
-
-						/*Точка Недоступна. Заявки нет
-						} else if apLastSeen == 0 && !exisApMacSRid {
-							//Заполняем переменные, которые понадобятся дальше
-							siteName := ap.SiteName[:len(ap.SiteName)-11]
-							//apCutName := ap.Name[:len(ap.Name)3]
-							apCutName := strings.Split(ap.Name, "-")[0]
-							siteApCutName := siteName + apCutName
-
-							//Проверяем и Вносим во временную мапу. Заявка на данном этапе никакая ещё НЕ создаётся
-							_, exisSiteName := siteapNameForTickets[siteName] //проверяем, есть ли siteName в мапе ДЛЯтикетов
-							//for _, ticket := range sliceForTicket {
-
-							//если в мапе дляТикета сайта ещё НЕТ
-							if !exisSiteName {
-								siteapNameForTickets[siteApCutName] = ForApsTicket{
-									//siteName,
-									//ap.Name,
-									ap.Mac,
-									[]string{ap.Name},
-								}
-
-								//если в мапе дляТикета сайт уже есть, добавляем в массив точку
-							} else {
-								//в мапе нельзя просто изменить значение.
-								for k, v := range siteapNameForTickets {
-									if k == siteApCutName {
-										//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
-										//1.Using pointers. не смог победить указатели...
-										//v2 := v
-										//v2.corpAnomalies = append(v2.corpAnomalies, anomaly.Anomaly)
-										//mapNoutnameFortickets[k] = v2
-
-										//2.Reassigning the modified struct.
-										v.apNames = append(v.apNames, ap.Name)
-										siteapNameForTickets[k] = v
-									}
-								}
-							}*/
 
 						//Точка недоступна.
 					} else if apLastSeen == 0 {
@@ -315,15 +258,15 @@ func main() {
 						fmt.Println(ap.Mac)
 						fmt.Println("Точка НЕ доступна")
 						//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
-						checkSlice := CheckTicketStatus(bpmServer, apMacSRid[ap.Mac])
+						checkSlice := CheckTicketStatus(soapServer, apMacSRid[ap.Mac])
 						if srStatusCodesForNewTicket[checkSlice[1]] || !exisApMacSRid {
 							fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ в мапе нет записи")
 							delete(apMacSRid, ap.Mac) //удаляем заявку. если заявки нет - ничего страшного
 
 							//Заполняем переменные, которые понадобятся дальше
-							//fmt.Println(ap.SiteID)
+							fmt.Println(ap.SiteID)
 							var siteName string
-							if ap.SiteID == "6360a823a1a769286dc707f2" {
+							if ap.SiteID == "5e74aaa6a1a76964e770815c" { //6360a823a1a769286dc707f2
 								siteName = "Урал"
 							} else {
 								siteName = ap.SiteName[:len(ap.SiteName)-11]
@@ -355,23 +298,26 @@ func main() {
 								//в мапе нельзя просто изменить значение.
 								for k, v := range siteapNameForTickets {
 									if k == siteApCutName {
-										//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
-										/*1.Using pointers. не смог победить указатели...
-										v2 := v
-										v2.corpAnomalies = append(v2.corpAnomalies, anomaly.Anomaly)
-										mapNoutnameFortickets[k] = v2 */
+										//for _, apMac := range v.apsMac {
+										if !cointains(v.apsMac, ap.Name) { //своя функция contains
+											//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
+											/*1.Using pointers. не смог победить указатели...
+											v2 := v
+											v2.corpAnomalies = append(v2.corpAnomalies, anomaly.Anomaly)
+											mapNoutnameFortickets[k] = v2 */
 
-										//2.Reassigning the modified struct.
-										//v.apNames = append(v.apNames, ap.Name)
-										v.apsMac = append(v.apsMac, ap.Mac)
-										//Инкрементировать countIncident ? Вроде, нет
-										siteapNameForTickets[k] = v
+											//2.Reassigning the modified struct.
+											//v.apNames = append(v.apNames, ap.Name)
+											v.apsMac = append(v.apsMac, ap.Mac)
+											//Инкрементировать countIncident ? Вроде, нет
+											siteapNameForTickets[k] = v
+										}
 									}
 								}
 							}
 						} else {
 							fmt.Println("Созданное обращение:")
-							fmt.Println(bpmUrl + checkSlice[0])
+							fmt.Println(bpmUrl + apMacSRid[ap.Mac])
 							fmt.Println(checkSlice[1])
 						}
 						fmt.Println("")
@@ -383,8 +329,8 @@ func main() {
 			fmt.Println("Создание заявок по точкам:")
 			for k, v := range siteapNameForTickets {
 				fmt.Println(k)
-				v.countIncident++
 				fmt.Println(v.countIncident) //"Число циклов захода на создание заявки: " +
+				v.countIncident++
 
 				//Если v.count < 10
 				if v.countIncident < 10 {
@@ -414,8 +360,8 @@ func main() {
 						""
 					incidentType := "Недоступна точка доступа"
 
-					//srTicketSlice := CreateApTicket(bpmServer, usrLogin, description, v.site, incidentType)
-					srTicketSlice := CreateSmacWiFiTicket(bpmServer, usrLogin, description, v.site, incidentType)
+					//srTicketSlice := CreateApTicket(soapServer, usrLogin, description, v.site, incidentType)
+					srTicketSlice := CreateSmacWiFiTicket(soapServer, usrLogin, description, v.site, incidentType)
 					fmt.Println(srTicketSlice[2])
 
 					//apMacSRid[v.apMac] = srTicketSlice[0] //добавить в мапу apMac - ID Тикета
@@ -454,22 +400,6 @@ func main() {
 				log.Println(len(anomalies), "Anomalies:")
 				for i, anomaly := range anomalies {
 					log.Println(i+1, anomaly.Datetime, anomaly.DeviceMAC, anomaly.Anomaly) //i+1
-				}*/
-
-				/* Вынес наверх
-				type ForAnomalyTicket struct {
-					site       string
-					apName     string
-					clientName string
-					noutMac    string
-					//userLogin     string //не помещаю, чтобы не делать лишних запросов к БД, если заявка НЕ будет создаваться
-					corpAnomalies []string
-				}
-				srStatusCodesForNewTicket := map[string]bool{
-					"Отменено":     true, //Cancel   6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-					"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-					"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-					"На уточнении": true, //Clarification  81e6a1ee-16c1-4661-953e-dde140624fb
 				}*/
 
 				//mapNoutnameFortickets создаётся локально в блоке аномалий каждый час. Резервировать в БД НЕ нужно
@@ -534,7 +464,7 @@ func main() {
 						// Проверяет, есть ли заявка в мапе ClientMacName - ID Тикета
 						srID, existence := machineMacSRid[v.noutMac]
 						//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
-						checkSlice := CheckTicketStatus(bpmServer, srID)
+						checkSlice := CheckTicketStatus(soapServer, srID)
 
 						desAnomalies := strings.Join(v.corpAnomalies, "\n")
 
@@ -559,39 +489,17 @@ func main() {
 							//fmt.Println(description)
 							incidentType := "Плохое качество соединения клиента"
 
-							//srTicketSlice := CreateAnomalyTicket(bpmServer, usrLogin, v.clientName, v.corpAnomalies, v.apName, v.site)
-							srTicketSlice := CreateSmacWiFiTicket(bpmServer, usrLogin, description, v.site, incidentType)
+							//srTicketSlice := CreateAnomalyTicket(soapServer, usrLogin, v.clientName, v.corpAnomalies, v.apName, v.site)
+							srTicketSlice := CreateSmacWiFiTicket(soapServer, usrLogin, description, v.site, incidentType)
 							fmt.Println(srTicketSlice[2])
 							machineMacSRid[v.noutMac] = srTicketSlice[0] //добавить в мапу ClientMac - ID Тикета
 						} else {
 							//Если заявка уже есть, то добавить комментарий с новыми аномалтями
 							comment := "Возникли новые аномалии за последний час:" + "\n" + desAnomalies
-							AddComment(bpmServer, srID, comment, bpmUrl)
+							AddComment(soapServer, srID, comment, bpmUrl)
 							//fmt.Println(comment)
 						}
 						fmt.Println("")
-						/*старый блок кода
-						if existence {
-							//1. Если заявка В МАПЕ есть, проверить её статус
-							statusSlice := CheckTicketStatus(bpmServer, srID)
-							if srStatusCodesForNewTicket[statusSlice[1]] {
-								//2. Если Статус закрыто, решено, отменено завести новую
-								srTicketSlice := CreateAnomalyTicket(bpmServer, usrLogin, v.clientName, v.corpAnomalies, v.apName, v.site)
-								fmt.Println(srTicketSlice[2])
-								machineMacSRid[v.noutMac] = srTicketSlice[0] //добавить в мапу ClientMac - ID Тикета
-								fmt.Println("")
-							} else {
-								//2. Если статус НЕ закрыто, решено, отменено
-								//В случае с аномалиями не делаем ничего
-								//В ветке с точками будет проверка по каждой точке, не поднялась ли + комментарий
-							}
-						} else {
-							//1. Если заявки В МАПЕ НЕТ
-							srTicketSlice := CreateAnomalyTicket(bpmServer, usrLogin, v.clientName, v.corpAnomalies, v.apName, v.site)
-							fmt.Println(srTicketSlice[2])
-							machineMacSRid[v.noutMac] = srTicketSlice[0] //добавить в мапу ClientMac - ID Тикета
-							fmt.Println("")
-						}*/
 					}
 				}
 				//раз в час выполняет код по аномалиям. И БД обновляется в то же время
@@ -631,3 +539,12 @@ func main() {
 	} // while TRUE
 
 } //main func
+
+func cointains(slice []string, compareString string) bool {
+	for _, v := range slice {
+		if v == compareString {
+			return true
+		}
+	}
+	return false
+}

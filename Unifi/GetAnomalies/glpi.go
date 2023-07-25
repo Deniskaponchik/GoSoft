@@ -64,11 +64,15 @@ func UploadMapsToDBreplace(uploadMap map[string]string, dbName string, tableName
 		}
 	}
 	fmt.Println(b.String())
-	fmt.Println("")
-	_, err = db.Exec(b.String())
-	if err != nil {
-		panic(err.Error())
+	if count != 0 {
+		_, err = db.Exec(b.String())
+		if err != nil {
+			panic(err.Error())
+		}
+	} else {
+		fmt.Println("Передана пустая карта. Запрос не выполнен")
 	}
+	fmt.Println("")
 }
 
 func UploadsMapsToDBdelete(uploadMap map[string]string, dbName string, tableName string, delType string) {

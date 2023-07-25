@@ -20,9 +20,9 @@ func main() {
 	newMap["KMS-TECH-07"] = "dsfsdfsdsd"
 	newMap["KMS-TECH-08"] = "dsfsdfsdsd"
 	newMap["KMS-TECH-09"] = "dsfsdfsdsd"
-	UploadsMapsToDB(newMap, "wifi_db", "wifi_db.ap_name_srid", "TRUNCATE")
+	UploadMapsToDB(newMap, "wifi_db", "wifi_db.ap_name_srid", "TRUNCATE")
 }
-func UploadsMapsToDB(uploadMap map[string]string, dbName string, tableName string, delType string) {
+func UploadMapsToDB(uploadMap map[string]string, dbName string, tableName string, delType string) {
 	datasource := ""
 	if dbName == "glpi_db" {
 		datasource = "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
