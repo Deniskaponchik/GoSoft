@@ -226,9 +226,9 @@ func GetLoginPC(pcName string) string {
 	var pc PC
 	err = db.QueryRow("SELECT contact FROM glpi_db.glpi_computers where name = ? ORDER BY date_mod DESC", pcName).Scan(&pc.UserName)
 	// после запятой указываем значение, которое будет подставляться заместо вопроса + ОБЯЗАТЕЛЬНО в Scan использовать &
-
 	if err != nil {
-		panic(err.Error()) // proper error handling instead of panic in your app
+		//panic(err.Error()) // proper error handling instead of panic in your app
+		fmt.Println("В БД нет доступного соответствия имени ПК и логина")
 		return "denis.tirskikh"
 	} else {
 		return pc.UserName

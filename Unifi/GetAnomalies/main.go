@@ -22,8 +22,12 @@ func main() {
 		soapServer = "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
 		bpmUrl = "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 	}
+	fmt.Println("SOAP")
+	fmt.Println(soapServer)
+	fmt.Println("BPM")
+	fmt.Println(bpmUrl)
 
-	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 	//ROSTOV
@@ -44,6 +48,8 @@ func main() {
 			urlController = "https://10.8.176.8:8443/"
 		}
 	}
+	fmt.Println("Unifi controller")
+	fmt.Println(urlController)
 
 	//countMinute := 0
 	count3minute := 0
