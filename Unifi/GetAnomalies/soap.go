@@ -511,14 +511,15 @@ func ChangeStatus(bpmServer string, srID string, NewStatus string) (srNewStatus 
 	return srNewStatus
 }
 
-func AddComment(bpmServer string, srID string, myComment string) {
+func AddComment(bpmServer string, srID string, myComment string, bpmUrl string) {
 	url := bpmServer
 	//srID := "fc0d1340-2ccd-4772-a48f-0f60f5ba753e"
 	userLogin := "denis.tirskikh"
 	//myComment := "Моё первое сервисное сообщение!"
 
 	//Убрать из строки \n
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
+	//strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("srID", srID, "myComment", myComment, "userLogin", userLogin)
 	strAfter := replacer.Replace(strBefore)
 	//fmt.Println(strAfter)
@@ -581,7 +582,7 @@ func AddComment(bpmServer string, srID string, myComment string) {
 
 	if srDateComment != "" {
 		fmt.Println("Оставлен комментарий в ")
-		fmt.Println(bpmServer + srID)
+		fmt.Println(bpmUrl + srID)
 		fmt.Println(srDateComment)
 	} else {
 		fmt.Println("НЕ УДАЛОСЬ оставить комментарий")
