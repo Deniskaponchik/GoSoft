@@ -18,116 +18,122 @@ func CreateSmacWiFiTicket(
 	bpmServer string, userLogin string, description string, region string, incidentType string) (
 	srSlice []string) {
 
-	url := bpmServer
-
-	/*desAps := strings.Join(aps, "\n")
-	description := "Зафиксировано отключение точек:" + "\n" +
-		desAps + "\n" +
-		"" + "\n" +
-		"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
-		"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
-		""
-	//fmt.Println(description)
-	//region := "Москва ЦФ"
-	//incidentType := "Недоступна точка доступа"
-	*/
-	strBefore :=
-		"<soapenv:Envelope " +
-			"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
-			"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
-			"<soapenv:Header/>" +
-			"<soapenv:Body>" +
-			"<bpm:createRequestRequest>" +
-			"<SystemId>5594b877-3bb7-46db-99f5-3c75b3e46556</SystemId>" +
-			"<ServiceId>ed84a37f-4b31-4dab-85fe-ba4fe87325b1</ServiceId>" +
-			"<Subject>Description</Subject>" +
-			"<UserName>UserLogin</UserName>" +
-			"<RequestType>Request</RequestType>" +
-			"<Priority>Normal</Priority>" +
-			"<Filds>" +
-			"<ID>5c8dee23-e48a-45bc-a084-573e1a6cc5ca</ID>" +
-			"<Value>Region</Value>" +
-			"</Filds>" +
-			"<Filds>" +
-			"<ID>bde054e7-2b91-41c1-abba-2dcbe3a8f3f4</ID>" +
-			"<Value>incidentType</Value>" +
-			"</Filds>" +
-			"</bpm:createRequestRequest>" +
-			"</soapenv:Body>" +
-			"</soapenv:Envelope>"
-	//replacer := strings.NewReplacer("Description", "My des", "UserLogin", "denis.tirskikh", "Region", "Москва ЦФ")
-	replacer := strings.NewReplacer("Description", description, "UserLogin", userLogin, "incidentType", incidentType, "Region", region)
-	strAfter := replacer.Replace(strBefore)
-	//fmt.Println(strAfter)
-	payload := []byte(strAfter)
-	//os.Exit(0)
-	httpMethod := "POST"
-	req, err :=
-		http.NewRequest(httpMethod, url, bytes.NewReader(payload))
-	if err != nil {
-		log.Fatal("Error on creating request object. ", err.Error())
-		return
-	}
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
+	if userLogin != "" {
+		url := bpmServer
+		/*desAps := strings.Join(aps, "\n")
+		description := "Зафиксировано отключение точек:" + "\n" +
+			desAps + "\n" +
+			"" + "\n" +
+			"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+			"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+			""
+		//fmt.Println(description)
+		//region := "Москва ЦФ"
+		//incidentType := "Недоступна точка доступа"
+		*/
+		strBefore :=
+			"<soapenv:Envelope " +
+				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"<soapenv:Header/>" +
+				"<soapenv:Body>" +
+				"<bpm:createRequestRequest>" +
+				"<SystemId>5594b877-3bb7-46db-99f5-3c75b3e46556</SystemId>" +
+				"<ServiceId>ed84a37f-4b31-4dab-85fe-ba4fe87325b1</ServiceId>" +
+				"<Subject>Description</Subject>" +
+				"<UserName>UserLogin</UserName>" +
+				"<RequestType>Request</RequestType>" +
+				"<Priority>Normal</Priority>" +
+				"<Filds>" +
+				"<ID>5c8dee23-e48a-45bc-a084-573e1a6cc5ca</ID>" +
+				"<Value>Region</Value>" +
+				"</Filds>" +
+				"<Filds>" +
+				"<ID>bde054e7-2b91-41c1-abba-2dcbe3a8f3f4</ID>" +
+				"<Value>incidentType</Value>" +
+				"</Filds>" +
+				"</bpm:createRequestRequest>" +
+				"</soapenv:Body>" +
+				"</soapenv:Envelope>"
+		//replacer := strings.NewReplacer("Description", "My des", "UserLogin", "denis.tirskikh", "Region", "Москва ЦФ")
+		replacer := strings.NewReplacer("Description", description, "UserLogin", userLogin, "incidentType", incidentType, "Region", region)
+		strAfter := replacer.Replace(strBefore)
+		//fmt.Println(strAfter)
+		payload := []byte(strAfter)
+		//os.Exit(0)
+		httpMethod := "POST"
+		req, err :=
+			http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		if err != nil {
+			log.Fatal("Error on creating request object. ", err.Error())
+			return
+		}
+		client := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true,
+				},
 			},
-		},
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		log.Fatal("Error on dispatching request. ", err.Error())
-		return
-	}
-	//Посмотреть response Body, если понадобится
-	//defer res.Body.Close()
-	b, err := io.ReadAll(res.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Println(string(b))
-	//os.Exit(0)
+		}
+		res, err := client.Do(req)
+		if err != nil {
+			log.Fatal("Error on dispatching request. ", err.Error())
+			return
+		}
+		/*Посмотреть response Body, если понадобится
+		defer res.Body.Close()
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Println(string(b))
+		//os.Exit(0)
+		*/
 
-	//Вбиваем результат запроса из постмана сюда: https://tool.hiofd.com/en/xml-to-go/
-	type Envelope struct {
-		XMLName xml.Name `xml:"Envelope"`
-		Text    string   `xml:",chardata"`
-		SOAPENV string   `xml:"SOAP-ENV,attr"`
-		Body    struct {
-			Text                  string `xml:",chardata"`
-			BerNs0                string `xml:"ber-ns0,attr"`
-			CreateRequestResponse struct {
-				Text       string `xml:",chardata"`
-				Code       string `xml:"Code"`
-				ID         string `xml:"ID"`
-				Number     string `xml:"Number"`
-				SystemName string `xml:"SystemName"`
-			} `xml:"createRequestResponse"`
-		} `xml:"Body"`
-	}
-	// Смог победить только через unmarshal. Кривенько косо, но работает и куча времени угрохано даже на это
-	//res := &MyRespEnvelope{}
-	envelope := &Envelope{}
-	bodyByte, err := io.ReadAll(res.Body)
-	error := xml.Unmarshal(bodyByte, envelope)
-	if error != nil {
-		log.Fatalln(err)
-	}
+		//Вбиваем результат запроса из постмана сюда: https://tool.hiofd.com/en/xml-to-go/
+		type Envelope struct {
+			XMLName xml.Name `xml:"Envelope"`
+			Text    string   `xml:",chardata"`
+			SOAPENV string   `xml:"SOAP-ENV,attr"`
+			Body    struct {
+				Text                  string `xml:",chardata"`
+				BerNs0                string `xml:"ber-ns0,attr"`
+				CreateRequestResponse struct {
+					Text       string `xml:",chardata"`
+					Code       string `xml:"Code"`
+					ID         string `xml:"ID"`
+					Number     string `xml:"Number"`
+					SystemName string `xml:"SystemName"`
+				} `xml:"createRequestResponse"`
+			} `xml:"Body"`
+		}
+		// Смог победить только через unmarshal. Кривенько косо, но работает и куча времени угрохано даже на это
+		//res := &MyRespEnvelope{}
+		envelope := &Envelope{}
+		bodyByte, err := io.ReadAll(res.Body)
+		error := xml.Unmarshal(bodyByte, envelope)
+		if error != nil {
+			log.Fatalln(err)
+		}
 
-	srID := envelope.Body.CreateRequestResponse.ID
-	srNumber := envelope.Body.CreateRequestResponse.Number
-	var bpmLink string
-	if bpmServer == "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" {
-		bpmLink = "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/" + srID
+		srID := envelope.Body.CreateRequestResponse.ID
+		srNumber := envelope.Body.CreateRequestResponse.Number
+		var bpmLink string
+		if bpmServer == "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" {
+			bpmLink = "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/" + srID
+		} else {
+			bpmLink = "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/" + srID
+		}
+
+		srSlice = append(srSlice, srID)
+		srSlice = append(srSlice, srNumber)
+		srSlice = append(srSlice, bpmLink)
+		//return srNumber, srID, bpmLink
 	} else {
-		bpmLink = "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/" + srID
+		srSlice = append(srSlice, "Заявка не была создана. User Login пустой")
+		srSlice = append(srSlice, "Заявка не была создана. User Login пустой")
+		srSlice = append(srSlice, "Заявка не была создана. User Login пустой")
 	}
-
-	srSlice = append(srSlice, srID)
-	srSlice = append(srSlice, srNumber)
-	srSlice = append(srSlice, bpmLink)
-	//return srNumber, srID, bpmLink
 	return srSlice
 }
 

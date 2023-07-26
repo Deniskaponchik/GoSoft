@@ -80,15 +80,15 @@ func mainCreateZabbixTicket() {
 		return
 	}
 	//Посмотреть response Body, если понадобится
-	/*
-		defer res.Body.Close()
-		b, err := io.ReadAll(res.Body)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		fmt.Println(string(b))
-		//os.Exit(0)
-	*/
+	//
+	defer res.Body.Close()
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(b))
+	//os.Exit(0)
+
 	//Вбиваем результат из постмана сюда
 	//https://tool.hiofd.com/en/xml-to-go/
 	type Envelope struct {

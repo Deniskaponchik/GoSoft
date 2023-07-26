@@ -12,7 +12,7 @@ import (
 func main() {
 	fmt.Println("")
 
-	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 	everyStartCode := map[int]bool{}
@@ -167,7 +167,7 @@ func main() {
 
 	for true { //зацикливаем навечно
 		currentMinute := time.Now().Minute()
-		//Снятие показаний с контрллера каждую МИНУТУ. Изменить на 3 минуты на ПРОДе
+		//Снятие показаний с контрллера каждые 6 минут
 		//if time.Now().Minute() != 0 && time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute {
 		if currentMinute != 0 && everyStartCode[currentMinute] && currentMinute != count6minute {
 			count6minute = time.Now().Minute()
@@ -247,8 +247,10 @@ func main() {
 				//if ap.SiteID != "5f2285f3a1a7693ae6139c00" { //NOVOSIB
 				if !sitesException[ap.SiteID] {
 
-					//fmt.Println(ap.Name)  fmt.Println(ap.SiteName)  fmt.Println(ap.SiteID)
-					apLastSeen := ap.LastSeen.Int()
+					//fmt.Println(ap.Name)	fmt.Println(ap.Uptime.Int())  fmt.Println(ap.Uptime.String()) fmt.Println(ap.Uptime.Val) 	fmt.Println(ap.Uptime.Txt)
+
+					//apLastSeen := ap.LastSeen.Int()
+					apLastSeen := ap.Uptime.Int()
 					_, exisApMacSRid := apMacSRid[ap.Mac]
 
 					//Точка доступна. Заявки нет.
@@ -408,9 +410,6 @@ func main() {
 					//Удаляем запись в мапе
 					delete(siteapNameForTickets, k)
 				}
-				//fmt.Println("")
-				//count5minute = time.Now().Minute()
-				//count3minute = time.Now().Minute()
 			}
 			//
 			//

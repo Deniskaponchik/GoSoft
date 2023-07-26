@@ -39,7 +39,7 @@ func UploadMapsToDBreplace(uploadMap map[string]string, dbName string, tableName
 	}*/
 
 	bdCntrl := strconv.Itoa(int(bdController))
-	//Если передаём параметр valueDB, значит хотим обнулить это поле. Акутально для таблиц с номерами заявок
+	//Если передаём параметр valueDB, значит хотим обнулить это поле. Актуально для таблиц с номерами заявок
 	if valueDB != "" {
 		//обнуляем ВСЕ значения ключей
 		updateQuery := "UPDATE " + tableName + " SET " + valueDB + " = NULL WHERE controller = " + bdCntrl
