@@ -80,8 +80,6 @@ func main() {
 	fmt.Println(bpmUrl)
 	fmt.Println("")
 
-	//countMinute := 0
-	//count3minute := 0
 	count6minute := 0
 	countHourAnom := 0
 	countHourDB := 0
@@ -102,12 +100,24 @@ func main() {
 		//"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 	}
 
+	type ApMyStruct struct {
+		name      string
+		exception int
+		srID      string
+	}
 	type ForApsTicket struct {
 		site          string
 		countIncident int
 		apsMac        []string
-		//apMac         string
+		//apMac       string
 		//apNames []string //сделано для массовых отключений точек при отключении света в офисе
+	}
+
+	type MachineMyStruct struct {
+		hostname  string
+		exception int
+		srid      string
+		apName    string
 	}
 	type ForAnomalyTicket struct {
 		site       string
@@ -123,19 +133,27 @@ func main() {
 	//noutnameLogin :=map[string]string{}     //clientHostName - > userLogin
 	//noutnameLogin := DownloadMapFromDB("glpi_db", "name", "contact", "glpi_db.glpi_computers", 0, "date_mod")
 	siteApCutNameLogin := DownloadMapFromDB("wifi_db", "site_apcut", "login", "wifi_db.site_apcut_login", 0, "site_apcut")
+	siteapNameForTickets := map[string]ForApsTicket{} //НЕ должна создаваться новая раз в 5 минут, поэтому здесь в отличие от аномальной
+	//siteapNameForTickets := DownloadHardMapFromDB  //НЕ нужно резервировать, не делает погоду
 
-	//machineMacName := map[string]string{}   // clientMAC -> clientHostName  // machineMAC -> machineHostName
-	machineMacName := DownloadMapFromDB("wifi_db", "mac", "hostname", "wifi_db.machine_mac_name", bdController, "hostname")
-	//apMacName := map[string]string{}      // apMac -> apName
-	apMacName := DownloadMapFromDB("wifi_db", "mac", "name", "wifi_db.ap_mac_name", bdController, "name")
 	//namesClientAps := map[string]string{} // clientName -> apName
 	namesClientAp := DownloadMapFromDB("wifi_db", "machine_name", "ap_name", "wifi_db.names_machine_ap", bdController, "machine_name")
+
+	apMyMap := map[string]ApMyStruct{}
+	apMyMap := DownloadMapFromDBstruct()
+	machineMyMap := map[string]MachineMyStruct{}
+	machineMyMap := DownloadMapFromDBstruct()
+
+	//apMacName := map[string]string{}      // apMac -> apName
+	apMacName := DownloadMapFromDB("wifi_db", "mac", "name", "wifi_db.ap_mac_name", bdController, "name")
+	//machineMacName := map[string]string{}   // clientMAC -> clientHostName  // machineMAC -> machineHostName
+	machineMacName := DownloadMapFromDB("wifi_db", "mac", "hostname", "wifi_db.machine_mac_name", bdController, "hostname")
+
 	//machineMacSRid := DownloadMapFromDB("wifi_db", "hostname", "srid", "wifi_db.mascine_name_srid", "hostname")
 	machineMacSRid := DownloadMapFromDB("wifi_db", "mac", "srid", "wifi_db.machine_mac_srid", bdController, "mac")
 	//apMacSRid := DownloadMapFromDB("wifi_db", "apname", "srid", "wifi_db.ap_name_srid", "apname")
 	apMacSRid := DownloadMapFromDB("wifi_db", "mac", "srid", "wifi_db.ap_mac_srid", bdController, "mac")
-	siteapNameForTickets := map[string]ForApsTicket{} //НЕ должна создаваться новая раз в 5 минут, поэтому здесь в отличие от аномальной
-	//siteapNameForTickets := DownloadHardMapFromDB  //НЕ нужно резервировать, не делает погоду
+
 	/*
 		for k, v := range noutnameLogin {
 			//fmt.Printf("key: %d, value: %t\n", k, v)
@@ -167,7 +185,7 @@ func main() {
 
 	for true { //зацикливаем навечно
 		currentMinute := time.Now().Minute()
-		//Снятие показаний с контрллера каждые 6 минут
+		//Снятие показаний с контрллера раз в 6 минут. промежутки разные для контроллеров
 		//if time.Now().Minute() != 0 && time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute {
 		if currentMinute != 0 && everyStartCode[currentMinute] && currentMinute != count6minute {
 			count6minute = time.Now().Minute()
@@ -189,9 +207,29 @@ func main() {
 			}*/
 			// Добавляем маки и имена точек в apMacName map
 			for _, uap := range devices.UAPs {
+				/*apMacName[uap.Mac] = uap.Name //информация понадобится в следующем блоке для соответствия имён точек и клиентов
+				//Убираю. делал, видимо, когда был зелёным
 				_, existence := apMacName[uap.Mac] //проверяем, есть ли мак в мапе
 				if !existence {
 					apMacName[uap.Mac] = uap.Name
+				}*/
+				//
+				_, exisApMyMap := apMyMap[uap.Mac]
+				//если в мапе нет записи, создаём
+				if !exisApMyMap {
+					apMyMap[uap.Mac] = ApMyStruct{
+						uap.Name,
+						0,
+						"",
+					}
+				} else {
+					for k, v := range apMyMap {
+						if k == uap.Mac {
+							v.name = uap.Name
+							apMyMap[k] = v
+							break
+						}
+					}
 				}
 			}
 			/*Вывести apMacName мапу на экран
@@ -204,40 +242,60 @@ func main() {
 			if err != nil {
 				log.Fatalln("Error:", err)
 			}
-			/* ORIGINAL
-			log.Println(len(clients), "Clients connected:")
-			for i, client := range clients {
-				log.Println(i+1, client.SiteName, client.IsGuest.Val, client.Mac, client.Hostname, client.IP, client.LastSeen, client.Anomalies) //i+1
-			}*/
+			var apName string
 			for _, client := range clients {
 				if !client.IsGuest.Val {
+					/* Старый блок кода, когда у меня было куча мап
+					//client.ApName показывает не то, что можно подумать
 					//siteName := client.SiteName[:len(client.SiteName)-11]
 					apName := apMacName[client.ApMac]
-					//fmt.Println(siteName, apName, client.Hostname, client.Mac, client.IP)
-
+					//в apName заносим имя точки, взятое из мапы apMacName, на основании client.ApMac
 					//Обновление мапы clientMAC-clientHOST
 					machineMacName[client.Mac] = client.Hostname //Добавить КОРП клиентов в map
 					namesClientAp[client.Name] = apName          //Добавить Соответсвие имён клиентов и точек
+					*/
+					apMac := client.ApMac
+					clientMac := client.Mac
+					//пробегаемся по всей мапе точек и получаем имя соответствию мака
+					for k, v := range apMyMap {
+						if k == apMac {
+							apName = v.name
+							//пробегаемся по всей мапе клиентов и назначаем имя точки клиенту
+							_, exisNoutMyMap := machineMyMap[clientMac]
+							if !exisNoutMyMap { //если запись клиента НЕ создана
+								machineMyMap[clientMac] = MachineMyStruct{
+									client.Name,
+									0,
+									"",
+									apName,
+								}
+							} else { //если запись клиента создана, обновляем её
+								for ke, va := range machineMyMap {
+									if ke == client.Mac {
+										va.apName = apName
+										break //прекращаем цикл, когда найден клиент и имя точки присвоено ему
+									}
+								}
+							}
+							break //прекращаем цикл, когда найден мак точки
+						}
+					}
 				}
 			}
 			/*Вывести machineMacName мапу на экран
 			for k, v := range machineMacName {
 				//fmt.Printf("key: %d, value: %t\n", k, v)
 				fmt.Println(k, v)
-			}*/
-			/*Вывести соответсвие имён клиентов и имён точек на экран
+			}
+			//Вывести соответсвие имён клиентов и имён точек на экран
 			for k, v := range namesClientAps {
 				//fmt.Printf("key: %d, value: %t\n", k, v)
 				fmt.Println(k, v)
 			}*/
-			//
-			//countMinute = time.Now().Minute()
-			//
 
 			//
 			//
 			// блок кода про точки, а уже потом аномалии
-			//if time.Now().Minute()%5 == 0 && time.Now().Minute() != count5minute { //запускается раз в 5 минут
 			//if time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute { //запускается раз в 3 минуты
 			fmt.Println("Обработка точек доступа...")
 
@@ -245,18 +303,18 @@ func main() {
 				//fmt.Println(ap.Name)	fmt.Println(ap.SiteID)
 				//if ap.SiteName[:len(ap.SiteName)-11] != "Резерв/Склад" {
 				//if ap.SiteID != "5f2285f3a1a7693ae6139c00" { //NOVOSIB
-				if !sitesException[ap.SiteID] {
+				if !sitesException[ap.SiteID] { // НЕ Резерв/Склад
 
 					//fmt.Println(ap.Name)	fmt.Println(ap.Uptime.Int())  fmt.Println(ap.Uptime.String()) fmt.Println(ap.Uptime.Val) 	fmt.Println(ap.Uptime.Txt)
 
-					//apLastSeen := ap.LastSeen.Int()
 					apLastSeen := ap.Uptime.Int()
-					_, exisApMacSRid := apMacSRid[ap.Mac]
+					//_, exisApMacSRid := apMacSRid[ap.Mac]
 
 					//Точка доступна. Заявки нет.
 					if apLastSeen != 0 && !exisApMacSRid {
 						//Идём дальше
 						//fmt.Println("Точка доступна. Заявки нет")
+						//
 
 						//Точка доступна. Заявка есть
 					} else if apLastSeen != 0 && exisApMacSRid {
@@ -348,6 +406,7 @@ func main() {
 											v.apsMac = append(v.apsMac, ap.Mac)
 											//Инкрементировать countIncident ? Вроде, нет
 											siteapNameForTickets[k] = v
+											// ЗДЕСЬ break НЕ НУЖЕН!
 										}
 									}
 								}
