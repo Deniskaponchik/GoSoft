@@ -138,8 +138,59 @@ func UploadsMapsToDBdelete(uploadMap map[string]string, dbName string, tableName
 	}
 }
 
-//
-//
+func DownloadMapFromDBmachines(bdController int8) map[string]MachineMyStruct {
+	type TagMachine struct {
+		Mac        string `json:"mac"`
+		Name       string `json:"name"`
+		Controller int    `json:"controller"`
+		Exception  int    `json:"exception"`
+		SrID       string `json:"srid"`
+		ApName     string `json:"apname"`
+	}
+
+	//var ap ApMyStruct
+	//var machine MachineMyStruct
+	m := make(map[string]MachineMyStruct)
+
+	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/it_support_db")
+	//db, err := sql.Open("mysql", datasource)
+	if err != nil {
+		log.Print(err.Error())
+	}
+	defer db.Close() // defer the close till after the main function has finished
+
+	queryAfter := "SELECT * FROM it_support_db.machine WHERE controller = " + strconv.Itoa(int(bdController))
+	fmt.Println(queryAfter)
+
+	results, err := db.Query(queryAfter)
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+	}
+
+	for results.Next() {
+		var tag TagMachine
+		//err = results.Scan(&tag.ID, &tag.Name)
+		err = results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID, &tag.ApName)
+		if err != nil {
+			panic(err.Error()) // proper error handling instead of panic in your app
+		}
+		//fmt.Println(tag.KeyDB.String, tag.ValueDB.String)
+		//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
+		m[tag.Mac] = MachineMyStruct{
+			tag.Name,
+			tag.Exception,
+			tag.SrID,
+			tag.ApName,
+		}
+	}
+	results.Close()
+	/*
+		fmt.Println("Вывод мапы ВНУТРИ функции")
+		for k, v := range m {
+			fmt.Println("innerMap "+k, v.Hostname, v.Exception, v.SrID, v.ApName)
+		}*/
+	return m
+}
 
 func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 	type TagAp struct {
@@ -168,22 +219,16 @@ func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 	if err != nil {
 		panic(err.Error()) // proper error handling instead of panic in your app
 	}
-	/*
-		var maс string
-		var name string
-		var controller string
-		var exception int8
-		var srid string
-	*/
+
 	for results.Next() {
 		var tag TagAp
 		//err = results.Scan(&tag.ID, &tag.Name)
-		err = results.Scan(&tag.Mac, &tag.Name, &tag.Exception, &tag.SrID)
+		err = results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
 		if err != nil {
 			panic(err.Error()) // proper error handling instead of panic in your app
 		}
 		//fmt.Println(tag.KeyDB.String, tag.ValueDB.String)
-		fmt.Println(tag.Mac, tag.Name, tag.Exception, tag.SrID)
+		//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
 		m[tag.Mac] = ApMyStruct{
 			tag.Name,
 			tag.Exception,
@@ -191,9 +236,11 @@ func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 		}
 	}
 	results.Close()
-	for k, v := range m {
-		fmt.Println("newMap "+k, v.Name, v.Exception, v.SrID)
-	}
+	/*
+		fmt.Println("Вывод мапы ВНУТРИ функции")
+		for k, v := range m {
+			fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+		}*/
 	return m
 }
 

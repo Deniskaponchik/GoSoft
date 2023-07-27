@@ -14,7 +14,7 @@ import (
 func main() {
 	fmt.Println("")
 
-	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 	everyStartCode := map[int]bool{}
@@ -103,38 +103,38 @@ func main() {
 	}
 
 	//Download MAPs from DB
-	apMyMap := map[string]ApMyStruct{}
-	apMyMap := DownloadMapFromDBstruct()
-	machineMyMap := map[string]MachineMyStruct{}
-	machineMyMap := DownloadMapFromDBstruct()
-
+	//apMyMap := map[string]ApMyStruct{}
+	apMyMap := DownloadMapFromDBaps(bdController)
+	//machineMyMap := map[string]MachineMyStruct{}
+	machineMyMap := DownloadMapFromDBmachines(bdController)
+	//siteApCutNameLogin := map[string]string{}
+	siteApCutNameLogin := DownloadMapFromDB("it_support_db", "site_apcut", "login", "it_support_db.site_apcut_login", 0, "site_apcut")
+	siteapNameForTickets := map[string]ForApsTicket{} //НЕ должна создаваться новая раз в 5 минут, поэтому здесь в отличие от аномальной
+	//fmt.Println("Вывод мапы СНАРУЖИ функции")
+	/*
+		for k, v := range siteApCutNameLogin {
+			//fmt.Printf("key: %d, value: %t\n", k, v)
+			fmt.Println("newMap "+k, v)
+		}
+		os.Exit(0)
+	*/
 	/*Старая загрузка мап из БД
 	//Выгружает только 4500 записей из 10000. отключаю. Проще делать разовый запрос по паре клиентов раз в час.
 	//noutnameLogin :=map[string]string{}     //clientHostName - > userLogin
 	//noutnameLogin := DownloadMapFromDB("glpi_db", "name", "contact", "glpi_db.glpi_computers", 0, "date_mod")
-	siteApCutNameLogin := DownloadMapFromDB("wifi_db", "site_apcut", "login", "wifi_db.site_apcut_login", 0, "site_apcut")
-	siteapNameForTickets := map[string]ForApsTicket{} //НЕ должна создаваться новая раз в 5 минут, поэтому здесь в отличие от аномальной
 	//siteapNameForTickets := DownloadHardMapFromDB  //НЕ нужно резервировать, не делает погоду
-
 	//namesClientAps := map[string]string{} // clientName -> apName
 	namesClientAp := DownloadMapFromDB("wifi_db", "machine_name", "ap_name", "wifi_db.names_machine_ap", bdController, "machine_name")
-
 	//apMacName := map[string]string{}      // apMac -> apName
 	apMacName := DownloadMapFromDB("wifi_db", "mac", "name", "wifi_db.ap_mac_name", bdController, "name")
 	//machineMacName := map[string]string{}   // clientMAC -> clientHostName  // machineMAC -> machineHostName
 	machineMacName := DownloadMapFromDB("wifi_db", "mac", "hostname", "wifi_db.machine_mac_name", bdController, "hostname")
-
 	//machineMacSRid := DownloadMapFromDB("wifi_db", "hostname", "srid", "wifi_db.mascine_name_srid", "hostname")
 	machineMacSRid := DownloadMapFromDB("wifi_db", "mac", "srid", "wifi_db.machine_mac_srid", bdController, "mac")
 	//apMacSRid := DownloadMapFromDB("wifi_db", "apname", "srid", "wifi_db.ap_name_srid", "apname")
 	apMacSRid := DownloadMapFromDB("wifi_db", "mac", "srid", "wifi_db.ap_mac_srid", bdController, "mac")
 	*/
-	/*
-		for k, v := range noutnameLogin {
-			//fmt.Printf("key: %d, value: %t\n", k, v)
-			fmt.Println("newMap "+k, v)
-		}*/
-	//os.Exit(0)
+
 	fmt.Println("")
 	//
 	//
@@ -470,7 +470,7 @@ func main() {
 					apName := client.ApName //НИЧЕГо не выводит и не содержит...
 					clientMac := client.Mac
 					clientName := client.Name
-					var clExInt int8
+					var clExInt int
 					if client.Noted.Val {
 						clientExceptionStr := strings.Split(client.Note, " ")[0]
 						if clientExceptionStr == "Exception" {
@@ -814,7 +814,7 @@ type ForApsTicket struct {
 
 type MachineMyStruct struct {
 	Hostname  string
-	Exception int8
+	Exception int
 	SrID      string
 	ApName    string
 }
