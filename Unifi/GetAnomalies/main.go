@@ -102,20 +102,20 @@ func main() {
 
 	type ApMyStruct struct {
 		name      string
-		exception int
+		exception int //Это исключение НЕ для заявок по Точкам, а для Аномалий!!!
 		srID      string
 	}
 	type ForApsTicket struct {
 		site          string
 		countIncident int
-		apsMac        []string
-		//apMac       string
+		//apsMac        []string
+		apsMacName map[string]string
 		//apNames []string //сделано для массовых отключений точек при отключении света в офисе
 	}
 
 	type MachineMyStruct struct {
 		hostname  string
-		exception int
+		exception int8
 		srid      string
 		apName    string
 	}
@@ -205,44 +205,290 @@ func main() {
 			for i, uap := range devices.UAPs {
 				log.Println(i+1, uap.Name, uap.IP, uap.Mac)
 			}*/
-			// Добавляем маки и имена точек в apMacName map
+
+			/* Блок кода, оставшийся от предков
+			//Добавляем маки и имена точек в apMacName map
 			for _, uap := range devices.UAPs {
-				/*apMacName[uap.Mac] = uap.Name //информация понадобится в следующем блоке для соответствия имён точек и клиентов
+				apMacName[uap.Mac] = uap.Name //информация понадобится в следующем блоке для соответствия имён точек и клиентов
 				//Убираю. делал, видимо, когда был зелёным
 				_, existence := apMacName[uap.Mac] //проверяем, есть ли мак в мапе
 				if !existence {
 					apMacName[uap.Mac] = uap.Name
-				}*/
-				//
-				_, exisApMyMap := apMyMap[uap.Mac]
-				//если в мапе нет записи, создаём
-				if !exisApMyMap {
-					apMyMap[uap.Mac] = ApMyStruct{
-						uap.Name,
-						0,
-						"",
-					}
-				} else {
-					for k, v := range apMyMap {
-						if k == uap.Mac {
-							v.name = uap.Name
-							apMyMap[k] = v
-							break
-						}
-					}
 				}
-			}
+			}*/
 			/*Вывести apMacName мапу на экран
 			for k, v := range apMacName {
 				//fmt.Printf("key: %d, value: %t\n", k, v)
 				fmt.Println(k, v)
 			}*/
 
+			//
+			// обработка точек
+			//if time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute { //запускается раз в 3 минуты
+			fmt.Println("Обработка точек доступа...")
+
+			for _, ap := range devices.UAPs {
+				siteID := ap.SiteID
+				//fmt.Println(ap.Name)	fmt.Println(ap.SiteID)
+				//if ap.SiteName[:len(ap.SiteName)-11] != "Резерв/Склад" {
+				//if ap.SiteID != "5f2285f3a1a7693ae6139c00" { //NOVOSIB
+				if !sitesException[siteID] { // НЕ Резерв/Склад
+
+					apMac := ap.Mac
+					apName := ap.Name
+					apLastSeen := ap.Uptime.Int()
+					//fmt.Println(ap.Name)	fmt.Println(ap.Uptime.Int())  fmt.Println(ap.Uptime.String()) fmt.Println(ap.Uptime.Val)
+
+					//_, exisApMacSRid := apMacSRid[ap.Mac]
+					_, exisApMyMap := apMyMap[apMac]
+					//если в мапе нет записи, создаём
+					if !exisApMyMap {
+						apMyMap[apMac] = ApMyStruct{
+							apName,
+							0,
+							"",
+						}
+					}
+					/*else {  //случай, когда запись в мапе уже создана, думаю, можно упустить в пользу того,
+								//чтобы обновить данные с чем-нибудь другим далее ниже. Только ВСПОМНИТЬ ОБНОВИТь!!!
+						for k, v := range apMyMap {
+							if k == ap.Mac {
+								v.name = ap.Name
+								apMyMap[k] = v
+								break
+							}
+						}
+					}*/
+
+					for keyAp, valueAp := range apMyMap {
+						if keyAp == apMac {
+							srID := valueAp.srID
+
+							//Точка доступна. Заявки нет.
+							//if apLastSeen != 0 && !exisApMy {
+							if apLastSeen != 0 && valueAp.srID == "" {
+								//fmt.Println("Точка доступна. Заявки нет. Идём дальше")
+								//
+
+								//Точка доступна. Заявка есть.   +Имя точки обновляю
+								//} else if apLastSeen != 0 && exisApMacSRid {
+							} else if apLastSeen != 0 && srID != "" {
+								fmt.Println("Точка доступна. Заявка есть")
+								//Оставляем коммент, Очищаем запись в мапе, ПЫТАЕМСЯ закрыть тикет, если на визировании
+
+								//comment := "Точка появилась в сети: " + ap.Name
+								comment := "Точка появилась в сети: " + apName
+								//AddComment(soapServer, apMacSRid[ap.Mac], comment, bpmUrl)
+								AddComment(soapServer, srID, comment, bpmUrl)
+
+								/*удалить запись из мапы, предварительно сохранив Srid
+								srID := apMacSRid[ap.Mac]
+								delete(apMacSRid, ap.Mac)
+								//сложной мапы здесь уже нет. И удалять её не нужно и нечего
+								*/
+								//удалить запись из мапы, заодно и имя обновим
+								valueAp.name = apName
+								valueAp.srID = ""
+								apMyMap[keyAp] = valueAp
+
+								//проверить, не последняя ли это запись была в мапе в массиве
+								countOfIncident := 0
+								/*Старый блок
+								for _, v := range apMacSRid {
+									if v == srID {
+										countOfIncident++
+									}
+								}*/
+								for _, v := range apMyMap {
+									if v.srID == srID {
+										countOfIncident++
+									}
+								}
+								if countOfIncident == 0 {
+									//Пробуем закрыть тикет, только ЕСЛИ он на Визировании
+									//sliceTicketStatus := CheckTicketStatus(soapServer, apMacSRid[ap.Mac]) //получаем статус
+									sliceTicketStatus := CheckTicketStatus(soapServer, srID) //получаем статус
+									if sliceTicketStatus[1] == "На визировании" {
+										//Если статус заявки по-прежнему на Визировании
+										ChangeStatus(soapServer, srID, "На уточнении")
+										AddComment(soapServer, srID, "Обращение отменено, т.к. все точки из него появились в сети", bpmUrl)
+										ChangeStatus(soapServer, srID, "Отменено")
+									}
+								}
+
+								//
+								//Точка недоступна.
+							} else if apLastSeen == 0 {
+								apSiteName := ap.SiteName
+								fmt.Println(apName)
+								fmt.Println(apMac)
+								fmt.Println("Точка НЕ доступна")
+
+								//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
+								//checkSlice := CheckTicketStatus(soapServer, apMacSRid[ap.Mac])
+								checkSlice := CheckTicketStatus(soapServer, srID)
+
+								//if srStatusCodesForNewTicket[checkSlice[1]] || !exisApMacSRid {
+								if srStatusCodesForNewTicket[checkSlice[1]] || srID == "" {
+									fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ в мапе нет записи")
+
+									//delete(apMacSRid, ap.Mac) //удаляем заявку. если заявки нет - ничего страшного
+									//удаляем заявку + обновить имя
+									valueAp.name = apName
+									valueAp.srID = ""
+									apMyMap[keyAp] = valueAp
+
+									//Заполняем переменные, которые понадобятся дальше
+									//fmt.Println(ap.SiteID)
+									fmt.Println(siteID)
+									var siteName string
+									//if ap.SiteID == "5e74aaa6a1a76964e770815c" { //6360a823a1a769286dc707f2
+									if siteID == "5e74aaa6a1a76964e770815c" { //6360a823a1a769286dc707f2
+										siteName = "Урал"
+									} else {
+										//siteName = ap.SiteName[:len(ap.SiteName)-11]
+										siteName = apSiteName[:len(apSiteName)-11]
+									}
+									//apCutName := ap.Name[:len(ap.Name)3]
+									//apCutName := strings.Split(ap.Name, "-")[0]
+									apCutName := strings.Split(apName, "-")[0]
+									siteApCutName := siteName + "_" + apCutName
+									fmt.Println(siteApCutName)
+
+									//Проверяем и Вносим во временную мапу. Заявка на данном этапе никакая ещё НЕ создаётся
+									_, exisSiteName := siteapNameForTickets[siteApCutName] //проверяем, есть ли в мапе ДЛЯтикетов
+									//for _, ticket := range sliceForTicket {
+
+									//если в мапе дляТикета сайта ещё НЕТ
+									if !exisSiteName {
+										fmt.Println("в мапе для Тикета записи ещё НЕТ")
+										//aps.mac := [string]
+										siteapNameForTickets[siteApCutName] = ForApsTicket{
+											siteName,
+											0,
+											//[]string{ap.Mac},
+											//apMac[apName],
+											map[string]string{apMac: apName},
+											//map[apMac]apName,
+										}
+
+										//если в мапе дляТикета сайт уже есть, добавляем в массив точку
+									} else {
+										fmt.Println("в мапе для Тикета запись ЕСТЬ")
+										//в мапе нельзя просто изменить значение.
+										for k, v := range siteapNameForTickets {
+											if k == siteApCutName {
+												_, exisApsMacName := v.apsMacName[apMac]
+												//for _, apMac := range v.apsMac {
+												//if !cointains(v.apsMac, ap.Name) { //своя функция contains
+												if !exisApsMacName {
+													//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
+													/*1.Using pointers. не смог победить указатели...
+													v2 := v
+													v2.corpAnomalies = append(v2.corpAnomalies, anomaly.Anomaly)
+													mapNoutnameFortickets[k] = v2 */
+
+													//2.Reassigning the modified struct.
+													/*первичное решение через другую мапу
+													//v.apNames = append(v.apNames, ap.Name)
+													//v.apsMac = append(v.apsMac, ap.Mac)
+													//прошлое решение через массив
+													//v.apsMac = append(v.apsMac, apMac)
+													//siteapNameForTickets[k] = v
+													*/
+													v.apsMacName[apMac] = apName
+													siteapNameForTickets[k] = v
+
+													break // ЗДЕСЬ break НЕ НУЖЕН! да вроде, нужен
+												}
+											}
+										}
+									}
+								} else {
+									fmt.Println("Созданное обращение:")
+									//fmt.Println(bpmUrl + apMacSRid[ap.Mac])
+									fmt.Println(bpmUrl + srID)
+									fmt.Println(checkSlice[1])
+								}
+								fmt.Println("")
+							}
+						}
+					}
+				} //fmt.Println("")
+			}
+			//Пробежались по всем точкам. Заводим заявки
+			fmt.Println("")
+			fmt.Println("Создание заявок по точкам:")
+			for k, v := range siteapNameForTickets {
+				//vCountIncident := v.countIncident
+				fmt.Println(k)
+				fmt.Println(v.countIncident) //"Число циклов захода на создание заявки: " +
+				//fmt.Println(vСountIncident) //"Число циклов захода на создание заявки: " +
+				v.countIncident++
+
+				//Если v.count < 10
+				if v.countIncident < 5 {
+					//обновляем мапу и инкрементируем count
+					siteapNameForTickets[k] = v
+				} else {
+					//Если count == 10, Создаём заявку
+					var apsNames []string
+					//for _, s := range v.apNames {	fmt.Println(s)	}
+					//for _, mac := range v.apsMac {
+					for _, name := range v.apsMacName {
+						//apName := apMacName[mac] //сходить в другую мапу
+						//apName := apMacName[name]
+						//apsNames = append(apsNames, apName)
+						apsNames = append(apsNames, name)
+						fmt.Println(name)
+					}
+
+					//usrLogin := noutnameLogin[v.clientName]
+					usrLogin := siteApCutNameLogin[k]
+					fmt.Println(usrLogin)
+
+					//desAps := strings.Join(v.apNames, "\n")
+					desAps := strings.Join(apsNames, "\n")
+					description := "Зафиксировано отключение точек:" + "\n" +
+						desAps + "\n" +
+						"" + "\n" +
+						"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+						"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+						""
+					incidentType := "Недоступна точка доступа"
+
+					//srTicketSlice := CreateApTicket(soapServer, usrLogin, description, v.site, incidentType)
+					srTicketSlice := CreateSmacWiFiTicket(soapServer, usrLogin, description, v.site, incidentType)
+					fmt.Println(srTicketSlice[2])
+
+					//apMacSRid[v.apMac] = srTicketSlice[0] //добавить в мапу apMac - ID Тикета
+					//for _, mac := range v.apsMac {
+					for mac, _ := range v.apsMacName {
+						//apMacSRid[mac] = srTicketSlice[0]
+						for key, value := range apMyMap {
+							if key == mac {
+								value.srID = srTicketSlice[0]
+								apMyMap[k] = value
+								break
+							}
+						}
+					}
+					fmt.Println("")
+
+					//Удаляем запись в мапе
+					delete(siteapNameForTickets, k)
+				}
+			}
+			//
+			//
+
+			//
+			//
 			clients, err := uni.GetClients(sites) //client = Notebook or Mobile = machine
 			if err != nil {
 				log.Fatalln("Error:", err)
 			}
-			var apName string
+			//var apName string
 			for _, client := range clients {
 				if !client.IsGuest.Val {
 					/* Старый блок кода, когда у меня было куча мап
@@ -254,15 +500,36 @@ func main() {
 					machineMacName[client.Mac] = client.Hostname //Добавить КОРП клиентов в map
 					namesClientAp[client.Name] = apName          //Добавить Соответсвие имён клиентов и точек
 					*/
-					apMac := client.ApMac
+
+					apName := client.ApName //НИЧЕГо не выводит и не содержит...
 					clientMac := client.Mac
+					clientName := client.Name
+					var clExInt int8
+					if client.Noted.Val {
+						clientExceptionStr := strings.Split(client.Note, " ")[0]
+						if clientExceptionStr == "Exception" {
+							clExInt = 1
+						} else {
+							clExInt = 0
+						}
+					}
+					//Если разработчик исправит скрипт и мы будем без танцев с бубном получать имя точки
+					for ke, va := range machineMyMap {
+						if ke == client.Mac {
+							va.apName = apName
+							va.hostname = clientName
+							va.exception = clExInt
+							break //прекращаем цикл, когда найден клиент и имя точки присвоено ему
+						}
+					}
+
 					//пробегаемся по всей мапе точек и получаем имя соответствию мака
 					for k, v := range apMyMap {
 						if k == apMac {
 							apName = v.name
 							//пробегаемся по всей мапе клиентов и назначаем имя точки клиенту
 							_, exisNoutMyMap := machineMyMap[clientMac]
-							if !exisNoutMyMap { //если запись клиента НЕ создана
+							if !exisNoutMyMap { //если записи клиента НЕТ
 								machineMyMap[clientMac] = MachineMyStruct{
 									client.Name,
 									0,
@@ -292,186 +559,6 @@ func main() {
 				//fmt.Printf("key: %d, value: %t\n", k, v)
 				fmt.Println(k, v)
 			}*/
-
-			//
-			//
-			// блок кода про точки, а уже потом аномалии
-			//if time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute { //запускается раз в 3 минуты
-			fmt.Println("Обработка точек доступа...")
-
-			for _, ap := range devices.UAPs {
-				//fmt.Println(ap.Name)	fmt.Println(ap.SiteID)
-				//if ap.SiteName[:len(ap.SiteName)-11] != "Резерв/Склад" {
-				//if ap.SiteID != "5f2285f3a1a7693ae6139c00" { //NOVOSIB
-				if !sitesException[ap.SiteID] { // НЕ Резерв/Склад
-
-					//fmt.Println(ap.Name)	fmt.Println(ap.Uptime.Int())  fmt.Println(ap.Uptime.String()) fmt.Println(ap.Uptime.Val) 	fmt.Println(ap.Uptime.Txt)
-
-					apLastSeen := ap.Uptime.Int()
-					//_, exisApMacSRid := apMacSRid[ap.Mac]
-
-					//Точка доступна. Заявки нет.
-					if apLastSeen != 0 && !exisApMacSRid {
-						//Идём дальше
-						//fmt.Println("Точка доступна. Заявки нет")
-						//
-
-						//Точка доступна. Заявка есть
-					} else if apLastSeen != 0 && exisApMacSRid {
-						fmt.Println("Точка доступна. Заявка есть")
-						//ОЧИЩАЕМ мапу, оставляем коммент, ПЫТАЕМСЯ закрыть тикет, если на визировании
-						//оставить комментарий, что точка стала доступна
-						comment := "Точка появилась в сети: " + ap.Name
-						AddComment(soapServer, apMacSRid[ap.Mac], comment, bpmUrl)
-
-						//удалить запись из мапы, предварительно сохранив Srid
-						srID := apMacSRid[ap.Mac]
-						delete(apMacSRid, ap.Mac)
-						//сложной мапы здесь уже нет. И удалять её не нужно и нечего
-
-						//проверить, не последняя ли это запись была в мапе в массиве
-						countOfIncident := 0
-						for _, v := range apMacSRid {
-							if v == srID {
-								countOfIncident++
-							}
-						}
-						if countOfIncident == 0 {
-							//Пробуем закрыть тикет, только ЕСЛИ он на Визировании
-							sliceTicketStatus := CheckTicketStatus(soapServer, apMacSRid[ap.Mac]) //получаем статус
-							if sliceTicketStatus[1] == "На визировании" {
-								//Если статус заявки по-прежнему на Визировании
-								ChangeStatus(soapServer, srID, "На уточнении")
-								AddComment(soapServer, srID, "Обращение отменено, т.к. все точки из него появились в сети", bpmUrl)
-								ChangeStatus(soapServer, srID, "Отменено")
-							}
-						}
-
-						//Точка недоступна.
-					} else if apLastSeen == 0 {
-						fmt.Println(ap.Name)
-						fmt.Println(ap.Mac)
-						fmt.Println("Точка НЕ доступна")
-						//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
-						checkSlice := CheckTicketStatus(soapServer, apMacSRid[ap.Mac])
-						if srStatusCodesForNewTicket[checkSlice[1]] || !exisApMacSRid {
-							fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ в мапе нет записи")
-							delete(apMacSRid, ap.Mac) //удаляем заявку. если заявки нет - ничего страшного
-
-							//Заполняем переменные, которые понадобятся дальше
-							fmt.Println(ap.SiteID)
-							var siteName string
-							if ap.SiteID == "5e74aaa6a1a76964e770815c" { //6360a823a1a769286dc707f2
-								siteName = "Урал"
-							} else {
-								siteName = ap.SiteName[:len(ap.SiteName)-11]
-							}
-							//apCutName := ap.Name[:len(ap.Name)3]
-							apCutName := strings.Split(ap.Name, "-")[0]
-							siteApCutName := siteName + "_" + apCutName
-							fmt.Println(siteApCutName)
-
-							//Проверяем и Вносим во временную мапу. Заявка на данном этапе никакая ещё НЕ создаётся
-							_, exisSiteName := siteapNameForTickets[siteApCutName] //проверяем, есть ли siteName в мапе ДЛЯтикетов
-							//for _, ticket := range sliceForTicket {
-
-							//если в мапе дляТикета сайта ещё НЕТ
-							if !exisSiteName {
-								fmt.Println("в мапе для Тикета записи ещё НЕТ")
-								//aps.mac := [string]
-								siteapNameForTickets[siteApCutName] = ForApsTicket{
-									siteName,
-									0,
-									[]string{ap.Mac},
-									//ap.Mac,
-									//[]string{ap.Name},
-								}
-
-								//если в мапе дляТикета сайт уже есть, добавляем в массив точку
-							} else {
-								fmt.Println("в мапе для Тикета запись ЕСТЬ")
-								//в мапе нельзя просто изменить значение.
-								for k, v := range siteapNameForTickets {
-									if k == siteApCutName {
-										//for _, apMac := range v.apsMac {
-										if !cointains(v.apsMac, ap.Name) { //своя функция contains
-											//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
-											/*1.Using pointers. не смог победить указатели...
-											v2 := v
-											v2.corpAnomalies = append(v2.corpAnomalies, anomaly.Anomaly)
-											mapNoutnameFortickets[k] = v2 */
-
-											//2.Reassigning the modified struct.
-											//v.apNames = append(v.apNames, ap.Name)
-											v.apsMac = append(v.apsMac, ap.Mac)
-											//Инкрементировать countIncident ? Вроде, нет
-											siteapNameForTickets[k] = v
-											// ЗДЕСЬ break НЕ НУЖЕН!
-										}
-									}
-								}
-							}
-						} else {
-							fmt.Println("Созданное обращение:")
-							fmt.Println(bpmUrl + apMacSRid[ap.Mac])
-							fmt.Println(checkSlice[1])
-						}
-						fmt.Println("")
-					}
-				} //fmt.Println("")
-			}
-			//Пробежались по всем точкам. Заводим заявки
-			fmt.Println("")
-			fmt.Println("Создание заявок по точкам:")
-			for k, v := range siteapNameForTickets {
-				fmt.Println(k)
-				fmt.Println(v.countIncident) //"Число циклов захода на создание заявки: " +
-				v.countIncident++
-
-				//Если v.count < 10
-				if v.countIncident < 10 {
-					//обновляем мапу и инкрементируем count
-					siteapNameForTickets[k] = v
-				} else {
-					//Если count == 10, Создаём заявку
-					var apsNames []string
-					//for _, s := range v.apNames {	fmt.Println(s)	}
-					for _, mac := range v.apsMac {
-						apName := apMacName[mac]
-						apsNames = append(apsNames, apName)
-						fmt.Println(apName)
-					}
-
-					//usrLogin := noutnameLogin[v.clientName]
-					usrLogin := siteApCutNameLogin[k]
-					fmt.Println(usrLogin)
-
-					//desAps := strings.Join(v.apNames, "\n")
-					desAps := strings.Join(apsNames, "\n")
-					description := "Зафиксировано отключение точек:" + "\n" +
-						desAps + "\n" +
-						"" + "\n" +
-						"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
-						"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
-						""
-					incidentType := "Недоступна точка доступа"
-
-					//srTicketSlice := CreateApTicket(soapServer, usrLogin, description, v.site, incidentType)
-					srTicketSlice := CreateSmacWiFiTicket(soapServer, usrLogin, description, v.site, incidentType)
-					fmt.Println(srTicketSlice[2])
-
-					//apMacSRid[v.apMac] = srTicketSlice[0] //добавить в мапу apMac - ID Тикета
-					for _, mac := range v.apsMac {
-						apMacSRid[mac] = srTicketSlice[0]
-					}
-					fmt.Println("")
-
-					//Удаляем запись в мапе
-					delete(siteapNameForTickets, k)
-				}
-			}
-			//
-			//
 
 			//
 			//

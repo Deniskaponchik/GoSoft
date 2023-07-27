@@ -39,7 +39,7 @@ func main() {
 
 	log.Println(len(clients), "Clients connected:")
 	for i, client := range clients {
-		log.Println(i+1, client.ID, client.Hostname, client.IP, client.Name, client.LastSeen)
+		log.Println(i+1, client.ID, client.Hostname, client.IP, client.Name)
 	}
 
 	log.Println(len(devices.USWs), "Unifi Switches Found")
