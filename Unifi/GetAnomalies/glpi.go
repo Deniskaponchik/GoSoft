@@ -11,6 +11,80 @@ import (
 	"strings"
 )
 
+func UploadMapsToDBap(uploadMap map[string]ApMyStruct, dbName string, tableName string) {
+
+	var datasource string
+	if dbName == "glpi_db" {
+		datasource = "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
+	} else {
+		datasource = "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
+	}
+	db, err := sql.Open("mysql", datasource)
+	if err != nil {
+		panic(err.Error())
+	} // if there is an error opening the connection, handle it
+	defer db.Close() // defer the close till after the main function has finished
+
+	/*заместо DELETE делаем UPDATE
+	var delQuery string
+	if delType == "DELETE" {
+		delQuery = "DELETE FROM " + tableName
+	} else {
+		delQuery = "TRUNCATE TABLE " + tableName
+	}
+	fmt.Println(delQuery)
+	_, err = db.Exec(delQuery)
+	if err != nil {
+		panic(err.Error())
+	}*/
+
+	bdCntrl := strconv.Itoa(int(bdController))
+	//Если передаём параметр valueDB, значит хотим обнулить это поле. Актуально для таблиц с номерами заявок
+	if valueDB != "" {
+		//обнуляем ВСЕ значения ключей
+		updateQuery := "UPDATE " + tableName + " SET " + valueDB + " = NULL WHERE controller = " + bdCntrl
+		fmt.Println(updateQuery)
+		_, err = db.Exec(updateQuery)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+
+	var dbName string
+	var mac string
+	var name string
+	var controller string
+	var exception string
+	var srID string
+	for _, parametr := range queryValues {
+
+	}
+
+	var b bytes.Buffer
+	b.WriteString("REPLACE INTO " + tableName + " VALUES ")
+	lenMap := len(uploadMap)
+	count := 0
+	for k, v := range uploadMap {
+		count++
+		// ('k','v','bdCntrl'),
+		if count != lenMap {
+			b.WriteString("('" + k + "','" + v + "','" + bdCntrl + "'),")
+		} else {
+			b.WriteString("('" + k + "','" + v + "','" + bdCntrl + "')") //в конце НЕ ставим запятую
+		}
+	}
+	fmt.Println(b.String())
+	if count != 0 {
+		_, err = db.Exec(b.String())
+		if err != nil {
+			panic(err.Error())
+		}
+	} else {
+		fmt.Println("Передана пустая карта. Запрос не выполнен")
+	}
+	fmt.Println("")
+}
+
 func UploadMapsToDBreplace(uploadMap map[string]string, dbName string, tableName string, valueDB string, bdController int8) {
 
 	var datasource string
