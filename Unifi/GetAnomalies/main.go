@@ -120,11 +120,10 @@ func main() {
 		apName    string
 	}
 	type ForAnomalyTicket struct {
-		site       string
-		apName     string
-		clientName string
-		noutMac    string
-		//userLogin     string //не помещаю, чтобы не делать лишних запросов к БД, если заявка НЕ будет создаваться
+		site   string
+		apName string
+		//clientName string  //имя ноутбука будет в ключе мапы, в которую будет встроена эта структура
+		//noutMac    string  //пока убираю
 		corpAnomalies []string
 	}
 
@@ -513,19 +512,30 @@ func main() {
 							clExInt = 0
 						}
 					}
-					//Если разработчик исправит скрипт и мы будем без танцев с бубном получать имя точки
-					for ke, va := range machineMyMap {
-						if ke == client.Mac {
-							va.apName = apName
-							va.hostname = clientName
-							va.exception = clExInt
-							break //прекращаем цикл, когда найден клиент и имя точки присвоено ему
+					//1. Если разработчик исправит скрипт, и мы будем норм получать имя точки + перенести до обработки точек
+					_, exisNoutMyMap := machineMyMap[clientMac]
+					if !exisNoutMyMap { //если записи клиента НЕТ
+						machineMyMap[clientMac] = MachineMyStruct{
+							clientName,
+							0,
+							"",
+							apName,
+						}
+					} else {
+						for ke, va := range machineMyMap {
+							if ke == clientMac {
+								va.apName = apName
+								va.hostname = clientName
+								va.exception = clExInt
+								machineMyMap[ke] = va
+								break //прекращаем цикл, когда найден клиент и имя точки присвоено ему
+							}
 						}
 					}
-
+					//2. Если разработчик НЕ исправит:
 					//пробегаемся по всей мапе точек и получаем имя соответствию мака
 					for k, v := range apMyMap {
-						if k == apMac {
+						if k == clientMac {
 							apName = v.name
 							//пробегаемся по всей мапе клиентов и назначаем имя точки клиенту
 							_, exisNoutMyMap := machineMyMap[clientMac]
@@ -559,11 +569,13 @@ func main() {
 				//fmt.Printf("key: %d, value: %t\n", k, v)
 				fmt.Println(k, v)
 			}*/
+			//
+			//
 
 			//
 			//
-			//АНОМАЛИИ. Блок кода запустится, если в этот ЧАС он ещё НЕ выполнялся
-			//if time.Now().Minute() == 47 { // Если время 3 минуты от начала часа то блок для аномаоий
+			//АНОМАЛИИ
+			//if time.Now().Minute() == 47 {
 			if time.Now().Hour() != countHourAnom {
 				now := time.Now()
 				count := 60 //минус 70 минут
@@ -576,56 +588,64 @@ func main() {
 				if err != nil {
 					log.Fatalln("Error:", err)
 				}
-				/* ORIGINAL
-				log.Println(len(anomalies), "Anomalies:")
-				for i, anomaly := range anomalies {
-					log.Println(i+1, anomaly.Datetime, anomaly.DeviceMAC, anomaly.Anomaly) //i+1
-				}*/
 
 				//mapNoutnameFortickets создаётся локально в блоке аномалий каждый час. Резервировать в БД НЕ нужно
-				mapNoutnameForTickets := map[string]ForAnomalyTicket{} //https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
-				//
+				mapNoutnameForTickets := map[string]ForAnomalyTicket{}
+				//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
+
 				for _, anomaly := range anomalies {
-					_, existence := machineMacName[anomaly.DeviceMAC] //проверяем, соответствует ли мак мапе corp клиентов
+					noutMac := anomaly.DeviceMAC
+					siteName := anomaly.SiteName
+
+					//_, existence := machineMacName[anomaly.DeviceMAC] //проверяем, соответствует ли мак мапе corp клиентов
+					_, exMachMyMap := machineMyMap[noutMac] //проверяем, соответствует ли мак мапе corp клиентов
+
 					//fmt.Println("Аномалии Tele2Corp клиентов:")
-					if existence {
-						//блок кода для Tele2Corp
-						//если есть, выводим на экран с именем ПК, взятым из мапы
-						//siteName := anomaly.SiteName[:len(anomaly.SiteName)-11]
-						clientHostName := machineMacName[anomaly.DeviceMAC]
-						apName := namesClientAp[clientHostName]
-						//usrLogin := GetLogin(clientHostName) //чтобы не делать лишних запросов к БД
-						//fmt.Println(siteName, clientHostName, usrLogin, apName, anomaly.Datetime, anomaly.Anomaly)
-						//fmt.Println(siteName, clientHostName, apName, anomaly.Datetime, anomaly.Anomaly) //без usrLogin
+					//if existence {
+					if exMachMyMap {
+						//если есть, пробегаемся по той же мапе machineMyMap
+						for ke, va := range machineMyMap {
+							if ke == noutMac {
+								//siteName := anomaly.SiteName[:len(anomaly.SiteName)-11]
+								//clientHostName := machineMacName[anomaly.DeviceMAC]
+								clientHostName := va.hostname
+								//apName := namesClientAp[clientHostName]
+								apName := va.apName
 
-						_, exisClHostName := mapNoutnameForTickets[clientHostName] //проверяем, есть ли client hostname в мапе ДЛЯтикетов
-						if !exisClHostName {                                       //если нет, добавляем новый
-							mapNoutnameForTickets[clientHostName] = ForAnomalyTicket{ //https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
-								//siteName,
-								anomaly.SiteName[:len(anomaly.SiteName)-11],
-								apName,
-								clientHostName,
-								anomaly.DeviceMAC,
-								[]string{anomaly.Anomaly},
-							}
-						} else { //если есть, добавляем данные в мапу
-							for k, v := range mapNoutnameForTickets {
-								if k == clientHostName {
-									//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
-									/*1.Using pointers. не смог победить указатели...
-									v2 := v
-									v2.corpAnomalies = append(v2.corpAnomalies, anomaly.Anomaly)
-									mapNoutnameFortickets[k] = v2 */
+								//fmt.Println(siteName, clientHostName, apName, anomaly.Datetime, anomaly.Anomaly) //без usrLogin
 
-									//2.Reassigning the modified struct.
-									v.corpAnomalies = append(v.corpAnomalies, anomaly.Anomaly)
-									mapNoutnameForTickets[k] = v
+								_, exisClHostName := mapNoutnameForTickets[clientHostName] //проверяем, есть ли в мапе ДЛЯтикетов
+								if !exisClHostName {
+									//если нет, добавляем новый
+									mapNoutnameForTickets[clientHostName] = ForAnomalyTicket{ //https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
+										//anomaly.SiteName[:len(anomaly.SiteName)-11],
+										siteName[:len(siteName)-11],
+										apName,
+										//clientHostName,
+										//anomaly.DeviceMAC,
+										[]string{anomaly.Anomaly},
+									}
+								} else { //если есть, добавляем данные в мапу
+									for k, v := range mapNoutnameForTickets {
+										if k == clientHostName {
+											//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
+											/*1.Using pointers. не смог победить указатели...
+											v2 := v
+											v2.corpAnomalies = append(v2.corpAnomalies, anomaly.Anomaly)
+											mapNoutnameFortickets[k] = v2 */
+
+											//2.Reassigning the modified struct.
+											v.corpAnomalies = append(v.corpAnomalies, anomaly.Anomaly)
+											mapNoutnameForTickets[k] = v
+										}
+									}
 								}
+								break
 							}
 						}
 					} else {
 						//Обработка аномалий для Tele2Guest.
-						//Пока просто шапка
+						//Пока просто заглушка
 					}
 				}
 
