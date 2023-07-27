@@ -1,40 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/unpoller/unifi"
 	"io"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 )
-
-type ApMyStruct struct {
-	Name      string
-	Exception int //Это исключение НЕ для заявок по Точкам, а для Аномалий!!!
-	SrID      string
-}
-type ForApsTicket struct {
-	site          string
-	countIncident int
-	//apsMac        []string
-	apsMacName map[string]string
-	//apNames []string //сделано для массовых отключений точек при отключении света в офисе
-}
-
-type MachineMyStruct struct {
-	Hostname  string
-	Exception int8
-	SrID      string
-	ApName    string
-}
-type ForAnomalyTicket struct {
-	site   string
-	apName string
-	//clientName string  //имя ноутбука будет в ключе мапы, в которую будет встроена эта структура
-	noutMac       string //нужен для проверки тикета на открытость
-	corpAnomalies []string
-}
 
 func main() {
 	fmt.Println("")
@@ -91,7 +66,7 @@ func main() {
 	fmt.Println("Unifi controller")
 	fmt.Println(urlController)
 
-	bpm := 1 // 0 -PROD; 1 -TEST
+	bpm := 1 // 0-PROD; 1-TEST
 	var soapServer string
 	var bpmUrl string
 	if bpm == 0 {
@@ -128,6 +103,12 @@ func main() {
 	}
 
 	//Download MAPs from DB
+	apMyMap := map[string]ApMyStruct{}
+	apMyMap := DownloadMapFromDBstruct()
+	machineMyMap := map[string]MachineMyStruct{}
+	machineMyMap := DownloadMapFromDBstruct()
+
+	/*Старая загрузка мап из БД
 	//Выгружает только 4500 записей из 10000. отключаю. Проще делать разовый запрос по паре клиентов раз в час.
 	//noutnameLogin :=map[string]string{}     //clientHostName - > userLogin
 	//noutnameLogin := DownloadMapFromDB("glpi_db", "name", "contact", "glpi_db.glpi_computers", 0, "date_mod")
@@ -138,11 +119,6 @@ func main() {
 	//namesClientAps := map[string]string{} // clientName -> apName
 	namesClientAp := DownloadMapFromDB("wifi_db", "machine_name", "ap_name", "wifi_db.names_machine_ap", bdController, "machine_name")
 
-	apMyMap := map[string]ApMyStruct{}
-	apMyMap := DownloadMapFromDBstruct()
-	machineMyMap := map[string]MachineMyStruct{}
-	machineMyMap := DownloadMapFromDBstruct()
-
 	//apMacName := map[string]string{}      // apMac -> apName
 	apMacName := DownloadMapFromDB("wifi_db", "mac", "name", "wifi_db.ap_mac_name", bdController, "name")
 	//machineMacName := map[string]string{}   // clientMAC -> clientHostName  // machineMAC -> machineHostName
@@ -152,7 +128,7 @@ func main() {
 	machineMacSRid := DownloadMapFromDB("wifi_db", "mac", "srid", "wifi_db.machine_mac_srid", bdController, "mac")
 	//apMacSRid := DownloadMapFromDB("wifi_db", "apname", "srid", "wifi_db.ap_name_srid", "apname")
 	apMacSRid := DownloadMapFromDB("wifi_db", "mac", "srid", "wifi_db.ap_mac_srid", bdController, "mac")
-
+	*/
 	/*
 		for k, v := range noutnameLogin {
 			//fmt.Printf("key: %d, value: %t\n", k, v)
@@ -160,14 +136,16 @@ func main() {
 		}*/
 	//os.Exit(0)
 	fmt.Println("")
+	//
+	//
 
 	c := unifi.Config{
 		//c := *unifi.Config{  //ORIGINAL
 		User: "unifi",
 		Pass: "FORCEpower23",
-		//URL:  "https://localhost:8443/"
-		//URL:  "https://10.78.221.142:8443/", //ROSTOV
-		//URL: "https://10.8.176.8:8443/", //NOVOSIB
+		//URL: "https://localhost:8443/"
+		//URL: "https://10.78.221.142:8443/", //ROSTOV
+		//URL: "https://10.8.176.8:8443/",     //NOVOSIB
 		URL: urlController,
 		// Log with log.Printf or make your own interface that accepts (msg, test_SOAP)
 		ErrorLog: log.Printf,
@@ -208,11 +186,6 @@ func main() {
 				if !existence {
 					apMacName[uap.Mac] = uap.Name
 				}
-			}*/
-			/*Вывести apMacName мапу на экран
-			for k, v := range apMacName {
-				//fmt.Printf("key: %d, value: %t\n", k, v)
-				fmt.Println(k, v)
 			}*/
 
 			//
@@ -506,7 +479,7 @@ func main() {
 							clExInt = 0
 						}
 					}
-					//1. Если разработчик исправит скрипт, и мы будем норм получать имя точки + перенести до обработки точек
+					/*1. Если разработчик исправит скрипт, и мы будем норм получать имя точки + перенести до обработки точек
 					_, exisNoutMyMap := machineMyMap[clientMac]
 					if !exisNoutMyMap { //если записи клиента НЕТ
 						machineMyMap[clientMac] = MachineMyStruct{
@@ -525,8 +498,8 @@ func main() {
 								break //прекращаем цикл, когда найден клиент и имя точки присвоено ему
 							}
 						}
-					}
-					//2. Если разработчик НЕ исправит:
+					}*/
+					//2. Если разработчик НЕ исправит: https://github.com/unpoller/unifi/issues/90
 					//пробегаемся по всей мапе точек и получаем имя соответствию мака
 					for k, v := range apMyMap {
 						if k == clientMac {
@@ -535,8 +508,8 @@ func main() {
 							_, exisNoutMyMap := machineMyMap[clientMac]
 							if !exisNoutMyMap { //если записи клиента НЕТ
 								machineMyMap[clientMac] = MachineMyStruct{
-									client.Name,
-									0,
+									clientName,
+									clExInt,
 									"",
 									apName,
 								}
@@ -553,16 +526,6 @@ func main() {
 					}
 				}
 			}
-			/*Вывести machineMacName мапу на экран
-			for k, v := range machineMacName {
-				//fmt.Printf("key: %d, value: %t\n", k, v)
-				fmt.Println(k, v)
-			}
-			//Вывести соответсвие имён клиентов и имён точек на экран
-			for k, v := range namesClientAps {
-				//fmt.Printf("key: %d, value: %t\n", k, v)
-				fmt.Println(k, v)
-			}*/
 			//
 			//
 
@@ -571,6 +534,7 @@ func main() {
 			//АНОМАЛИИ
 			//if time.Now().Minute() == 47 {
 			if time.Now().Hour() != countHourAnom {
+				countHourAnom = time.Now().Hour()
 				now := time.Now()
 				count := 60 //минус 70 минут
 				then := now.Add(time.Duration(-count) * time.Minute)
@@ -719,34 +683,104 @@ func main() {
 					}
 				}
 
-				//раз в час выполняет код по аномалиям. И БД обновляется в то же время
-				UploadMapsToDBreplace(machineMacSRid, "wifi_db", "wifi_db.machine_mac_srid", "srid", bdController)
+				//раз в час выполняет код по аномалиям. И БД обновляется в то же время.
+				//Обновление реализовал ниже в другом блоке
+				//UploadMapsToDBreplace(machineMacSRid, "wifi_db", "wifi_db.machine_mac_srid", "srid", bdController)
 				fmt.Println("")
-				countHourAnom = time.Now().Hour()
-			} // END of ANOMALIES block
+			}
+			// END of ANOMALIES block
+			//
+			//
 
 			//
 			//
-			//Обновление мап и БД. Блок кода запустится, если в этот ЧАС он ещё НЕ выполнялся
+			//Обновление мап и БД
+			//запустится, если в этот ЧАС он ещё НЕ выполнялся
 			if time.Now().Hour() != countHourDB {
-
+				countHourDB = time.Now().Hour()
+				/* OLD
 				UploadMapsToDBreplace(machineMacName, "wifi_db", "wifi_db.machine_mac_name", "", bdController)
 				UploadMapsToDBreplace(apMacName, "wifi_db", "wifi_db.ap_mac_name", "", bdController)
 				UploadMapsToDBreplace(namesClientAp, "wifi_db", "wifi_db.names_machine_ap", "", bdController)
 				UploadMapsToDBreplace(apMacSRid, "wifi_db", "wifi_db.ap_mac_srid", "", bdController)
 				//UploadsMapsToDB(machineMacSRid, "wifi_db", "wifi_db.machine_mac_srid", "DELETE")
+				*/
 
-				countHourDB = time.Now().Hour()
+				bdCntrl := strconv.Itoa(int(bdController))
+				var lenMap int
+				var count int
+				var exception string
+				var b bytes.Buffer
+				var query string
+
+				//b.WriteString("REPLACE INTO " + tableName + " VALUES ")
+				b.WriteString("REPLACE INTO " + "it_support_db.ap" + " VALUES ")
+				//lenMap := len(uploadMap)
+				lenMap = len(apMyMap)
+				count = 0
+				//for k, v := range uploadMap {
+				for k, v := range apMyMap {
+					exception = strconv.Itoa(int(v.Exception))
+					count++
+					if count != lenMap {
+						// mac, name, controller, exception, srid
+						b.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "'),")
+					} else {
+						b.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "')")
+						//в конце НЕ ставим запятую
+					}
+				}
+				query = b.String()
+				if count != 0 {
+					UploadMapsToDBstring("it_support_db", query)
+				} else {
+					fmt.Println("Передана пустая карта. Запрос не выполнен")
+				}
+				fmt.Println(query)
+				fmt.Println("")
+
+				//
+				//b.WriteString("REPLACE INTO " + tableName + " VALUES ")
+				b.WriteString("REPLACE INTO " + "it_support_db.machine" + " VALUES ")
+				//lenMap := len(uploadMap)
+				lenMap = len(machineMyMap)
+				count = 0
+				//for k, v := range uploadMap {
+				for k, v := range machineMyMap {
+					exception = strconv.Itoa(int(v.Exception))
+					count++
+					if count != lenMap {
+						// mac, hostname, controller, exception, srid, apname
+						b.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "','" + v.ApName + "'),")
+					} else {
+						b.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "')")
+						//в конце НЕ ставим запятую
+					}
+				}
+				query = b.String()
+				if count != 0 {
+					UploadMapsToDBstring("it_support_db", query)
+				} else {
+					fmt.Println("Передана пустая карта. Запрос не выполнен")
+				}
+				fmt.Println(query)
+				fmt.Println("")
 			}
+
+			//
+			//
 			//Обновление мап раз в сутки
 			if time.Now().Day() != countDay {
-				//noutnameLogin :=map[string]string{}     //clientHostName - > userLogin
-				//noutnameLogin = DownloadMapFromDB("glpi_db", "name", "contact", "glpi_db.glpi_computers", 0, "date_mod")
-				siteApCutNameLogin = DownloadMapFromDB("wifi_db", "site_apcut", "login", "wifi_db.site_apcut_login", 0, "site_apcut")
+
+				//
+				// !!! СДЕЛАТЬ !!!
+				//
+				//siteApCutNameLogin = DownloadMapFromDB("wifi_db", "site_apcut", "login", "wifi_db.site_apcut_login", 0, "site_apcut")
 				countDay = time.Now().Day()
 			}
-			//} // 3 минутный if про точки
 
+			//
+			//
 		} //Снятие показаний раз в 6 минут
 		fmt.Println("Sleep 45s")
 		fmt.Println("")
@@ -763,4 +797,31 @@ func cointains(slice []string, compareString string) bool {
 		}
 	}
 	return false
+}
+
+type ApMyStruct struct {
+	Name      string
+	Exception int //Это исключение НЕ для заявок по Точкам, а для Аномалий!!!
+	SrID      string
+}
+type ForApsTicket struct {
+	site          string
+	countIncident int
+	//apsMac        []string
+	apsMacName map[string]string
+	//apNames []string //сделано для массовых отключений точек при отключении света в офисе
+}
+
+type MachineMyStruct struct {
+	Hostname  string
+	Exception int8
+	SrID      string
+	ApName    string
+}
+type ForAnomalyTicket struct {
+	site   string
+	apName string
+	//clientName string  //имя ноутбука будет в ключе мапы, в которую будет встроена эта структура
+	noutMac       string //нужен для проверки тикета на открытость
+	corpAnomalies []string
 }

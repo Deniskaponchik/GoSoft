@@ -10,18 +10,15 @@ import (
 )
 
 func main() {
-	/*
-		newMap := DownloadMapFromDB("glpi_db", "name", "contact", "glpi_db.glpi_computers", "date_mod")
-		for k, v := range newMap {
-			//fmt.Printf("key: %d, value: %t\n", k, v)
-			fmt.Println("newMap "+k, v)
-		}*/
-	newMap := map[string]string{}
-	newMap["KMS-TECH-07"] = "dsfsdfsdsd"
-	newMap["KMS-TECH-08"] = "dsfsdfsdsd"
-	newMap["KMS-TECH-09"] = "dsfsdfsdsd"
-	UploadMapsToDB(newMap, "wifi_db", "wifi_db.ap_name_srid", "TRUNCATE")
+
+	newMap := DownloadMapFromDB("glpi_db", "name", "contact", "glpi_db.glpi_computers", "date_mod")
+	for k, v := range newMap {
+		//fmt.Printf("key: %d, value: %t\n", k, v)
+		fmt.Println("newMap "+k, v)
+	}
+
 }
+
 func UploadMapsToDB(uploadMap map[string]string, dbName string, tableName string, delType string) {
 	datasource := ""
 	if dbName == "glpi_db" {

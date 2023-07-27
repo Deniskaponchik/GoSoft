@@ -11,78 +11,21 @@ import (
 	"strings"
 )
 
-func UploadMapsToDBap(uploadMap map[string]ApMyStruct, dbName string, tableName string) {
+func UploadMapsToDBstring(dbName string, query string) {
 
 	var datasource string
-	if dbName == "glpi_db" {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
-	} else {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
-	}
+	datasource = "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
 	db, err := sql.Open("mysql", datasource)
 	if err != nil {
 		panic(err.Error())
 	} // if there is an error opening the connection, handle it
+
 	defer db.Close() // defer the close till after the main function has finished
 
-	/*заместо DELETE делаем UPDATE
-	var delQuery string
-	if delType == "DELETE" {
-		delQuery = "DELETE FROM " + tableName
-	} else {
-		delQuery = "TRUNCATE TABLE " + tableName
-	}
-	fmt.Println(delQuery)
-	_, err = db.Exec(delQuery)
+	_, err = db.Exec(query)
 	if err != nil {
 		panic(err.Error())
-	}*/
-
-	bdCntrl := strconv.Itoa(int(bdController))
-	//Если передаём параметр valueDB, значит хотим обнулить это поле. Актуально для таблиц с номерами заявок
-	if valueDB != "" {
-		//обнуляем ВСЕ значения ключей
-		updateQuery := "UPDATE " + tableName + " SET " + valueDB + " = NULL WHERE controller = " + bdCntrl
-		fmt.Println(updateQuery)
-		_, err = db.Exec(updateQuery)
-		if err != nil {
-			panic(err.Error())
-		}
 	}
-
-	var dbName string
-	var mac string
-	var name string
-	var controller string
-	var exception string
-	var srID string
-	for _, parametr := range queryValues {
-
-	}
-
-	var b bytes.Buffer
-	b.WriteString("REPLACE INTO " + tableName + " VALUES ")
-	lenMap := len(uploadMap)
-	count := 0
-	for k, v := range uploadMap {
-		count++
-		// ('k','v','bdCntrl'),
-		if count != lenMap {
-			b.WriteString("('" + k + "','" + v + "','" + bdCntrl + "'),")
-		} else {
-			b.WriteString("('" + k + "','" + v + "','" + bdCntrl + "')") //в конце НЕ ставим запятую
-		}
-	}
-	fmt.Println(b.String())
-	if count != 0 {
-		_, err = db.Exec(b.String())
-		if err != nil {
-			panic(err.Error())
-		}
-	} else {
-		fmt.Println("Передана пустая карта. Запрос не выполнен")
-	}
-	fmt.Println("")
 }
 
 func UploadMapsToDBreplace(uploadMap map[string]string, dbName string, tableName string, valueDB string, bdController int8) {
@@ -195,6 +138,65 @@ func UploadsMapsToDBdelete(uploadMap map[string]string, dbName string, tableName
 	}
 }
 
+//
+//
+
+func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
+	type TagAp struct {
+		Mac        string `json:"mac"`
+		Name       string `json:"name"`
+		Controller int    `json:"controller"`
+		Exception  int    `json:"exception"`
+		SrID       string `json:"srid"`
+	}
+
+	//var ap ApMyStruct
+	//var machine MachineMyStruct
+	m := make(map[string]ApMyStruct)
+
+	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/it_support_db")
+	//db, err := sql.Open("mysql", datasource)
+	if err != nil {
+		log.Print(err.Error())
+	}
+	defer db.Close() // defer the close till after the main function has finished
+
+	queryAfter := "SELECT * FROM it_support_db.ap WHERE controller = " + strconv.Itoa(int(bdController))
+	fmt.Println(queryAfter)
+
+	results, err := db.Query(queryAfter)
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+	}
+	/*
+		var maс string
+		var name string
+		var controller string
+		var exception int8
+		var srid string
+	*/
+	for results.Next() {
+		var tag TagAp
+		//err = results.Scan(&tag.ID, &tag.Name)
+		err = results.Scan(&tag.Mac, &tag.Name, &tag.Exception, &tag.SrID)
+		if err != nil {
+			panic(err.Error()) // proper error handling instead of panic in your app
+		}
+		//fmt.Println(tag.KeyDB.String, tag.ValueDB.String)
+		fmt.Println(tag.Mac, tag.Name, tag.Exception, tag.SrID)
+		m[tag.Mac] = ApMyStruct{
+			tag.Name,
+			tag.Exception,
+			tag.SrID,
+		}
+	}
+	results.Close()
+	for k, v := range m {
+		fmt.Println("newMap "+k, v.Name, v.Exception, v.SrID)
+	}
+	return m
+}
+
 func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName string, bdController int8, orderBY string) map[string]string {
 	m := make(map[string]string)
 
@@ -255,6 +257,9 @@ func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName st
 	results.Close()
 	return m
 }
+
+//
+//
 
 func GetLoginAP(siteApCutName string) string {
 	//Единичный запрос для получения логина вк БД уже не использую. Только массовая загрузка/выгрузка в мапы
