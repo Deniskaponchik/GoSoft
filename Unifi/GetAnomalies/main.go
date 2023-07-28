@@ -14,7 +14,7 @@ import (
 func main() {
 	fmt.Println("")
 
-	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 	everyStartCode := map[int]bool{}
@@ -232,13 +232,15 @@ func main() {
 
 							//Точка доступна. Заявки нет.
 							//if apLastSeen != 0 && !exisApMy {
-							if apLastSeen != 0 && valueAp.SrID == "" {
+							if apLastSeen != 0 && srID == "" {
 								//fmt.Println("Точка доступна. Заявки нет. Идём дальше")
 								//
 
 								//Точка доступна. Заявка есть.   +Имя точки обновляю
 								//} else if apLastSeen != 0 && exisApMacSRid {
 							} else if apLastSeen != 0 && srID != "" {
+								fmt.Println(apName)
+								fmt.Println(apMac)
 								fmt.Println("Точка доступна. Заявка есть")
 								//Оставляем коммент, Очищаем запись в мапе, ПЫТАЕМСЯ закрыть тикет, если на визировании
 
@@ -268,19 +270,23 @@ func main() {
 								for _, v := range apMyMap {
 									if v.SrID == srID {
 										countOfIncident++
+										//fmt.Println(countOfIncident)
 									}
 								}
 								if countOfIncident == 0 {
 									//Пробуем закрыть тикет, только ЕСЛИ он на Визировании
+									//fmt.Println("Попали в блок изменения статусов заявок")
 									//sliceTicketStatus := CheckTicketStatus(soapServer, apMacSRid[ap.Mac]) //получаем статус
 									sliceTicketStatus := CheckTicketStatus(soapServer, srID) //получаем статус
-									if sliceTicketStatus[1] == "На визировании" {
+									fmt.Println(sliceTicketStatus[1])
+									if sliceTicketStatus[1] == "Визирование" {
 										//Если статус заявки по-прежнему на Визировании
 										ChangeStatus(soapServer, srID, "На уточнении")
 										AddComment(soapServer, srID, "Обращение отменено, т.к. все точки из него появились в сети", bpmUrl)
 										ChangeStatus(soapServer, srID, "Отменено")
 									}
 								}
+								fmt.Println("")
 
 								//
 								//Точка недоступна.
@@ -434,7 +440,7 @@ func main() {
 						for key, value := range apMyMap {
 							if key == mac {
 								value.SrID = srTicketSlice[0]
-								apMyMap[k] = value
+								apMyMap[key] = value
 								break
 							}
 						}
@@ -620,13 +626,11 @@ func main() {
 					if len(corpAnomalies) > 2 {
 						//fmt.Println(v.clientName)
 						fmt.Println(k)
+						usrLogin := GetLoginPC(k)
+						fmt.Println(usrLogin)
 						for _, s := range v.corpAnomalies {
 							fmt.Println(s)
 						}
-						//SoapCreateTicket(clientHostName, v.clientName, v.corpAnomalies, siteName)
-						//usrLogin := GetLoginPC(v.clientName)
-						usrLogin := GetLoginPC(k)
-						fmt.Println(usrLogin)
 
 						// Проверяет, есть ли заявка в мапе ClientMacName - ID Тикета
 						//srID, existence := machineMacSRid[v.noutMac]
@@ -650,7 +654,7 @@ func main() {
 									//То создаём новую
 									description := "На ноутбуке:" + "\n" +
 										k + "\n" + "" + "\n" +
-										"зафиксированы следующие Аномалии:" + "\n" +
+										"За последний ЧАС зафиксированы следующие Аномалии:" + "\n" +
 										desAnomalies + "\n" +
 										"" + "\n" +
 										"Предполагаемое, но не на 100% точное имя точки:" + "\n" +
@@ -710,11 +714,12 @@ func main() {
 				var lenMap int
 				var count int
 				var exception string
-				var b bytes.Buffer
+				var b1 bytes.Buffer
+				var b2 bytes.Buffer
 				var query string
 
 				//b.WriteString("REPLACE INTO " + tableName + " VALUES ")
-				b.WriteString("REPLACE INTO " + "it_support_db.ap" + " VALUES ")
+				b1.WriteString("REPLACE INTO " + "it_support_db.ap" + " VALUES ")
 				//lenMap := len(uploadMap)
 				lenMap = len(apMyMap)
 				count = 0
@@ -724,24 +729,25 @@ func main() {
 					count++
 					if count != lenMap {
 						// mac, name, controller, exception, srid
-						b.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "'),")
+						b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "'),")
 					} else {
-						b.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "')")
+						b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "')")
 						//в конце НЕ ставим запятую
 					}
 				}
-				query = b.String()
+				query = b1.String()
+				fmt.Println(query)
 				if count != 0 {
 					UploadMapsToDBstring("it_support_db", query)
 				} else {
 					fmt.Println("Передана пустая карта. Запрос не выполнен")
 				}
-				fmt.Println(query)
 				fmt.Println("")
 
 				//
+
 				//b.WriteString("REPLACE INTO " + tableName + " VALUES ")
-				b.WriteString("REPLACE INTO " + "it_support_db.machine" + " VALUES ")
+				b2.WriteString("REPLACE INTO " + "it_support_db.machine" + " VALUES ")
 				//lenMap := len(uploadMap)
 				lenMap = len(machineMyMap)
 				count = 0
@@ -751,19 +757,19 @@ func main() {
 					count++
 					if count != lenMap {
 						// mac, hostname, controller, exception, srid, apname
-						b.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "','" + v.ApName + "'),")
+						b2.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "','" + v.ApName + "'),")
 					} else {
-						b.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "')")
+						b2.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "','" + v.ApName + "')")
 						//в конце НЕ ставим запятую
 					}
 				}
-				query = b.String()
+				query = b2.String()
+				fmt.Println(query)
 				if count != 0 {
 					UploadMapsToDBstring("it_support_db", query)
 				} else {
 					fmt.Println("Передана пустая карта. Запрос не выполнен")
 				}
-				fmt.Println(query)
 				fmt.Println("")
 			}
 

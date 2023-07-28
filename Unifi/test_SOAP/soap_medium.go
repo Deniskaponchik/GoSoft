@@ -263,14 +263,13 @@ func mainCOMMENT() {
 	}
 }
 
-func mainCHANGE() {
+func mainCHANGE(bpmServer string, srID string, NewStatus string) (srNewStatus string) {
 
-	url := Server
-	srID := "fcd7b4df-dd4f-421f-8ca5-6bdab51de654"
-	//UserLogin := "service.glpi"
+	url := bpmServer
+	//srID := "fc0d1340-2ccd-4772-a48f-0f60f5ba753e"
 	UserLogin := "denis.tirskikh"
 	//NewStatus := "На уточнении"
-	NewStatus := "Отменено"
+	//NewStatus := "Отменено"
 
 	//Убрать из строки \n
 	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
@@ -283,7 +282,7 @@ func mainCHANGE() {
 		http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 	if err != nil {
 		log.Fatal("Error on creating request object. ", err.Error())
-		return
+		return "Error on creating request object. "
 	}
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -295,7 +294,7 @@ func mainCHANGE() {
 	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Error on dispatching request. ", err.Error())
-		return
+		return "Error on dispatching request. "
 	}
 
 	/*Посмотреть response Body, если понадобится
@@ -331,14 +330,14 @@ func mainCHANGE() {
 	}
 
 	srDateChange := envelope.Body.ChangeCaseStatusResponse.ModifyOn
-	srNewStatus := envelope.Body.ChangeCaseStatusResponse.NewStatusId
+	srNewStatus = envelope.Body.ChangeCaseStatusResponse.NewStatusId
 
 	if srDateChange != "" && srNewStatus != "" {
-		fmt.Println("Обращение " + NewStatus + " в: " + srDateChange)
-		//fmt.Println(srNewStatus)
+		fmt.Println("Статус обращения изменён на " + NewStatus + " в: " + srDateChange)
 	} else {
 		fmt.Println("НЕ УДАЛОСЬ изменить статус обращения на " + NewStatus)
 	}
+	return srNewStatus
 
 }
 
