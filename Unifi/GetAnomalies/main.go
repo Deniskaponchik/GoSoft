@@ -154,12 +154,6 @@ func main() {
 
 	log.SetOutput(io.Discard) //Отключить вывод лога
 
-	//uni, err := unifi.NewUnifi(c)
-	uni, err := unifi.NewUnifi(&c)
-	if err != nil {
-		log.Fatalln("Error:", err)
-	}
-
 	for true { //зацикливаем навечно
 		currentMinute := time.Now().Minute()
 		//Снятие показаний с контрллера раз в 6 минут. промежутки разные для контроллеров
@@ -167,16 +161,24 @@ func main() {
 		if currentMinute != 0 && everyStartCode[currentMinute] && currentMinute != count6minute {
 			count6minute = time.Now().Minute()
 
+			//uni, err := unifi.NewUnifi(c)
+			uni, err := unifi.NewUnifi(&c)
+			if err != nil {
+				log.Fatalln("Error:", err)
+			}
+			fmt.Println("uni загрузился")
+
 			sites, err := uni.GetSites()
 			if err != nil {
 				log.Fatalln("Error:", err)
 			}
-			//log.Println(len(sites), "Unifi Sites Found: ", sites)
+			fmt.Println("sites загрузились")
 
 			devices, err := uni.GetDevices(sites) //devices = APs
 			if err != nil {
 				log.Fatalln("Error:", err)
 			}
+			fmt.Println("devices загрузились")
 			/* Блок кода, оставшийся от предков
 			//Добавляем маки и имена точек в apMacName map
 			for _, uap := range devices.UAPs {
@@ -192,7 +194,7 @@ func main() {
 			// обработка точек
 			//if time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute { //запускается раз в 3 минуты
 			fmt.Println("Обработка точек доступа...")
-
+			fmt.Println("")
 			for _, ap := range devices.UAPs {
 				siteID := ap.SiteID
 				//fmt.Println(ap.Name)	fmt.Println(ap.SiteID)
@@ -464,7 +466,7 @@ func main() {
 			for _, client := range clients {
 				if !client.IsGuest.Val {
 					/* Старый блок кода, когда у меня было куча мап
-					//client.ApName показывает не то, что можно подумать
+					//client.ApName не показывает ничего
 					//siteName := client.SiteName[:len(client.SiteName)-11]
 					apName := apMacName[client.ApMac]
 					//в apName заносим имя точки, взятое из мапы apMacName, на основании client.ApMac

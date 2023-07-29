@@ -443,8 +443,8 @@ func CheckTicketStatus(bpmServer string, srID string) (statusSlice []string) {
 	return statusSlice
 }
 
-func ChangeStatus(bpmServer string, srID string, NewStatus string) (srNewStatus string) {
-	url := bpmServer
+func ChangeStatus(soapServer string, srID string, NewStatus string) (srNewStatus string) {
+	url := soapServer
 	//srID := "fc0d1340-2ccd-4772-a48f-0f60f5ba753e"
 	UserLogin := "denis.tirskikh"
 	//NewStatus := "На уточнении"
