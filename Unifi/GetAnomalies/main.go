@@ -160,6 +160,7 @@ func main() {
 		//if time.Now().Minute() != 0 && time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute {
 		if currentMinute != 0 && everyStartCode[currentMinute] && currentMinute != count6minute {
 			count6minute = time.Now().Minute()
+			fmt.Println(time.Now())
 
 			//uni, err := unifi.NewUnifi(c)
 			uni, err := unifi.NewUnifi(&c)
@@ -167,6 +168,7 @@ func main() {
 				log.Fatalln("Error:", err)
 			}
 			fmt.Println("uni загрузился")
+			//uni.
 
 			sites, err := uni.GetSites()
 			if err != nil {
@@ -179,16 +181,6 @@ func main() {
 				log.Fatalln("Error:", err)
 			}
 			fmt.Println("devices загрузились")
-			/* Блок кода, оставшийся от предков
-			//Добавляем маки и имена точек в apMacName map
-			for _, uap := range devices.UAPs {
-				apMacName[uap.Mac] = uap.Name //информация понадобится в следующем блоке для соответствия имён точек и клиентов
-				//Убираю. делал, видимо, когда был зелёным
-				_, existence := apMacName[uap.Mac] //проверяем, есть ли мак в мапе
-				if !existence {
-					apMacName[uap.Mac] = uap.Name
-				}
-			}*/
 
 			//
 			// обработка точек
@@ -205,6 +197,7 @@ func main() {
 					apMac := ap.Mac
 					apName := ap.Name
 					apLastSeen := ap.Uptime.Int()
+
 					//fmt.Println(ap.Name)	fmt.Println(ap.Uptime.Int())  fmt.Println(ap.Uptime.String()) fmt.Println(ap.Uptime.Val)
 
 					//_, exisApMacSRid := apMacSRid[ap.Mac]
@@ -462,6 +455,8 @@ func main() {
 			if err != nil {
 				log.Fatalln("Error:", err)
 			}
+			fmt.Println("clients загрузились")
+			fmt.Println("")
 			//var apName string
 			for _, client := range clients {
 				if !client.IsGuest.Val {
@@ -475,9 +470,10 @@ func main() {
 					namesClientAp[client.Name] = apName          //Добавить Соответсвие имён клиентов и точек
 					*/
 
-					apName := client.ApName //НИЧЕГо не выводит и не содержит...
+					apName := client.ApName //НИЧЕГО не выводит и не содержит...
 					clientMac := client.Mac
 					clientName := client.Name
+
 					var clExInt int
 					if client.Noted.Val {
 						clientExceptionStr := strings.Split(client.Note, " ")[0]
@@ -512,19 +508,23 @@ func main() {
 					for k, v := range apMyMap {
 						if k == clientMac {
 							apName = v.Name
+							apException := v.Exception
 							//пробегаемся по всей мапе клиентов и назначаем имя точки клиенту
 							_, exisNoutMyMap := machineMyMap[clientMac]
 							if !exisNoutMyMap { //если записи клиента НЕТ
 								machineMyMap[clientMac] = MachineMyStruct{
 									clientName,
-									clExInt,
+									clExInt + apException,
 									"",
 									apName,
 								}
 							} else { //если запись клиента создана, обновляем её
 								for ke, va := range machineMyMap {
 									if ke == client.Mac {
+										va.Hostname = clientName
 										va.ApName = apName
+										va.Exception = clExInt + apException
+										machineMyMap[ke] = va
 										break //прекращаем цикл, когда найден клиент и имя точки присвоено ему
 									}
 								}
@@ -634,12 +634,18 @@ func main() {
 							fmt.Println(s)
 						}
 
-						// Проверяет, есть ли заявка в мапе ClientMacName - ID Тикета
+						//Проверяет, есть ли заявка в мапе ClientMacName - ID Тикета
 						//srID, existence := machineMacSRid[v.noutMac]
+						//Выходим на создание заявки
 						for ke, va := range machineMyMap {
 							if ke == noutMac {
-								srID := va.SrID
+								//Если есть исключение, прерываем for
+								if va.Exception > 0 {
+									fmt.Println("Точка или Клиент добавлены в исключение")
+									break
+								}
 
+								srID := va.SrID
 								//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
 								//checkSlice := CheckTicketStatus(soapServer, srID)
 								checkSlice := CheckTicketStatus(soapServer, srID)
@@ -780,10 +786,8 @@ func main() {
 			//Обновление мап раз в сутки
 			if time.Now().Day() != countDay {
 
-				//
-				// !!! СДЕЛАТЬ !!!
-				//
 				//siteApCutNameLogin = DownloadMapFromDB("wifi_db", "site_apcut", "login", "wifi_db.site_apcut_login", 0, "site_apcut")
+				siteApCutNameLogin = DownloadMapFromDB("it_support_db", "site_apcut", "login", "it_support_db.site_apcut_login", 0, "site_apcut")
 				countDay = time.Now().Day()
 			}
 

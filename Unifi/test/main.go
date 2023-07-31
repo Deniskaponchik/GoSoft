@@ -1,24 +1,15 @@
 package main
 
-import "fmt"
-
-// https://play.golang.org/p/Qg_uv_inCek
-// contains checks if a string is present in a slice
-func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
+import (
+	"fmt"
+	"time"
+)
 
 func main() {
 
-	s := []string{"James", "Wagner", "Christene", "Mike"}
-	if contains(s, "James") {
-		fmt.Println(contains(s, "James")) // true
-	} else {
-		fmt.Println(contains(s, "Jack")) // false
-	}
+	currentTime := time.Now()
+
+	fmt.Println(time.Now().Hour(), ":", time.Now().Minute())
+	//fmt.Println(time.Now().Format("dd-MONTH hh:mm"))
+	fmt.Println(currentTime.Format("02 January, 15:04:05"))
 }
