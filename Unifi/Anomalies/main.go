@@ -26,19 +26,6 @@ func main() {
 		} else {
 			urlController = "https://10.78.221.142:8443/"
 		}
-		//everyStartCode := [10] int8 {3, 9, 15, 21, 27, 33, 39, 45, 51, 57}
-		everyStartCode = map[int]bool{
-			3:  true,
-			9:  true,
-			15: true,
-			21: true,
-			27: true,
-			33: true,
-			39: true,
-			45: true,
-			51: true,
-			57: true,
-		}
 
 		//NOVOSIB
 	} else if unifiController == 20 || unifiController == 21 {
@@ -49,19 +36,7 @@ func main() {
 		} else {
 			urlController = "https://10.8.176.8:8443/"
 		}
-		//everyStartCode := [10] int8 {6, 12, 18, 24, 30, 36, 42, 48, 54, 59}
-		everyStartCode = map[int]bool{
-			6:  true,
-			12: true,
-			18: true,
-			24: true,
-			30: true,
-			36: true,
-			42: true,
-			48: true,
-			54: true,
-			59: true,
-		}
+
 	}
 	fmt.Println("Unifi controller")
 	fmt.Println(urlController)
@@ -72,36 +47,19 @@ func main() {
 	var bpmUrl string
 	//bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 	bpmUrlTest := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	/*
-		bpm := 1 // 0-PROD; 1-TEST
-		var soapServer string
-		var bpmUrl string
-		if bpm == 0 {
-			soapServer = "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //PROD
-			bpmUrl = "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-		} else {
-			soapServer = "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
-			bpmUrl = "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-		}
-		fmt.Println("SOAP")
-		fmt.Println(soapServer)
-		fmt.Println("BPM")
-		fmt.Println(bpmUrl)
-		fmt.Println("")
-	*/
-
+	
 	count6minute := 0
 	countHourAnom := 0
 	countHourDB := 0
 	countDay := time.Now().Day()
 
 	srStatusCodesForNewTicket := map[string]bool{
-		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-		"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+		"Отменено":                  true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
+		"Решено":                    true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
+		"Закрыто":                   true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
+		"На уточнении":              true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 		"Тикет введён не корректно": true,
-		"": true,
+		"":                          true,
 	}
 	sitesException := map[string]bool{
 		"5f2285f3a1a7693ae6139c00": true, //Novosi. Резерв/Склад
