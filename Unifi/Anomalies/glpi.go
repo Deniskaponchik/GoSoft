@@ -192,6 +192,7 @@ func DownloadMapFromDBmachines(bdController int8) map[string]MachineMyStruct {
 	return m
 }
 
+/*
 func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 	type TagAp struct {
 		Mac        string `json:"mac"`
@@ -236,13 +237,9 @@ func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 		}
 	}
 	results.Close()
-	/*
-		fmt.Println("Вывод мапы ВНУТРИ функции")
-		for k, v := range m {
-			fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
-		}*/
 	return m
 }
+*/
 
 func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName string, bdController int8, orderBY string) map[string]string {
 	m := make(map[string]string)
