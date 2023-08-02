@@ -14,7 +14,7 @@ import (
 func main() {
 	fmt.Println("")
 
-	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 	everyStartCode := map[int]bool{}
@@ -67,10 +67,10 @@ func main() {
 	fmt.Println(urlController)
 
 	var soapServer string
-	//soapServerProd := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"      //PROD
+	soapServerProd := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"      //PROD
 	soapServerTest := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
 	var bpmUrl string
-	//bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
+	bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 	bpmUrlTest := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 	/*
 		bpm := 1 // 0-PROD; 1-TEST
@@ -203,10 +203,10 @@ func main() {
 			//
 			//
 			//ТОЧКИ
-			soapServer = soapServerTest
+			soapServer = soapServerProd
 			fmt.Println("SOAP")
 			fmt.Println(soapServer)
-			bpmUrl = bpmUrlTest
+			bpmUrl = bpmUrlProd
 			fmt.Println("BPM")
 			fmt.Println(bpmUrl)
 			fmt.Println("")
@@ -593,7 +593,10 @@ func main() {
 				)
 				if err != nil {
 					log.Fatalln("Error:", err)
+				} else {
+					fmt.Println("anomalies загрузились")
 				}
+				fmt.Println("")
 
 				//mapNoutnameFortickets создаётся локально в блоке аномалий каждый час. Резервировать в БД НЕ нужно
 				mapNoutnameForTickets := map[string]ForAnomalyTicket{}

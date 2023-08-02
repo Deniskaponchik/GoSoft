@@ -6,6 +6,7 @@ import (
 	"github.com/unpoller/unifi"
 	"io"
 	"log"
+	"strconv"
 	"strings"
 
 	//"strconv"
@@ -29,7 +30,7 @@ type Machine struct {
 func main() {
 	fmt.Println("")
 
-	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 
@@ -44,7 +45,6 @@ func main() {
 
 		//NOVOSIB
 	} else if unifiController == 20 || unifiController == 21 {
-		//else{
 		bdController = 2
 		if unifiController == 20 {
 			urlController = "https://localhost:8443/"
@@ -59,12 +59,6 @@ func main() {
 
 	//machineMyMap := map[string]MachineMyStruct{}
 	machineMyMap := DownloadMapFromDBmachines(bdController)
-
-	//dateMac_mac := map[string]string{}
-	dateMac_site := map[string]string{}
-
-	//mac_count := map[string]int8{}
-	//mac_machine := map[string]Machine{}
 
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
@@ -124,9 +118,7 @@ func main() {
 			fmt.Println("clients загрузились")
 		}
 	*/
-	fmt.Println("")
 
-	//
 	/*
 		//count := 60 //минус 70 минут
 		//count := 3600
@@ -139,16 +131,70 @@ func main() {
 	anomalies, err := uni.GetAnomalies(sites,
 		time.Date(2023, 07, 01, 0, 0, 0, 0, time.Local), //time.Now(),
 		//then,
-		//time.Jul,
 	)
 	if err != nil {
 		log.Fatalln("Error:", err)
+	} else {
+		fmt.Println("anomalies загрузились")
 	}
+	fmt.Println("")
+
+	//
+	//Для выгрузки в разрезе точек
+	dateName_site := map[string]string{}
+
+	var siteName string
+	var noutMac string
+	//var anomalyStr string
+	var anomalyDatetime time.Time
 	for _, anomaly := range anomalies {
-		siteName := anomaly.SiteName
-		noutMac := anomaly.DeviceMAC
-		anomalyStr := anomaly.Anomaly
-		anomalyDatetime := anomaly.Datetime
+		anomalyDatetime = anomaly.Datetime
+		siteName = anomaly.SiteName
+		noutMac = anomaly.DeviceMAC
+		//anomalyStr = anomaly.Anomaly
+		//fmt.Println(anomalyDatetime, siteName, noutMac, anomalyStr)
+		for k, v := range machineMyMap {
+			if k == noutMac {
+				anomalyDatetime.String()
+				uniqKey := anomalyDatetime.Format("2006-01-02") + "+" + v.ApName
+				//dateMac_mac[uniqKey] = noutMac
+				dateName_site[uniqKey] = siteName //[:len(siteName)-11]
+				break
+			}
+		}
+	}
+	for k, v := range dateName_site {
+		kName := strings.Split(k, "+")[1]
+		for ke, va := range machineMyMap {
+			if kName == va.ApName {
+				va.Exception++
+				va.SrID = v[:len(v)-11]
+				machineMyMap[ke] = va
+				break
+			}
+		}
+	}
+	var count string
+	for _, v := range machineMyMap {
+		if v.Exception != 0 {
+			count = strconv.Itoa(int(v.Exception))
+			fmt.Println(v.SrID + ";" + v.ApName + ";" + count)
+		}
+	}
+
+	//
+	/*Для выгрузки в разрезе клиентов
+	dateMac_site := map[string]string{}
+
+	var siteName string
+	var noutMac string
+	var anomalyStr string
+	var anomalyDatetime time.Time
+	for _, anomaly := range anomalies {
+		siteName = anomaly.SiteName
+		noutMac = anomaly.DeviceMAC
+		anomalyStr = anomaly.Anomaly
+		anomalyDatetime = anomaly.Datetime
 		fmt.Println(anomalyDatetime, siteName, noutMac, anomalyStr)
 
 		anomalyDatetime.String()
@@ -156,24 +202,27 @@ func main() {
 		//dateMac_mac[uniqKey] = noutMac
 		dateMac_site[uniqKey] = siteName
 	}
-
-	//for k, v := range dateMac_mac {
 	for k, v := range dateMac_site {
 		kMac := strings.Split(k, "_")[1]
 		for ke, va := range machineMyMap {
 			if kMac == ke {
 				va.Exception++
-				va.SrID = v
+				//va.SrID = v
+				va.SrID = v[:len(v)-11]
 				machineMyMap[ke] = va
 			}
 		}
 	}
+	var login string
+	var count string
 	for _, v := range machineMyMap {
 		if v.Exception != 0 {
-			login := GetLoginPC(v.Hostname)
-			fmt.Println(v.SrID, v.ApName, v.Hostname, login, v.Exception)
+			login = GetLoginPC(v.Hostname)
+			count = strconv.Itoa(int(v.Exception))
+			fmt.Println(v.SrID + ";" + v.ApName + ";" + v.Hostname + ";" + login + ";" + count)
 		}
 	}
+	*/
 
 	/*
 

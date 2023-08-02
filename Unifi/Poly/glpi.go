@@ -192,7 +192,6 @@ func DownloadMapFromDBmachines(bdController int8) map[string]MachineMyStruct {
 	return m
 }
 
-/*
 func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 	type TagAp struct {
 		Mac        string `json:"mac"`
@@ -237,9 +236,13 @@ func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 		}
 	}
 	results.Close()
+	/*
+		fmt.Println("Вывод мапы ВНУТРИ функции")
+		for k, v := range m {
+			fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+		}*/
 	return m
 }
-*/
 
 func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName string, bdController int8, orderBY string) map[string]string {
 	m := make(map[string]string)
@@ -351,7 +354,7 @@ func GetLoginPC(pcName string) string {
 	// после запятой указываем значение, которое будет подставляться заместо вопроса + ОБЯЗАТЕЛЬНО в Scan использовать &
 	if err != nil {
 		//panic(err.Error()) // proper error handling instead of panic in your app
-		//fmt.Println("В БД нет доступного соответствия имени ПК и логина")
+		fmt.Println("В БД нет доступного соответствия имени ПК и логина")
 		return "denis.tirskikh"
 	} else {
 		return pc.UserName
