@@ -9,6 +9,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func UploadMapsToDBstring(dbName string, query string) {
@@ -192,6 +193,84 @@ func DownloadMapFromDBmachines(bdController int8) map[string]MachineMyStruct {
 	return m
 }
 
+func DownloadMapFromDBapsErr(bdController int8) map[string]ApMyStruct {
+	type TagAp struct {
+		Mac        string `json:"mac"`
+		Name       string `json:"name"`
+		Controller int    `json:"controller"`
+		Exception  int    `json:"exception"`
+		SrID       string `json:"srid"`
+	}
+	//var ap ApMyStruct
+	//var machine MachineMyStruct
+	m := make(map[string]ApMyStruct)
+
+	myError := 0
+	for myError != 0 { //зацикливание подключения к БД
+		db, errOpen := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/it_support_db")
+		if errOpen == nil {
+			//defer db.Close() // defer the close till after the main function has finished
+			queryAfter := "SELECT * FROM it_support_db.ap WHERE controller = " + strconv.Itoa(int(bdController))
+			fmt.Println(queryAfter)
+			for myError != 0 { //зацикливание выполнения запроса
+				results, errQuery := db.Query(queryAfter)
+				if errQuery == nil {
+					var tag TagAp
+					for results.Next() {
+						//err = results.Scan(&tag.ID, &tag.Name)
+						errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
+						if errScan != nil {
+							panic(errScan.Error()) // proper error handling instead of panic in your app
+							//fmt.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
+							//myError = 1
+							//break
+						} else {
+							//fmt.Println(tag.KeyDB.String, tag.ValueDB.String)
+							//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
+							m[tag.Mac] = ApMyStruct{
+								tag.Name,
+								tag.Exception,
+								tag.SrID,
+							}
+						}
+					}
+					if errRowsNext := results.Err(); errRowsNext != nil {
+						fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+						//если есть ошибка прохода по строкам, отправляем на перезапрос
+						myError = 1
+					} else {
+						//results.Close()
+						if errRowsClose := results.Close(); errRowsClose != nil {
+							fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+						}
+						//db.Close()
+						if errDBclose := db.Close(); errDBclose != nil {
+							fmt.Println("Закрытие подключения к БД завершилось не корректно")
+						}
+						myError = 0
+						/*
+							fmt.Println("Вывод мапы ВНУТРИ функции")
+							for k, v := range m {
+								fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+							}*/
+					}
+				} else {
+					//panic(errQuery.Error()) // proper error handling instead of panic in your app
+					fmt.Println("Запрос SELECT НЕ смог отработать. Будет предпринята новая попытка через 1 минут")
+					time.Sleep(60 * time.Second)
+					myError = 1
+				}
+			} //db.Query
+		} else {
+			log.Print(errOpen.Error())
+			fmt.Println("подключение к БД НЕ установлено. Будет предпринята новая попытка через 1 минут")
+			time.Sleep(60 * time.Second)
+			myError = 1
+		}
+	} //sql.Open
+	return m
+}
+
 func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 	type TagAp struct {
 		Mac        string `json:"mac"`
@@ -210,6 +289,7 @@ func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 	if err != nil {
 		log.Print(err.Error())
 	}
+
 	defer db.Close() // defer the close till after the main function has finished
 
 	queryAfter := "SELECT * FROM it_support_db.ap WHERE controller = " + strconv.Itoa(int(bdController))
@@ -309,7 +389,6 @@ func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName st
 //
 
 func GetLoginAP(siteApCutName string) string {
-	//Единичный запрос для получения логина вк БД уже не использую. Только массовая загрузка/выгрузка в мапы
 	type User struct {
 		//ID   int    `json:"id"`
 		UserLogin string `json:"login"`
@@ -336,7 +415,6 @@ func GetLoginAP(siteApCutName string) string {
 }
 
 func GetLoginPC(pcName string) string {
-	//Единичный запрос для получения логина вк БД уже не использую. Только массовая загрузка/выгрузка в мапы
 	type PC struct {
 		//ID   int    `json:"id"`
 		UserName string `json:"user_name"`

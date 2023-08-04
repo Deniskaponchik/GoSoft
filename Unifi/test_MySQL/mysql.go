@@ -6,12 +6,14 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"strconv"
 	"strings"
+	"time"
 )
 
 func main() {
-
-	newMap := DownloadMapFromDB("glpi_db", "name", "contact", "glpi_db.glpi_computers", "date_mod")
+	//newMap := DownloadMapFromDB("glpi_db", "name", "contact", "glpi_db.glpi_computers", "date_mod")
+	newMap := DownloadMapFromDBapsErr(1)
 	for k, v := range newMap {
 		//fmt.Printf("key: %d, value: %t\n", k, v)
 		fmt.Println("newMap "+k, v)
@@ -218,6 +220,104 @@ func UploadMapsToDB(uploadMap map[string]string, dbName string, tableName string
 	*/
 }
 
+func DownloadMapFromDBapsErr(bdController int8) map[string]ApMyStruct {
+	type TagAp struct {
+		Mac        string `json:"mac"`
+		Name       string `json:"name"`
+		Controller int    `json:"controller"`
+		Exception  int    `json:"exception"`
+		SrID       string `json:"srid"`
+	}
+	m := make(map[string]ApMyStruct)
+	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+
+	myError := 1
+	for myError != 0 {
+		if db, errSqlOpen := sql.Open("mysql", datasource); errSqlOpen == nil {
+			errDBping := db.Ping()
+			if errDBping == nil {
+				defer db.Close() // defer the close till after the main function has finished
+				queryAfter := "SELECT * FROM it_support_db.ap WHERE controller = " + strconv.Itoa(int(bdController))
+				//queryAfter := "SELECT * FROM it_support_db.a WHERE controller = " + strconv.Itoa(int(bdController))
+				fmt.Println(queryAfter)
+				for myError != 0 { //зацикливание выполнения запроса
+					results, errQuery := db.Query(queryAfter)
+					if errQuery == nil {
+						var tag TagAp
+						for results.Next() {
+							//errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
+							errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception)
+							if errScan == nil {
+								//fmt.Println(tag.KeyDB.String, tag.ValueDB.String)
+								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
+								m[tag.Mac] = ApMyStruct{
+									tag.Name,
+									tag.Exception,
+									tag.SrID,
+								}
+							} else {
+								//panic(errScan.Error()) // proper error handling instead of panic in your app
+								fmt.Println(errScan.Error())
+								fmt.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
+								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								myError = 1
+								//break
+							}
+						}
+						if errRowsNext := results.Err(); errRowsNext != nil {
+							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							//если есть ошибка прохода по строкам, отправляем на перезапрос
+							myError = 1
+						}
+						if myError != 1 {
+							//results.Close()
+							if errRowsClose := results.Close(); errRowsClose != nil {
+								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+							}
+							//db.Close()
+							if errDBclose := db.Close(); errDBclose != nil {
+								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+							}
+							myError = 0
+							/*
+								fmt.Println("Вывод мапы ВНУТРИ функции")
+								for k, v := range m {
+									fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+								}*/
+						} else {
+							fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							time.Sleep(60 * time.Second)
+							myError = 1
+						}
+					} else {
+						//panic(errQuery.Error()) // proper error handling instead of panic in your app
+						fmt.Println(errQuery.Error())
+						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						fmt.Println("Будет предпринята новая попытка через 1 минут")
+						time.Sleep(60 * time.Second)
+						myError = 1
+					}
+				} //db.Query
+			} else {
+				fmt.Println("db.Ping failed:", errDBping)
+				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				time.Sleep(60 * time.Second)
+				myError = 1
+			}
+		} else {
+			//log.Print(errSqlOpen.Error())
+			fmt.Println("Error creating DB:", errSqlOpen)
+			fmt.Println("To verify, db is:", db)
+			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			time.Sleep(60 * time.Second)
+			myError = 1
+		}
+	} //sql.Open
+	return m
+}
+
 func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName string, orderBY string) map[string]string {
 	m := make(map[string]string)
 	/*
@@ -421,3 +521,9 @@ func main() {
 	log.Println(tag.ID)
 	log.Println(tag.Name)
 }*/
+
+type ApMyStruct struct {
+	Name      string
+	Exception int //Это исключение НЕ для заявок по Точкам, а для Аномалий!!!
+	SrID      string
+}

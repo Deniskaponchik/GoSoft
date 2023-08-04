@@ -2,14 +2,27 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"log"
 )
 
 func main() {
+	divideByZero()
+	fmt.Println("we survived dividing by zero!")
 
-	currentTime := time.Now()
+}
 
-	fmt.Println(time.Now().Hour(), ":", time.Now().Minute())
-	//fmt.Println(time.Now().Format("dd-MONTH hh:mm"))
-	fmt.Println(currentTime.Format("02 January, 15:04:05"))
+func divideByZero() {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("panic occurred:", err)
+		}
+	}()
+	fmt.Println(divide(1, 0))
+}
+
+func divide(a, b int) int {
+	if b == 0 {
+		panic(nil)
+	}
+	return a / b
 }
