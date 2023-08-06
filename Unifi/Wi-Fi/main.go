@@ -112,12 +112,19 @@ func main() {
 
 	//Download MAPs from DB
 	//apMyMap := map[string]ApMyStruct{}
-	apMyMap := DownloadMapFromDBaps(bdController)
+	//apMyMap := DownloadMapFromDBaps(bdController)
+	apMyMap := DownloadMapFromDBapsErr(bdController)
+
 	//machineMyMap := map[string]MachineMyStruct{}
-	machineMyMap := DownloadMapFromDBmachines(bdController)
+	//machineMyMap := DownloadMapFromDBmachines(bdController)
+	machineMyMap := DownloadMapFromDBmachinesErr(bdController)
+
 	//siteApCutNameLogin := map[string]string{}
-	siteApCutNameLogin := DownloadMapFromDB("it_support_db", "site_apcut", "login", "it_support_db.site_apcut_login", 0, "site_apcut")
-	siteapNameForTickets := map[string]ForApsTicket{} //НЕ должна создаваться новая раз в 5 минут, поэтому здесь в отличие от аномальной
+	//siteApCutNameLogin := DownloadMapFromDB("it_support_db", "site_apcut", "login", "it_support_db.site_apcut_login", 0, "site_apcut")
+	siteApCutNameLogin := DownloadMapFromDBerr()
+
+	//НЕ должна создаваться новая раз в 5 минут, поэтому здесь в отличие от аномальной
+	siteapNameForTickets := map[string]ForApsTicket{}
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
 		for k, v := range siteApCutNameLogin {
@@ -145,6 +152,9 @@ func main() {
 
 	//log.SetOutput(io.Discard) //Отключить вывод лога
 
+	//var uni unifi.Unifi
+	//sites := []*unifi.Site()
+
 	for true { //зацикливаем навечно
 		//currentMinute := time.Now().Minute()
 		timeNow := time.Now()
@@ -159,7 +169,6 @@ func main() {
 			fmt.Println(timeNow.Format("02 January, 15:04:05"))
 
 			//uni, err := unifi.NewUnifi(c)
-			//var uni unifi.Unifi
 			uni, errNewUnifi := unifi.NewUnifi(&c)
 			if errNewUnifi == nil {
 				fmt.Println("uni загрузился")
@@ -195,7 +204,9 @@ func main() {
 
 								apMac := ap.Mac
 								apName := ap.Name
-								apLastSeen := ap.Uptime.Int()
+								//apLastSeen := ap.Uptime.Int()
+								apLastSeen := ap.State.Int()
+								//apState := ap.State.Int()
 
 								//fmt.Println(ap.Name)	fmt.Println(ap.Uptime.Int())  fmt.Println(ap.Uptime.String()) fmt.Println(ap.Uptime.Val)
 
@@ -215,9 +226,10 @@ func main() {
 										srID := valueAp.SrID
 
 										//Точка доступна. Заявки нет.
-										//if apLastSeen != 0 && !exisApMy {
 										if apLastSeen != 0 && srID == "" {
+											//if apState != 1 && srID == "" {
 											//fmt.Println("Точка доступна. Заявки нет. Идём дальше")
+											//
 											//
 
 											//Точка доступна. Заявка есть.   +Имя точки обновляю
@@ -270,6 +282,7 @@ func main() {
 											//Точка недоступна.
 										} else if apLastSeen == 0 {
 											apSiteName := ap.SiteName
+											//apSiteName := ap.
 											fmt.Println(apName)
 											fmt.Println(apMac)
 											fmt.Println("Точка НЕ доступна")
@@ -290,18 +303,15 @@ func main() {
 												apMyMap[keyAp] = valueAp
 
 												//Заполняем переменные, которые понадобятся дальше
-												//fmt.Println(ap.SiteID)
 												fmt.Println("Site ID: " + siteID)
 												var siteName string
-												//if ap.SiteID == "5e74aaa6a1a76964e770815c" { //6360a823a1a769286dc707f2
-												if siteID == "5e74aaa6a1a76964e770815c" { //6360a823a1a769286dc707f2
-													siteName = "Урал"
+												if siteID == "5e74aaa6a1a76964e770815c" {
+													siteName = "Урал" //именно с дефолтными сайтами так почему-то
+												} else if siteID == "5e758bdca9f6163bb0c3c962" {
+													siteName = "Волга" //именно с дефолтными сайтами так почему-то
 												} else {
-													//siteName = ap.SiteName[:len(ap.SiteName)-11]
 													siteName = apSiteName[:len(apSiteName)-11]
 												}
-												//apCutName := ap.Name[:len(ap.Name)3]
-												//apCutName := strings.Split(ap.Name, "-")[0]
 												apCutName := strings.Split(apName, "-")[0]
 												siteApCutName := siteName + "_" + apCutName
 												fmt.Println(siteApCutName)
@@ -397,6 +407,9 @@ func main() {
 
 								//usrLogin := noutnameLogin[v.clientName]
 								usrLogin := siteApCutNameLogin[k]
+								if usrLogin == "" {
+									usrLogin = "denis.tirskikh"
+								}
 								fmt.Println(usrLogin)
 
 								//desAps := strings.Join(v.apNames, "\n")
@@ -466,7 +479,8 @@ func main() {
 							query = b1.String()
 							fmt.Println(query)
 							if count != 0 {
-								UploadMapsToDBstring("it_support_db", query)
+								//UploadMapsToDBstring("it_support_db", query)
+								UploadMapsToDBerr(query)
 							} else {
 								fmt.Println("Передана пустая карта. Запрос не выполнен")
 							}
@@ -482,15 +496,6 @@ func main() {
 							//var apName string
 							for _, client := range clients {
 								if !client.IsGuest.Val {
-									/* Старый блок кода, когда у меня было куча мап
-									//client.ApName не показывает ничего
-									//siteName := client.SiteName[:len(client.SiteName)-11]
-									apName := apMacName[client.ApMac]
-									//в apName заносим имя точки, взятое из мапы apMacName, на основании client.ApMac
-									//Обновление мапы clientMAC-clientHOST
-									machineMacName[client.Mac] = client.Hostname //Добавить КОРП клиентов в map
-									namesClientAp[client.Name] = apName          //Добавить Соответсвие имён клиентов и точек
-									*/
 
 									apName := client.ApName //НИЧЕГО не выводит и не содержит...
 									clientMac := client.Mac

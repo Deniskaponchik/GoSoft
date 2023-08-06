@@ -12,6 +12,68 @@ import (
 	"time"
 )
 
+func UploadMapsToDBerr(query string) {
+
+	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+
+	myError := 1
+	for myError != 0 {
+		if db, errSqlOpen := sql.Open("mysql", datasource); errSqlOpen == nil {
+			errDBping := db.Ping()
+			if errDBping == nil {
+				defer db.Close() // defer the close till after the main function has finished
+
+				//for myError != 0 { //зачем зацикливать выполнение запроса при корректном подключении к БД?
+				_, errQuery := db.Exec(query)
+				if errQuery == nil {
+					//db.Close()
+					if errDBclose := db.Close(); errDBclose != nil {
+						fmt.Println("Закрытие подключения к БД завершилось не корректно")
+					}
+					myError = 0
+					/*
+						fmt.Println("Вывод мапы ВНУТРИ функции")
+						for k, v := range m {
+							fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+						}*/
+				} else {
+					//panic(errQuery.Error()) // proper error handling instead of panic in your app
+					fmt.Println(errQuery.Error())
+					fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+					//fmt.Println("Будет предпринята новая попытка через 1 минут")
+					//time.Sleep(60 * time.Second)
+					myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
+				}
+				//} //db.Query
+			} else {
+				fmt.Println("db.Ping failed:", errDBping)
+				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				time.Sleep(60 * time.Second)
+				//myError = 1
+				myError++
+				if myError == 5 { //У меня всё равно будет повторная попытка выгрузки в БД через час. Не критично останавливаться на этом
+					myError = 0
+					//result = "denis.tirskikh"
+				}
+			}
+		} else {
+			//log.Print(errSqlOpen.Error())
+			fmt.Println("Error creating DB:", errSqlOpen)
+			fmt.Println("To verify, db is:", db)
+			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			time.Sleep(60 * time.Second)
+			//myError = 1
+			myError++
+			if myError == 5 {
+				myError = 0
+				//result = "denis.tirskikh"
+			}
+		}
+	} //sql.Open
+}
+
 func UploadMapsToDBstring(dbName string, query string) {
 
 	var datasource string
@@ -139,6 +201,114 @@ func UploadsMapsToDBdelete(uploadMap map[string]string, dbName string, tableName
 	}
 }
 
+func DownloadMapFromDBmachinesErr(bdController int8) map[string]MachineMyStruct {
+	type TagMachine struct {
+		Mac        string `json:"mac"`
+		Name       string `json:"name"`
+		Controller int    `json:"controller"`
+		Exception  int    `json:"exception"`
+		SrID       string `json:"srid"`
+		ApName     string `json:"apname"`
+	}
+	m := make(map[string]MachineMyStruct)
+	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+
+	myError := 1
+	for myError != 0 {
+		if db, errSqlOpen := sql.Open("mysql", datasource); errSqlOpen == nil {
+			errDBping := db.Ping()
+			if errDBping == nil {
+				defer db.Close() // defer the close till after the main function has finished
+				queryAfter := "SELECT * FROM it_support_db.machine WHERE controller = " + strconv.Itoa(int(bdController))
+				//queryAfter := "SELECT * FROM it_support_db.a WHERE controller = " + strconv.Itoa(int(bdController))
+				fmt.Println(queryAfter)
+				for myError != 0 { //зацикливание выполнения запроса
+					results, errQuery := db.Query(queryAfter)
+					if errQuery == nil {
+						var tag TagMachine
+						for results.Next() {
+							//errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
+							errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID, &tag.ApName)
+							if errScan == nil {
+								//fmt.Println(tag.KeyDB.String, tag.ValueDB.String)
+								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
+								m[tag.Mac] = MachineMyStruct{
+									tag.Name,
+									tag.Exception,
+									tag.SrID,
+									tag.ApName,
+								}
+							} else {
+								//panic(errScan.Error()) // proper error handling instead of panic in your app
+								fmt.Println(errScan.Error())
+								fmt.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
+								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								myError = 0
+								//break
+							}
+						}
+						if errRowsNext := results.Err(); errRowsNext != nil {
+							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							//если есть ошибка прохода по строкам, отправляем на перезапрос
+							myError = 0
+						}
+						if myError != 1 {
+							//results.Close()
+							if errRowsClose := results.Close(); errRowsClose != nil {
+								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+							}
+							//db.Close()
+							if errDBclose := db.Close(); errDBclose != nil {
+								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+							}
+							myError = 0
+							/*
+								fmt.Println("Вывод мапы ВНУТРИ функции")
+								for k, v := range m {
+									fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+								}*/
+						} else {
+							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//time.Sleep(60 * time.Second)
+							myError = 0
+						}
+					} else {
+						//panic(errQuery.Error()) // proper error handling instead of panic in your app
+						fmt.Println(errQuery.Error())
+						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						//time.Sleep(60 * time.Second)
+						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
+					}
+				} //db.Query
+			} else {
+				fmt.Println("db.Ping failed:", errDBping)
+				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				time.Sleep(60 * time.Second)
+				//myError = 1
+				myError++
+				if myError == 300 { //Если ночью сервер перезагрузился + нет доступа к БД = в ЦОДЕ коллапс. Могу подождать 5 часов
+					myError = 0
+				}
+			}
+		} else {
+			//log.Print(errSqlOpen.Error())
+			fmt.Println("Error creating DB:", errSqlOpen)
+			fmt.Println("To verify, db is:", db)
+			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			time.Sleep(60 * time.Second)
+			//myError = 1
+			myError++
+			if myError == 300 { //Если ночью сервер перезагрузился + нет доступа к БД = в ЦОДЕ коллапс. Могу подождать 5 часов
+				myError = 0
+			}
+		}
+	} //sql.Open
+	return m
+}
+
 func DownloadMapFromDBmachines(bdController int8) map[string]MachineMyStruct {
 	type TagMachine struct {
 		Mac        string `json:"mac"`
@@ -201,71 +371,98 @@ func DownloadMapFromDBapsErr(bdController int8) map[string]ApMyStruct {
 		Exception  int    `json:"exception"`
 		SrID       string `json:"srid"`
 	}
-	//var ap ApMyStruct
-	//var machine MachineMyStruct
 	m := make(map[string]ApMyStruct)
+	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
 
-	myError := 0
-	for myError != 0 { //зацикливание подключения к БД
-		db, errOpen := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/it_support_db")
-		if errOpen == nil {
-			//defer db.Close() // defer the close till after the main function has finished
-			queryAfter := "SELECT * FROM it_support_db.ap WHERE controller = " + strconv.Itoa(int(bdController))
-			fmt.Println(queryAfter)
-			for myError != 0 { //зацикливание выполнения запроса
-				results, errQuery := db.Query(queryAfter)
-				if errQuery == nil {
-					var tag TagAp
-					for results.Next() {
-						//err = results.Scan(&tag.ID, &tag.Name)
-						errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
-						if errScan != nil {
-							panic(errScan.Error()) // proper error handling instead of panic in your app
-							//fmt.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
-							//myError = 1
-							//break
-						} else {
-							//fmt.Println(tag.KeyDB.String, tag.ValueDB.String)
-							//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
-							m[tag.Mac] = ApMyStruct{
-								tag.Name,
-								tag.Exception,
-								tag.SrID,
+	myError := 1
+	for myError != 0 {
+		if db, errSqlOpen := sql.Open("mysql", datasource); errSqlOpen == nil {
+			errDBping := db.Ping()
+			if errDBping == nil {
+				defer db.Close() // defer the close till after the main function has finished
+				queryAfter := "SELECT * FROM it_support_db.ap WHERE controller = " + strconv.Itoa(int(bdController))
+				//queryAfter := "SELECT * FROM it_support_db.a WHERE controller = " + strconv.Itoa(int(bdController))
+				fmt.Println(queryAfter)
+				for myError != 0 { //зацикливание выполнения запроса
+					results, errQuery := db.Query(queryAfter)
+					if errQuery == nil {
+						var tag TagAp
+						for results.Next() {
+							//errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
+							errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception)
+							if errScan == nil {
+								//fmt.Println(tag.KeyDB.String, tag.ValueDB.String)
+								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
+								m[tag.Mac] = ApMyStruct{
+									tag.Name,
+									tag.Exception,
+									tag.SrID,
+								}
+							} else {
+								//panic(errScan.Error()) // proper error handling instead of panic in your app
+								fmt.Println(errScan.Error())
+								fmt.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
+								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								myError = 0
 							}
 						}
-					}
-					if errRowsNext := results.Err(); errRowsNext != nil {
-						fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
-						//если есть ошибка прохода по строкам, отправляем на перезапрос
-						myError = 1
+						if errRowsNext := results.Err(); errRowsNext != nil {
+							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							//если есть ошибка прохода по строкам, отправляем на перезапрос
+							myError = 0
+						}
+						if myError != 1 {
+							//results.Close()
+							if errRowsClose := results.Close(); errRowsClose != nil {
+								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+							}
+							//db.Close()
+							if errDBclose := db.Close(); errDBclose != nil {
+								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+							}
+							myError = 0
+							/*
+								fmt.Println("Вывод мапы ВНУТРИ функции")
+								for k, v := range m {
+									fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+								}*/
+						} else {
+							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//time.Sleep(60 * time.Second)
+							myError = 0
+						}
 					} else {
-						//results.Close()
-						if errRowsClose := results.Close(); errRowsClose != nil {
-							fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
-						}
-						//db.Close()
-						if errDBclose := db.Close(); errDBclose != nil {
-							fmt.Println("Закрытие подключения к БД завершилось не корректно")
-						}
-						myError = 0
-						/*
-							fmt.Println("Вывод мапы ВНУТРИ функции")
-							for k, v := range m {
-								fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
-							}*/
+						//panic(errQuery.Error()) // proper error handling instead of panic in your app
+						fmt.Println(errQuery.Error())
+						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						//time.Sleep(60 * time.Second)
+						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
 					}
-				} else {
-					//panic(errQuery.Error()) // proper error handling instead of panic in your app
-					fmt.Println("Запрос SELECT НЕ смог отработать. Будет предпринята новая попытка через 1 минут")
-					time.Sleep(60 * time.Second)
-					myError = 1
+				} //db.Query
+			} else {
+				fmt.Println("db.Ping failed:", errDBping)
+				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				time.Sleep(60 * time.Second)
+				//myError = 1
+				myError++
+				if myError == 300 { //Если ночью сервер перезагрузился + нет доступа к БД = в ЦОДЕ коллапс. Могу подождать 5 часов
+					myError = 0
 				}
-			} //db.Query
+			}
 		} else {
-			log.Print(errOpen.Error())
-			fmt.Println("подключение к БД НЕ установлено. Будет предпринята новая попытка через 1 минут")
+			//log.Print(errSqlOpen.Error())
+			fmt.Println("Error creating DB:", errSqlOpen)
+			fmt.Println("To verify, db is:", db)
+			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			fmt.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
-			myError = 1
+			//myError = 1
+			myError++
+			if myError == 300 { //Если ночью сервер перезагрузился + нет доступа к БД = в ЦОДЕ коллапс. Могу подождать 5 часов
+				myError = 0
+			}
 		}
 	} //sql.Open
 	return m
@@ -321,6 +518,107 @@ func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 		for k, v := range m {
 			fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
 		}*/
+	return m
+}
+
+func DownloadMapFromDBerr() map[string]string {
+	type Tag struct {
+		KeyDB   sql.NullString `json:"keyDB""`
+		ValueDB sql.NullString `json:"valueDB"`
+	}
+	m := make(map[string]string)
+	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+
+	myError := 1
+	for myError != 0 {
+		if db, errSqlOpen := sql.Open("mysql", datasource); errSqlOpen == nil {
+			errDBping := db.Ping()
+			if errDBping == nil {
+				defer db.Close() // defer the close till after the main function has finished
+				queryAfter := "SELECT * FROM it_support_db.site_apcut_login"
+				//queryAfter := "SELECT * FROM it_support_db.a WHERE controller = " + strconv.Itoa(int(bdController))
+				fmt.Println(queryAfter)
+				for myError != 0 { //зацикливание выполнения запроса
+					results, errQuery := db.Query(queryAfter)
+					if errQuery == nil {
+						var tag Tag
+						for results.Next() {
+							//errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
+							errScan := results.Scan(&tag.KeyDB, &tag.ValueDB)
+							if errScan == nil {
+								//fmt.Println(tag.KeyDB.String, tag.ValueDB.String)
+								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
+								m[tag.KeyDB.String] = tag.ValueDB.String
+							} else {
+								//panic(errScan.Error()) // proper error handling instead of panic in your app
+								fmt.Println(errScan.Error())
+								fmt.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
+								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								myError = 0 //если изменилась структура полей табл, то они изменятся за 5 минут? думаю, нет
+								//break
+							}
+						}
+						if errRowsNext := results.Err(); errRowsNext != nil {
+							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							//если есть ошибка прохода по строкам, отправляем на перезапрос. отключено
+							myError = 0
+						}
+						if myError != 1 {
+							//results.Close()
+							if errRowsClose := results.Close(); errRowsClose != nil {
+								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+							}
+							//db.Close()
+							if errDBclose := db.Close(); errDBclose != nil {
+								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+							}
+							myError = 0
+							/*
+								fmt.Println("Вывод мапы ВНУТРИ функции")
+								for k, v := range m {
+									fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+								}*/
+						} else {
+							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//time.Sleep(60 * time.Second)
+							myError = 0
+						}
+					} else {
+						//panic(errQuery.Error()) // proper error handling instead of panic in your app
+						fmt.Println(errQuery.Error())
+						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						//time.Sleep(60 * time.Second)
+						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
+					}
+				} //db.Query
+			} else {
+				fmt.Println("db.Ping failed:", errDBping)
+				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				time.Sleep(60 * time.Second)
+				//myError = 1
+				myError++
+				if myError == 5 {
+					myError = 0
+					//result = "denis.tirskikh"
+				}
+			}
+		} else {
+			//log.Print(errSqlOpen.Error())
+			fmt.Println("Error creating DB:", errSqlOpen)
+			fmt.Println("To verify, db is:", db)
+			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			time.Sleep(60 * time.Second)
+			//myError = 1
+			myError++
+			if myError == 5 {
+				myError = 0
+				//result = "denis.tirskikh"
+			}
+		}
+	} //sql.Open
 	return m
 }
 
@@ -385,9 +683,6 @@ func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName st
 	return m
 }
 
-//
-//
-
 func GetLoginAP(siteApCutName string) string {
 	type User struct {
 		//ID   int    `json:"id"`
@@ -412,6 +707,68 @@ func GetLoginAP(siteApCutName string) string {
 	}
 	//log.Println(pc.ID)//log.Println(pc.UserName)
 	//return pc.UserName
+}
+
+func GetLoginPCerr(pcName string) string {
+	type PC struct {
+		UserName string `json:"user_name"`
+	}
+	var pc PC
+	var result string
+	datasource := "root:t2root@tcp(10.77.252.154:3306)/glpi_db"
+	myError := 1
+
+	for myError != 0 {
+		if db, errSqlOpen := sql.Open("mysql", datasource); errSqlOpen == nil {
+			errDBping := db.Ping()
+			if errDBping == nil {
+				defer db.Close() // defer the close till after the main function has finished
+				//queryAfter := "SELECT * FROM it_support_db.a WHERE controller = " + strconv.Itoa(int(bdController))
+				queryAfter := "SELECT contact FROM glpi_db.glpi_computers where name = ? ORDER BY date_mod DESC"
+
+				errQuery := db.QueryRow(queryAfter, pcName).Scan(&pc.UserName)
+				if errQuery != nil {
+					fmt.Println(errQuery.Error())
+					//fmt.Println("В БД нет доступного соответствия имени ПК и логина")
+					//return "denis.tirskikh"
+					result = "denis.tirskikh"
+				} else {
+					//Если изменилась имя или структура таблицы, то нет смысла зацикливать на 5 минут SELECT
+					result = pc.UserName
+				}
+				myError = 0
+				//db.Close()
+			} else {
+				fmt.Println("db.Ping failed:", errDBping)
+				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				time.Sleep(60 * time.Second)
+				//myError = 1
+
+				myError++
+				if myError == 5 {
+					myError = 0
+					result = "denis.tirskikh"
+				}
+			}
+		} else {
+			//По факту подключения к БД НЕ происходит на этом этапе
+			//https://stackoverflow.com/questions/32345124/why-does-sql-open-return-nil-as-error-when-it-should-not
+			fmt.Println("Error creating DB:", errSqlOpen)
+			fmt.Println("To verify, db is:", db)
+			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			time.Sleep(60 * time.Second)
+			//myError = 1
+
+			myError++
+			if myError == 5 {
+				myError = 0
+				result = "denis.tirskikh"
+			}
+		}
+	} //sql.Open
+	return result
 }
 
 func GetLoginPC(pcName string) string {
