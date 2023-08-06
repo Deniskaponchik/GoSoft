@@ -197,43 +197,53 @@ func main() {
 						fmt.Println("")
 						for _, ap := range devices.UAPs {
 							siteID := ap.SiteID
-							//fmt.Println(ap.Name)	fmt.Println(ap.SiteID)
-							//if ap.SiteName[:len(ap.SiteName)-11] != "Резерв/Склад" {
-							//if ap.SiteID != "5f2285f3a1a7693ae6139c00" { //NOVOSIB
 							if !sitesException[siteID] { // НЕ Резерв/Склад
-
 								apMac := ap.Mac
 								apName := ap.Name
-								//apLastSeen := ap.Uptime.Int()
 								apLastSeen := ap.State.Int()
 								//apState := ap.State.Int()
 
 								//fmt.Println(ap.Name)	fmt.Println(ap.Uptime.Int())  fmt.Println(ap.Uptime.String()) fmt.Println(ap.Uptime.Val)
-
 								//_, exisApMacSRid := apMacSRid[ap.Mac]
 								_, exisApMyMap := apMyMap[apMac]
-								//если в мапе нет записи, создаём
-								if !exisApMyMap {
+								if !exisApMyMap { //если в мапе нет записи, создаём
 									apMyMap[apMac] = ApMyStruct{
 										apName,
 										0,
 										"",
 									}
 								}
-
 								for keyAp, valueAp := range apMyMap {
 									if keyAp == apMac {
 										srID := valueAp.SrID
 
+										apSiteName := ap.SiteName
+										var siteName string
+										if siteID == "5e74aaa6a1a76964e770815c" {
+											siteName = "Урал" //именно с дефолтными сайтами так почему-то
+										} else if siteID == "5e758bdca9f6163bb0c3c962" {
+											siteName = "Волга" //именно с дефолтными сайтами так почему-то
+										} else {
+											siteName = apSiteName[:len(apSiteName)-11]
+										}
+										apCutName := strings.Split(apName, "-")[0]
+										siteApCutName := siteName + "_" + apCutName
+
+										//
 										//Точка доступна. Заявки нет.
 										if apLastSeen != 0 && srID == "" {
-											//if apState != 1 && srID == "" {
-											//fmt.Println("Точка доступна. Заявки нет. Идём дальше")
-											//
-											//
+											//for site_apCut
+											for k, v := range siteapNameForTickets {
+												if k == siteApCutName {
+													for ke, _ := range v.apsMacName {
+														if ke == apMac {
+															delete(v.apsMacName, ke)
+														}
+													}
+												}
+											}
 
 											//Точка доступна. Заявка есть.   +Имя точки обновляю
-											//} else if apLastSeen != 0 && exisApMacSRid {
 										} else if apLastSeen != 0 && srID != "" {
 											fmt.Println(apName)
 											fmt.Println(apMac)
@@ -279,10 +289,8 @@ func main() {
 											fmt.Println("")
 
 											//
-											//Точка недоступна.
+											//Точка недоступна
 										} else if apLastSeen == 0 {
-											apSiteName := ap.SiteName
-											//apSiteName := ap.
 											fmt.Println(apName)
 											fmt.Println(apMac)
 											fmt.Println("Точка НЕ доступна")
@@ -304,22 +312,10 @@ func main() {
 
 												//Заполняем переменные, которые понадобятся дальше
 												fmt.Println("Site ID: " + siteID)
-												var siteName string
-												if siteID == "5e74aaa6a1a76964e770815c" {
-													siteName = "Урал" //именно с дефолтными сайтами так почему-то
-												} else if siteID == "5e758bdca9f6163bb0c3c962" {
-													siteName = "Волга" //именно с дефолтными сайтами так почему-то
-												} else {
-													siteName = apSiteName[:len(apSiteName)-11]
-												}
-												apCutName := strings.Split(apName, "-")[0]
-												siteApCutName := siteName + "_" + apCutName
 												fmt.Println(siteApCutName)
 
-												//Проверяем и Вносим во временную мапу. Заявка на данном этапе никакая ещё НЕ создаётся
+												//Проверяем и вносим во временную мапу. Заявка на данном этапе никакая ещё НЕ создаётся
 												_, exisSiteName := siteapNameForTickets[siteApCutName] //проверяем, есть ли в мапе ДЛЯтикетов
-												//for _, ticket := range sliceForTicket {
-
 												//если в мапе дляТикета сайта ещё НЕТ
 												if !exisSiteName {
 													fmt.Println("в мапе для Тикета записи ещё НЕТ")
@@ -327,10 +323,7 @@ func main() {
 													siteapNameForTickets[siteApCutName] = ForApsTicket{
 														siteName,
 														0,
-														//[]string{ap.Mac},
-														//apMac[apName],
 														map[string]string{apMac: apName},
-														//map[apMac]apName,
 													}
 
 													//если в мапе дляТикета сайт уже есть, добавляем в массив точку
@@ -373,6 +366,7 @@ func main() {
 											}
 											fmt.Println("")
 										}
+										break
 									}
 								}
 							} //fmt.Println("")
@@ -382,67 +376,70 @@ func main() {
 
 						fmt.Println("Создание заявок по точкам:")
 						for k, v := range siteapNameForTickets {
-							//vCountIncident := v.countIncident
-							fmt.Println(k)
-							fmt.Println(v.countIncident) //"Число циклов захода на создание заявки: " +
-							//fmt.Println(vСountIncident) //"Число циклов захода на создание заявки: " +
-							v.countIncident++
+							if len(v.apsMacName) > 0 {
+								//vCountIncident := v.countIncident
+								fmt.Println(k)
+								fmt.Println(v.countIncident) //"Число циклов захода на создание заявки: " +
+								v.countIncident++
 
-							//Если v.count < 10
-							if v.countIncident < 5 {
-								//обновляем мапу и инкрементируем count
-								siteapNameForTickets[k] = v
-							} else {
-								//Если count == 10, Создаём заявку
-								var apsNames []string
-								//for _, s := range v.apNames {	fmt.Println(s)	}
-								//for _, mac := range v.apsMac {
-								for _, name := range v.apsMacName {
-									//apName := apMacName[mac] //сходить в другую мапу
-									//apName := apMacName[name]
-									//apsNames = append(apsNames, apName)
-									apsNames = append(apsNames, name)
-									fmt.Println(name)
-								}
+								//Если v.count < 10
+								if v.countIncident < 5 {
+									//обновляем мапу и инкрементируем count
+									siteapNameForTickets[k] = v
+								} else {
+									//Если count == 10, Создаём заявку
+									var apsNames []string
+									//for _, s := range v.apNames {	fmt.Println(s)	}
+									//for _, mac := range v.apsMac {
+									for _, name := range v.apsMacName {
+										//apName := apMacName[mac] //сходить в другую мапу
+										//apName := apMacName[name]
+										//apsNames = append(apsNames, apName)
+										apsNames = append(apsNames, name)
+										fmt.Println(name)
+									}
 
-								//usrLogin := noutnameLogin[v.clientName]
-								usrLogin := siteApCutNameLogin[k]
-								if usrLogin == "" {
-									usrLogin = "denis.tirskikh"
-								}
-								fmt.Println(usrLogin)
+									//usrLogin := noutnameLogin[v.clientName]
+									usrLogin := siteApCutNameLogin[k]
+									if usrLogin == "" {
+										usrLogin = "denis.tirskikh"
+									}
+									fmt.Println(usrLogin)
 
-								//desAps := strings.Join(v.apNames, "\n")
-								desAps := strings.Join(apsNames, "\n")
-								description := "Зафиксировано отключение Wi-Fi точек доступа:" + "\n" +
-									desAps + "\n" +
-									"" + "\n" +
-									"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
-									"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
-									"" + "\n" +
-									"!!! Не нужно решать/отменять/отклонять/возвращать/закрывать заявку, пока работа точек не будет восстановлена - автоматически создастся новый тикет !!!" + "\n" +
-									""
-								incidentType := "Недоступна точка доступа"
+									//desAps := strings.Join(v.apNames, "\n")
+									desAps := strings.Join(apsNames, "\n")
+									description := "Зафиксировано отключение Wi-Fi точек доступа:" + "\n" +
+										desAps + "\n" +
+										"" + "\n" +
+										"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+										"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+										"" + "\n" +
+										"!!! Не нужно решать/отменять/отклонять/возвращать/закрывать заявку, пока работа точек не будет восстановлена - автоматически создастся новый тикет !!!" + "\n" +
+										""
+									incidentType := "Недоступна точка доступа"
 
-								//srTicketSlice := CreateApTicket(soapServer, usrLogin, description, v.site, incidentType)
-								srTicketSlice := CreateSmacWiFiTicket(soapServer, usrLogin, description, v.site, incidentType)
-								fmt.Println(srTicketSlice[2])
+									//srTicketSlice := CreateApTicket(soapServer, usrLogin, description, v.site, incidentType)
+									srTicketSlice := CreateSmacWiFiTicket(soapServer, usrLogin, description, v.site, incidentType)
+									fmt.Println(srTicketSlice[2])
 
-								//apMacSRid[v.apMac] = srTicketSlice[0] //добавить в мапу apMac - ID Тикета
-								//for _, mac := range v.apsMac {
-								for mac, _ := range v.apsMacName {
-									//apMacSRid[mac] = srTicketSlice[0]
-									for key, value := range apMyMap {
-										if key == mac {
-											value.SrID = srTicketSlice[0]
-											apMyMap[key] = value
-											break
+									//apMacSRid[v.apMac] = srTicketSlice[0] //добавить в мапу apMac - ID Тикета
+									//for _, mac := range v.apsMac {
+									for mac, _ := range v.apsMacName {
+										//apMacSRid[mac] = srTicketSlice[0]
+										for key, value := range apMyMap {
+											if key == mac {
+												value.SrID = srTicketSlice[0]
+												apMyMap[key] = value
+												break
+											}
 										}
 									}
-								}
-								fmt.Println("")
+									fmt.Println("")
 
-								//Удаляем запись в мапе
+									//Удаляем запись в мапе
+									delete(siteapNameForTickets, k)
+								}
+							} else {
 								delete(siteapNameForTickets, k)
 							}
 						}
@@ -662,7 +659,8 @@ func main() {
 										if len(corpAnomalies) > 2 {
 											//fmt.Println(v.clientName)
 											fmt.Println(k)
-											usrLogin := GetLoginPC(k)
+											//usrLogin := GetLoginPC(k)
+											usrLogin := GetLoginPCerr(k)
 											fmt.Println(usrLogin)
 											for _, s := range v.corpAnomalies {
 												fmt.Println(s)
@@ -772,7 +770,8 @@ func main() {
 										query = b2.String()
 										fmt.Println(query)
 										if count != 0 {
-											UploadMapsToDBstring("it_support_db", query)
+											//UploadMapsToDBstring("it_support_db", query)
+											UploadMapsToDBerr(query)
 										} else {
 											fmt.Println("Передана пустая карта. Запрос не выполнен")
 										}
@@ -817,8 +816,10 @@ func main() {
 		//Обновление мапы site_apcut_login раз в сутки (первичное обновление происходит при старте кода вначале)
 		if timeNow.Day() != countDay {
 			countDay = timeNow.Day()
+
 			//siteApCutNameLogin = DownloadMapFromDB("wifi_db", "site_apcut", "login", "wifi_db.site_apcut_login", 0, "site_apcut")
-			siteApCutNameLogin = DownloadMapFromDB("it_support_db", "site_apcut", "login", "it_support_db.site_apcut_login", 0, "site_apcut")
+			//siteApCutNameLogin = DownloadMapFromDB("it_support_db", "site_apcut", "login", "it_support_db.site_apcut_login", 0, "site_apcut")
+			siteApCutNameLogin = DownloadMapFromDBerr()
 		}
 		//
 		//

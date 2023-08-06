@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 )
 import (
 	"bytes"
@@ -13,24 +14,19 @@ import (
 	"net/http"
 )
 
-var (
-	//Server = "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"   //Prod
-	Server = "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
-	/*
-		StatusIdVising := "b32b613a-0282-4e8a-b831-1027e7c7972f"
-		StatusIdCancel := "6e5f4218-f46b-1410-fe9a-0050ba5d6c38"
-		StatusIdResolve := "ae7f411e-f46b-1410-009b-0050ba5d6c38"
-		StatusIdClarification := "81e6a1ee-16c1-4661-953e-dde140624fb3"
-		CloseCode_FullSolution := 200
-	*/
-)
-
 func main() {
+	//PROD
+	//bpmUrl := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 	soapServer := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"
-	srID := "1e738d31-d909-4ef1-a821-b3772320f36a"
-	srNewStatus := "На уточнении"
+	//soapServer := "http://10.12.15.149/specs/aoi/tele2/bpm/bpmPortType"
+	//TEST
+	//bpmUrl := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
+	//soapServer := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
 
-	mainCHANGE(soapServer, srID, srNewStatus)
+	srID := "cf26d230-af9d-4f03-92ca-97d763262a24"
+	//srNewStatus := "На уточнении"
+
+	fmt.Println(CheckTicketStatusErr(soapServer, srID)[1])
 }
 
 func mainCHANGE(soapServer string, srID string, NewStatus string) (srNewStatus string) {
@@ -110,8 +106,9 @@ func mainCHANGE(soapServer string, srID string, NewStatus string) (srNewStatus s
 	return srNewStatus
 }
 
-func mainCOMMENT() {
-	url := Server
+func mainCOMMENT(soapServer string) {
+	//url := Server
+	url := soapServer
 	srID := "fc0d1340-2ccd-4772-a48f-0f60f5ba753e"
 	userLogin := "denis.tirskikh"
 	myComment := "Моё первое сервисное сообщение!"
@@ -186,9 +183,112 @@ func mainCOMMENT() {
 	}
 }
 
-func mainCHECK() {
-	//url := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
-	url := Server
+func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string) {
+	if len(srID) == 36 {
+		//url := bpmServer
+		//Убрать из строки \n
+		strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+		replacer := strings.NewReplacer("SRid", srID)
+		strAfter := replacer.Replace(strBefore)
+		payload := []byte(strAfter)
+		httpMethod := "POST" // GET запрос не срабатывает
+
+		type Envelope struct {
+			XMLName xml.Name `xml:"Envelope"`
+			Text    string   `xml:",chardata"`
+			SOAPENV string   `xml:"SOAP-ENV,attr"`
+			Body    struct {
+				Text              string `xml:",chardata"`
+				BerNs0            string `xml:"ber-ns0,attr"`
+				GetStatusResponse struct {
+					Text     string `xml:",chardata"`
+					Code     string `xml:"Code"`
+					Status   string `xml:"Status"`
+					StatisId string `xml:"StatisId"`
+				} `xml:"getStatusResponse"`
+			} `xml:"Body"`
+		}
+
+		myError := 1
+		for myError != 0 {
+			//req, errHttpReq := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+			req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
+			if errHttpReq == nil {
+				client := &http.Client{
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
+					},
+				}
+				res, errClientDo := client.Do(req)
+				if errClientDo == nil {
+					/*Посмотреть response Body, если понадобится
+					defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
+					b, err := io.ReadAll(res.Body)
+					if err != nil {
+						log.Fatalln(err)
+					}
+					fmt.Println(string(b))
+					//os.Exit(0)*/
+
+					envelope := &Envelope{}
+					bodyByte, errIOread := io.ReadAll(res.Body)
+					if errIOread == nil {
+						erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
+						if erXmlUnmarshal == nil {
+							statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.StatisId)
+							statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.Status)
+							myError = 0
+						} else {
+							//log.Fatalln(erXmlUnmarshal)
+							fmt.Println("Ошибка перекодировки ответа в xml")
+							fmt.Println(errIOread.Error())
+							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							time.Sleep(60 * time.Second)
+							myError++
+						}
+					} else {
+						//log.Fatalln(err)
+						fmt.Println("Ошибка чтения байтов из ответа")
+						fmt.Println(errIOread.Error())
+						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+						time.Sleep(60 * time.Second)
+						myError++
+					}
+				} else {
+					//log.Fatal("Error on dispatching request. ", err.Error())
+					//return
+					fmt.Println("Ошибка отправки запроса")
+					fmt.Println(errClientDo.Error())
+					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+					time.Sleep(60 * time.Second)
+					myError++
+					//Если ночью нет доступа к SOAP = в ЦОДЕ коллапс. Могу подождать 5 часов
+					//if myError == 300 { 					myError = 0				}
+				}
+			} else {
+				//log.Fatal("Error on creating request object. ", err.Error())
+				//return
+				fmt.Println("Ошибка создания объекта запроса")
+				fmt.Println(errHttpReq.Error())
+				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+				time.Sleep(60 * time.Second)
+				myError++
+				//Если ночью нет доступа к SOAP = в ЦОДЕ коллапс. Могу подождать 5 часов
+				//if myError == 300 { 					myError = 0				}
+			}
+		}
+	} else {
+		statusSlice = append(statusSlice, "0")
+		statusSlice = append(statusSlice, "Тикет введён не корректно")
+	}
+	return statusSlice
+}
+
+func mainCHECK(soapServer string) {
+	//url := Server
+	url := soapServer
 	srID := "f0074e96-1ab9-4f63-af29-0acd933b49e8"
 	//Убрать из строки \n
 	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"

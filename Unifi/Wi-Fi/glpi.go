@@ -388,8 +388,8 @@ func DownloadMapFromDBapsErr(bdController int8) map[string]ApMyStruct {
 					if errQuery == nil {
 						var tag TagAp
 						for results.Next() {
-							//errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
-							errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception)
+							errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
+							//errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception)
 							if errScan == nil {
 								//fmt.Println(tag.KeyDB.String, tag.ValueDB.String)
 								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
@@ -715,7 +715,7 @@ func GetLoginPCerr(pcName string) string {
 	}
 	var pc PC
 	var result string
-	datasource := "root:t2root@tcp(10.77.252.154:3306)/glpi_db"
+	datasource := "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
 	myError := 1
 
 	for myError != 0 {
