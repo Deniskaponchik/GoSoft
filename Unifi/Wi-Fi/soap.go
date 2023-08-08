@@ -20,17 +20,6 @@ func CreateSmacWiFiTicketErr(
 	srSlice []string) {
 
 	if userLogin != "" {
-		/*desAps := strings.Join(aps, "\n")
-		description := "Зафиксировано отключение точек:" + "\n" +
-			desAps + "\n" +
-			"" + "\n" +
-			"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
-			"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
-			""
-		//fmt.Println(description)
-		//region := "Москва ЦФ"
-		//incidentType := "Недоступна точка доступа"
-		*/
 		strBefore :=
 			"<soapenv:Envelope " +
 				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
@@ -71,11 +60,12 @@ func CreateSmacWiFiTicketErr(
 				Text                  string `xml:",chardata"`
 				BerNs0                string `xml:"ber-ns0,attr"`
 				CreateRequestResponse struct {
-					Text       string `xml:",chardata"`
-					Code       string `xml:"Code"`
-					ID         string `xml:"ID"`
-					Number     string `xml:"Number"`
-					SystemName string `xml:"SystemName"`
+					Text        string `xml:",chardata"`
+					Code        int    `xml:"Code"`
+					ID          string `xml:"ID"`
+					Number      string `xml:"Number"`
+					SystemName  string `xml:"SystemName"`
+					Description string `xml:"Description"`
 				} `xml:"createRequestResponse"`
 			} `xml:"Body"`
 		}
@@ -110,15 +100,17 @@ func CreateSmacWiFiTicketErr(
 					if errIOread == nil {
 						erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 						if erXmlUnmarshal == nil {
-							srID := envelope.Body.CreateRequestResponse.ID
-							srNumber := envelope.Body.CreateRequestResponse.Number
-							bpmLink := bpmUrl + srID
-							srSlice = append(srSlice, srID)
-							srSlice = append(srSlice, srNumber)
-							srSlice = append(srSlice, bpmLink)
-							if srSlice[0] == "" {
-								myError++
-								fmt.Println("Итог пустой. По каким-то причинам заявка не создалась на ФИНАЛЬНОМ этапе")
+							if envelope.Body.CreateRequestResponse.Code == 0 {
+								srID := envelope.Body.CreateRequestResponse.ID
+								srNumber := envelope.Body.CreateRequestResponse.Number
+								bpmLink := bpmUrl + srID
+								srSlice = append(srSlice, srID)
+								srSlice = append(srSlice, srNumber)
+								srSlice = append(srSlice, bpmLink)
+								myError = 0
+							} else {
+								fmt.Println("Заявка НЕ создалась на ФИНАЛЬНОМ этапе")
+								fmt.Println(envelope.Body.CreateRequestResponse.Description)
 								fmt.Println("Проверь корректность:")
 								fmt.Println("SOAP-сервер: " + soapServer)
 								fmt.Println("User login: " + userLogin)
@@ -127,8 +119,7 @@ func CreateSmacWiFiTicketErr(
 								fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 								fmt.Println("")
 								time.Sleep(60 * time.Second)
-							} else {
-								myError = 0
+								myError++
 							}
 						} else {
 							//log.Fatalln(erXmlUnmarshal)
@@ -165,6 +156,7 @@ func CreateSmacWiFiTicketErr(
 			}
 		}
 	} else {
+		//Для аномальных заявок
 		srSlice = append(srSlice, "Заявка не была создана. User Login пустой")
 		srSlice = append(srSlice, "Заявка не была создана. User Login пустой")
 		srSlice = append(srSlice, "Заявка не была создана. User Login пустой")
@@ -527,7 +519,6 @@ func CreateAnomalyTicket(
 
 func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string) {
 	if len(srID) == 36 {
-		//url := bpmServer
 		//Убрать из строки \n
 		strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
 		replacer := strings.NewReplacer("SRid", srID)
@@ -543,10 +534,11 @@ func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string)
 				Text              string `xml:",chardata"`
 				BerNs0            string `xml:"ber-ns0,attr"`
 				GetStatusResponse struct {
-					Text     string `xml:",chardata"`
-					Code     string `xml:"Code"`
-					Status   string `xml:"Status"`
-					StatisId string `xml:"StatisId"`
+					Text        string `xml:",chardata"`
+					Code        int    `xml:"Code"`
+					Status      string `xml:"Status"`
+					StatisId    string `xml:"StatisId"`
+					Description string `xml:"Description"`
 				} `xml:"getStatusResponse"`
 			} `xml:"Body"`
 		}
@@ -579,9 +571,22 @@ func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string)
 					if errIOread == nil {
 						erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 						if erXmlUnmarshal == nil {
-							statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.StatisId)
-							statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.Status)
-							myError = 0
+							if envelope.Body.GetStatusResponse.Code == 0 {
+								statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.StatisId)
+								statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.Status)
+								myError = 0
+							} else {
+								fmt.Println("Попытка получения Статуса обращения оборвалась на ПОСЛЕДНЕМ этапе")
+								fmt.Println(envelope.Body.GetStatusResponse.Description)
+								fmt.Println("Проверь корректность:")
+								fmt.Println("SOAP-сервер: " + soapServer)
+								fmt.Println("SR id: " + srID)
+								fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+								fmt.Println("")
+								time.Sleep(60 * time.Second)
+								fmt.Println("")
+								myError = 1
+							}
 						} else {
 							//log.Fatalln(erXmlUnmarshal)
 							fmt.Println("Ошибка перекодировки ответа в xml")
@@ -622,6 +627,7 @@ func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string)
 			}
 		}
 	} else {
+		//если передаётся пустая строка, не зная, существует ли заявка
 		statusSlice = append(statusSlice, "0")
 		statusSlice = append(statusSlice, "Тикет введён не корректно")
 	}
@@ -723,9 +729,10 @@ func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewSta
 			BerNs0                   string `xml:"ber-ns0,attr"`
 			ChangeCaseStatusResponse struct {
 				Text        string `xml:",chardata"`
-				Code        string `xml:"Code"`
+				Code        int    `xml:"Code"`
 				ModifyOn    string `xml:"ModifyOn"`
 				NewStatusId string `xml:"NewStatusId"`
+				Description string `xml:"Description"`
 			} `xml:"changeCaseStatusResponse"`
 		} `xml:"Body"`
 	}
@@ -758,15 +765,21 @@ func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewSta
 				if errIOread == nil {
 					erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 					if erXmlUnmarshal == nil {
-						srDateChange := envelope.Body.ChangeCaseStatusResponse.ModifyOn
-						srNewStatus = envelope.Body.ChangeCaseStatusResponse.NewStatusId
-
-						if srDateChange != "" && srNewStatus != "" {
+						if envelope.Body.ChangeCaseStatusResponse.Code == 0 {
+							srDateChange := envelope.Body.ChangeCaseStatusResponse.ModifyOn
+							srNewStatus = envelope.Body.ChangeCaseStatusResponse.NewStatusId
 							fmt.Println("Статус обращения изменён на " + NewStatus + " в: " + srDateChange)
+							myError = 0
 						} else {
 							fmt.Println("НЕ УДАЛОСЬ изменить статус обращения на " + NewStatus)
+							fmt.Println(envelope.Body.ChangeCaseStatusResponse.Description)
+							fmt.Println("SOAP-сервер: " + soapServer)
+							fmt.Println("SR id: " + srID)
+							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							time.Sleep(60 * time.Second)
+							fmt.Println("")
+							myError = 1
 						}
-						myError = 0
 					} else {
 						//log.Fatalln(erXmlUnmarshal)
 						fmt.Println("Ошибка перекодировки ответа в xml")
@@ -900,10 +913,11 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 			Text                  string `xml:",chardata"`
 			BerNs0                string `xml:"ber-ns0,attr"`
 			CreateCommentResponse struct {
-				Text      string `xml:",chardata"`
-				Code      string `xml:"Code"`
-				CreatedOn string `xml:"CreatedOn"`
-				ID        string `xml:"Id"`
+				Text        string `xml:",chardata"`
+				Code        int    `xml:"Code"`
+				CreatedOn   string `xml:"CreatedOn"`
+				ID          string `xml:"Id"`
+				Description string `xml:"Description"`
 			} `xml:"createCommentResponse"`
 		} `xml:"Body"`
 	}
@@ -936,17 +950,24 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 				if errIOread == nil {
 					erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 					if erXmlUnmarshal == nil {
-						srDateComment := envelope.Body.CreateCommentResponse.CreatedOn
-						//srNewStatus := envelope.Body.ChangeCaseStatusResponse.NewStatusId
-
-						if srDateComment != "" {
+						if envelope.Body.CreateCommentResponse.Code == 0 {
+							srDateComment := envelope.Body.CreateCommentResponse.CreatedOn
+							//srNewStatus := envelope.Body.ChangeCaseStatusResponse.NewStatusId
 							fmt.Println("Оставлен комментарий в ")
 							fmt.Println(bpmUrl + srID)
 							fmt.Println(srDateComment)
+							myError = 0
 						} else {
 							fmt.Println("НЕ УДАЛОСЬ оставить комментарий")
+							fmt.Println(envelope.Body.CreateCommentResponse.Description)
+							fmt.Println("Проверь корректность:")
+							fmt.Println("SOAP-сервер: " + soapServer)
+							fmt.Println("SR id: " + srID)
+							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							fmt.Println("")
+							time.Sleep(60 * time.Second)
+							myError = 1
 						}
-						myError = 0
 					} else {
 						//log.Fatalln(erXmlUnmarshal)
 						fmt.Println("Ошибка перекодировки ответа в xml")

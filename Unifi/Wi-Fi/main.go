@@ -13,7 +13,7 @@ import (
 func main() {
 	fmt.Println("")
 
-	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 	everyStartCode := map[int]bool{}
@@ -101,7 +101,7 @@ func main() {
 		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
 		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 		"Тикет введён не корректно": true,
-		"": true,
+		//"": true,
 	}
 	srStatusCodesForCancelTicket := map[string]bool{
 		"Визирование":  true,
@@ -280,8 +280,7 @@ func main() {
 												}
 											}
 											if countOfIncident == 0 {
-												//Пробуем закрыть тикет, только ЕСЛИ он на Визировании
-												//fmt.Println("Попали в блок изменения статусов заявок")
+												//Пробуем закрыть тикет, только ЕСЛИ он на Визировании, Назначено
 												//sliceTicketStatus := CheckTicketStatus(soapServer, srID) //получаем статус
 												sliceTicketStatus := CheckTicketStatusErr(soapServer, srID)
 												fmt.Println(sliceTicketStatus[1])
@@ -311,8 +310,9 @@ func main() {
 
 											//if srStatusCodesForNewTicket[checkSlice[1]] || !exisApMacSRid {
 											if srStatusCodesForNewTicket[checkSlice[1]] || srID == "" {
-												fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ в мапе нет записи")
 												fmt.Println(bpmUrl + srID)
+												fmt.Println("Статус: " + checkSlice[1])
+												fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ заявки нет вовсе")
 
 												//delete(apMacSRid, ap.Mac) //удаляем заявку. если заявки нет - ничего страшного
 												//удаляем заявку + обновить имя
@@ -370,7 +370,6 @@ func main() {
 												}
 											} else {
 												fmt.Println("Созданное обращение:")
-												//fmt.Println(bpmUrl + apMacSRid[ap.Mac])
 												fmt.Println(bpmUrl + srID)
 												fmt.Println(checkSlice[1])
 											}

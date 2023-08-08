@@ -16,15 +16,16 @@ import (
 
 func main() {
 	//bpmUrl := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	//soapServer := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //RIGHT
+	soapServer := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //RIGHT
 	//soapServer := "http://10.12.15.149/specs/aoi/tele2/bpm/bpmPortType"  //WRONG
 
-	bpmUrl := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	soapServer := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
+	//bpmUrl := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
+	//soapServer := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
 
 	//srID := "42255953-46aa-40c3-8df0-65a82e31b1d1"
 
-	cswt := CreateSmacWiFiTicketErr(soapServer, bpmUrl, "denis.tirskikh", "Зафиксировано...", "БиДВ", "Недоступна точка доступа")
+	//cswt := CheckTicketStatusErr(soapServer, "39f757ac-dd23-402d-bdb9-16afc34efb57")
+	cswt := CheckTicketStatusErr(soapServer, "39f757ac-dd23-402d-bdb9-16afc34efbee")
 	fmt.Println(cswt[0])
 	fmt.Println(cswt[1])
 }
@@ -404,13 +405,15 @@ func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string)
 				Text              string `xml:",chardata"`
 				BerNs0            string `xml:"ber-ns0,attr"`
 				GetStatusResponse struct {
-					Text     string `xml:",chardata"`
-					Code     string `xml:"Code"`
-					Status   string `xml:"Status"`
-					StatisId string `xml:"StatisId"`
+					Text        string `xml:",chardata"`
+					Code        int    `xml:"Code"`
+					Status      string `xml:"Status"`
+					StatisId    string `xml:"StatisId"`
+					Description string `xml:"Description"`
 				} `xml:"getStatusResponse"`
 			} `xml:"Body"`
 		}
+		envelope := &Envelope{}
 
 		myError := 1
 		for myError != 0 {
@@ -435,14 +438,24 @@ func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string)
 					fmt.Println(string(b))
 					//os.Exit(0)*/
 
-					envelope := &Envelope{}
 					bodyByte, errIOread := io.ReadAll(res.Body)
 					if errIOread == nil {
 						erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 						if erXmlUnmarshal == nil {
-							statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.StatisId)
-							statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.Status)
-							myError = 0
+							if envelope.Body.GetStatusResponse.Code != 0 {
+								fmt.Println("Попытка получения Статуса обращения оборвалась на ПОСЛЕДНЕМ этапе")
+								fmt.Println(envelope.Body.GetStatusResponse.Description)
+								fmt.Println("Проверь корректность:")
+								fmt.Println("SOAP-сервер: " + soapServer)
+								fmt.Println("SR id: " + srID)
+								fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+								time.Sleep(60 * time.Second)
+								myError = 1
+							} else {
+								statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.StatisId)
+								statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.Status)
+								myError = 0
+							}
 						} else {
 							//log.Fatalln(erXmlUnmarshal)
 							fmt.Println("Ошибка перекодировки ответа в xml")
@@ -657,7 +670,6 @@ func CreateSmacWiFiTicketErr(
 							srSlice = append(srSlice, srNumber)
 							srSlice = append(srSlice, bpmLink)
 							if srSlice[0] == "" {
-								myError++
 								fmt.Println("Итог пустой. По каким-то причинам заявка не создалась на ФИНАЛЬНОМ этапе")
 								fmt.Println("Проверь корректность:")
 								fmt.Println("SOAP-сервер: " + soapServer)
@@ -667,6 +679,7 @@ func CreateSmacWiFiTicketErr(
 								fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 								fmt.Println("")
 								time.Sleep(60 * time.Second)
+								myError++
 							} else {
 								myError = 0
 							}
