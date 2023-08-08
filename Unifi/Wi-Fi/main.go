@@ -280,8 +280,7 @@ func main() {
 												}
 											}
 											if countOfIncident == 0 {
-												//Пробуем закрыть тикет, только ЕСЛИ он на Визировании
-												//fmt.Println("Попали в блок изменения статусов заявок")
+												//Пробуем закрыть тикет, только ЕСЛИ он на Визировании, Назначено
 												//sliceTicketStatus := CheckTicketStatus(soapServer, srID) //получаем статус
 												sliceTicketStatus := CheckTicketStatusErr(soapServer, srID)
 												fmt.Println(sliceTicketStatus[1])
