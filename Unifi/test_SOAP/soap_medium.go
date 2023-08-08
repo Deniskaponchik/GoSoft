@@ -16,18 +16,20 @@ import (
 
 func main() {
 	//bpmUrl := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	soapServer := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //RIGHT
+	//soapServer := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //RIGHT
 	//soapServer := "http://10.12.15.149/specs/aoi/tele2/bpm/bpmPortType"  //WRONG
 
-	//bpmUrl := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	//soapServer := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
+	bpmUrl := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
+	soapServer := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
 
 	//srID := "42255953-46aa-40c3-8df0-65a82e31b1d1"
 
 	//cswt := CheckTicketStatusErr(soapServer, "39f757ac-dd23-402d-bdb9-16afc34efb57")
-	cswt := CheckTicketStatusErr(soapServer, "39f757ac-dd23-402d-bdb9-16afc34efbee")
+	cswt := CreateWiFiTicketErr(soapServer, bpmUrl, "denis.tirskikh", "description", "WSIR-BRONER", "БиДВ",
+		"IRK-CO-01", "Плохое качество соединения клиента")
 	fmt.Println(cswt[0])
 	fmt.Println(cswt[1])
+	fmt.Println(cswt[2])
 }
 
 func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewStatus string) {
@@ -567,6 +569,165 @@ func mainCHECK(soapServer string) {
 	srStatusId := envelope.Body.GetStatusResponse.StatisId
 	fmt.Println(srStatus)
 	fmt.Println(srStatusId)
+}
+
+func CreateWiFiTicketErr(
+	soapServer string, bpmUrl string, userLogin string, description string, noutName string, region string, apName string, incidentType string) (
+	srSlice []string) {
+
+	if userLogin != "" {
+		strBefore :=
+			"<soapenv:Envelope " +
+				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"<soapenv:Header/>" +
+				"<soapenv:Body>" +
+				"<bpm:createRequestRequest>" +
+				"<SystemId>5594b877-3bb7-46db-99f5-3c75b3e46556</SystemId>" +
+				"<ServiceId>ed84a37f-4b31-4dab-85fe-ba4fe87325b1</ServiceId>" +
+				"<Subject>Description</Subject>" +
+				"<UserName>UserLogin</UserName>" +
+				"<RequestType>Request</RequestType>" +
+				"<Priority>Normal</Priority>" +
+				"<Filds>" +
+				"<ID>28bbdcc4-ed50-4bcd-ac06-eeea667d62ac</ID>" +
+				"<Value>Reason</Value>" +
+				"</Filds>" +
+				"<Filds>" +
+				"<ID>5c8dee23-e48a-45bc-a084-573e1a6cc5ca</ID>" +
+				"<Value>Region</Value>" +
+				"</Filds>" +
+				"<Filds>" +
+				"<ID>f01f84be-b8f1-454f-a947-2c7f832bbb88</ID>" +
+				"<Value>Monitoring</Value>" +
+				"</Filds>" +
+				"<Filds>" +
+				"<ID>bde054e7-2b91-41c1-abba-2dcbe3a8f3f4</ID>" +
+				"<Value>incidentType</Value>" +
+				"</Filds>" +
+				"</bpm:createRequestRequest>" +
+				"</soapenv:Body>" +
+				"</soapenv:Envelope>"
+		//replacer := strings.NewReplacer("Description", "My des", "UserLogin", "denis.tirskikh", "Region", "Москва ЦФ")
+		//replacer := strings.NewReplacer("Description", description, "UserLogin", userLogin, "incidentType", incidentType, "Region", region)
+		replacer := strings.NewReplacer("Description", description, "UserLogin", userLogin, "Reason", noutName, "Region", region,
+			"Monitoring", apName, "incidentType", incidentType)
+		strAfter := replacer.Replace(strBefore)
+		payload := []byte(strAfter)
+		//os.Exit(0)
+		httpMethod := "POST"
+
+		//Вбиваем результат запроса из постмана сюда: https://tool.hiofd.com/en/xml-to-go/
+		type Envelope struct {
+			XMLName xml.Name `xml:"Envelope"`
+			Text    string   `xml:",chardata"`
+			SOAPENV string   `xml:"SOAP-ENV,attr"`
+			Body    struct {
+				Text                  string `xml:",chardata"`
+				BerNs0                string `xml:"ber-ns0,attr"`
+				CreateRequestResponse struct {
+					Text        string `xml:",chardata"`
+					Code        int    `xml:"Code"`
+					ID          string `xml:"ID"`
+					Number      string `xml:"Number"`
+					SystemName  string `xml:"SystemName"`
+					Description string `xml:"Description"`
+				} `xml:"createRequestResponse"`
+			} `xml:"Body"`
+		}
+
+		myError := 1
+		for myError != 0 {
+			//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+			req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
+			if errHttpReq == nil {
+				client := &http.Client{
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
+					},
+				}
+				res, errClientDo := client.Do(req)
+				if errClientDo == nil {
+					/*Посмотреть response Body, если понадобится
+					defer res.Body.Close()
+					b, err := io.ReadAll(res.Body)
+					if err != nil {
+						log.Fatalln(err)
+					}
+					fmt.Println(string(b))
+					//os.Exit(0)
+					*/
+
+					// Смог победить только через unmarshal. Кривенько косо, но работает и куча времени угрохано даже на это
+					envelope := &Envelope{}
+					bodyByte, errIOread := io.ReadAll(res.Body)
+					if errIOread == nil {
+						erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
+						if erXmlUnmarshal == nil {
+							if envelope.Body.CreateRequestResponse.Code == 0 {
+								srID := envelope.Body.CreateRequestResponse.ID
+								srNumber := envelope.Body.CreateRequestResponse.Number
+								bpmLink := bpmUrl + srID
+								srSlice = append(srSlice, srID)
+								srSlice = append(srSlice, srNumber)
+								srSlice = append(srSlice, bpmLink)
+								myError = 0
+							} else {
+								fmt.Println("Заявка НЕ создалась на ФИНАЛЬНОМ этапе")
+								fmt.Println(envelope.Body.CreateRequestResponse.Description)
+								fmt.Println("Проверь корректность:")
+								fmt.Println("SOAP-сервер: " + soapServer)
+								fmt.Println("User login: " + userLogin)
+								fmt.Println("Регион: " + region)
+								fmt.Println("Тип инцидента: " + incidentType)
+								fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+								fmt.Println("")
+								time.Sleep(60 * time.Second)
+								myError++
+							}
+						} else {
+							//log.Fatalln(erXmlUnmarshal)
+							fmt.Println("Ошибка перекодировки ответа в xml")
+							fmt.Println(erXmlUnmarshal.Error())
+							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							time.Sleep(60 * time.Second)
+							myError++
+						}
+					} else {
+						fmt.Println("Ошибка чтения байтов из ответа")
+						fmt.Println(errIOread.Error())
+						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+						time.Sleep(60 * time.Second)
+						myError++
+					}
+				} else {
+					//log.Fatal("Error on dispatching request. ", errClientDo.Error())
+					//return
+					fmt.Println("Ошибка отправки запроса")
+					fmt.Println(errClientDo.Error())
+					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+					time.Sleep(60 * time.Second)
+					myError++
+				}
+			} else {
+				//log.Fatal("Error on creating request object. ", errHttpReq.Error())
+				//return
+				fmt.Println("Ошибка создания объекта запроса")
+				fmt.Println(errHttpReq.Error())
+				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+				time.Sleep(60 * time.Second)
+				myError++
+			}
+		}
+	} else {
+		//Для аномальных заявок
+		srSlice = append(srSlice, "Заявка не была создана. User Login пустой")
+		srSlice = append(srSlice, "Заявка не была создана. User Login пустой")
+		srSlice = append(srSlice, "Заявка не была создана. User Login пустой")
+	}
+	return srSlice
 }
 
 func CreateSmacWiFiTicketErr(

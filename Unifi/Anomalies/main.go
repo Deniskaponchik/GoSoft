@@ -140,7 +140,48 @@ func main() {
 	fmt.Println("")
 
 	//
-	//Для выгрузки в разрезе точек
+	//Для выгрузки в разрезе клиентов
+	dateMac_site := map[string]string{}
+
+	var siteName string
+	var noutMac string
+	var anomalyStr string
+	var anomalyDatetime time.Time
+	for _, anomaly := range anomalies {
+		siteName = anomaly.SiteName
+		noutMac = anomaly.DeviceMAC
+		anomalyStr = anomaly.Anomaly
+		anomalyDatetime = anomaly.Datetime
+		fmt.Println(anomalyDatetime, siteName, noutMac, anomalyStr)
+
+		anomalyDatetime.String()
+		uniqKey := anomalyDatetime.Format("2006-01-02") + "_" + noutMac
+		//dateMac_mac[uniqKey] = noutMac
+		dateMac_site[uniqKey] = siteName
+	}
+	for k, v := range dateMac_site {
+		kMac := strings.Split(k, "_")[1]
+		for ke, va := range machineMyMap {
+			if kMac == ke {
+				va.Exception++
+				//va.SrID = v
+				va.SrID = v[:len(v)-11]
+				machineMyMap[ke] = va
+			}
+		}
+	}
+	var login string
+	var count string
+	for _, v := range machineMyMap {
+		if v.Exception != 0 {
+			login = GetLoginPC(v.Hostname)
+			count = strconv.Itoa(int(v.Exception))
+			fmt.Println(v.SrID + ";" + v.ApName + ";" + v.Hostname + ";" + login + ";" + count)
+		}
+	}
+
+	//
+	/*Для выгрузки в разрезе точек
 	dateName_site := map[string]string{}
 
 	var siteName string
@@ -180,49 +221,7 @@ func main() {
 			count = strconv.Itoa(int(v.Exception))
 			fmt.Println(v.SrID + ";" + v.ApName + ";" + count)
 		}
-	}
-
-	//
-	/*Для выгрузки в разрезе клиентов
-	dateMac_site := map[string]string{}
-
-	var siteName string
-	var noutMac string
-	var anomalyStr string
-	var anomalyDatetime time.Time
-	for _, anomaly := range anomalies {
-		siteName = anomaly.SiteName
-		noutMac = anomaly.DeviceMAC
-		anomalyStr = anomaly.Anomaly
-		anomalyDatetime = anomaly.Datetime
-		fmt.Println(anomalyDatetime, siteName, noutMac, anomalyStr)
-
-		anomalyDatetime.String()
-		uniqKey := anomalyDatetime.Format("2006-01-02") + "_" + noutMac
-		//dateMac_mac[uniqKey] = noutMac
-		dateMac_site[uniqKey] = siteName
-	}
-	for k, v := range dateMac_site {
-		kMac := strings.Split(k, "_")[1]
-		for ke, va := range machineMyMap {
-			if kMac == ke {
-				va.Exception++
-				//va.SrID = v
-				va.SrID = v[:len(v)-11]
-				machineMyMap[ke] = va
-			}
-		}
-	}
-	var login string
-	var count string
-	for _, v := range machineMyMap {
-		if v.Exception != 0 {
-			login = GetLoginPC(v.Hostname)
-			count = strconv.Itoa(int(v.Exception))
-			fmt.Println(v.SrID + ";" + v.ApName + ";" + v.Hostname + ";" + login + ";" + count)
-		}
-	}
-	*/
+	}*/
 
 } //main func
 
