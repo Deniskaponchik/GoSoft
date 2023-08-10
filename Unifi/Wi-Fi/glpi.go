@@ -397,6 +397,7 @@ func DownloadMapFromDBapsErr(bdController int8) map[string]ApMyStruct {
 									tag.Name,
 									tag.Exception,
 									tag.SrID,
+									0,
 								}
 							} else {
 								//panic(errScan.Error()) // proper error handling instead of panic in your app
@@ -510,6 +511,7 @@ func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 			tag.Name,
 			tag.Exception,
 			tag.SrID,
+			0,
 		}
 	}
 	results.Close()

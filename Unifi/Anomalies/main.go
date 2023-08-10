@@ -6,9 +6,6 @@ import (
 	"github.com/unpoller/unifi"
 	"io"
 	"log"
-	"strconv"
-	"strings"
-
 	//"strconv"
 	//"strings"
 	"time"
@@ -58,7 +55,7 @@ func main() {
 	fmt.Println(bdController)
 
 	//machineMyMap := map[string]MachineMyStruct{}
-	machineMyMap := DownloadMapFromDBmachines(bdController)
+	//machineMyMap := DownloadMapFromDBmachines(bdController)
 
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
@@ -119,18 +116,19 @@ func main() {
 		}
 	*/
 
-	/*
-		//count := 60 //минус 70 минут
-		//count := 3600
-		//count := 36000 //+++
-		//count := 86400
-		//then := now.Add(time.Duration(-count) * time.Minute)
-		//then := timeNow.Add(time.Duration(-count) * time.Minute)
-		//then := timeNow.Add(time.Duration(-count) * time.)
-	*/
+	//count := 60 //минус 70 минут
+	count := 720 //минус 30 день
+	//count := 3600
+	//count := 36000 //+++
+	//count := 86400
+	//then := now.Add(time.Duration(-count) * time.Minute)
+	//then := timeNow.Add(time.Duration(-count) * time.Minute)
+	//then := timeNow.Add(time.Duration(-count) * time.)
+	then := timeNow.Add(time.Duration(-count) * time.Hour)
+
 	anomalies, err := uni.GetAnomalies(sites,
-		time.Date(2023, 07, 01, 0, 0, 0, 0, time.Local), //time.Now(),
-		//then,
+		//time.Date(2023, 7, 9, 0, 0, 0, 0, time.Local), //time.Now(),
+		then,
 	)
 	if err != nil {
 		log.Fatalln("Error:", err)
@@ -139,8 +137,12 @@ func main() {
 	}
 	fmt.Println("")
 
+	for _, v := range anomalies {
+		fmt.Println(v.Datetime)
+	}
+
 	//
-	//Для выгрузки в разрезе клиентов
+	/*Для выгрузки в разрезе клиентов
 	dateMac_site := map[string]string{}
 
 	var siteName string
@@ -178,7 +180,7 @@ func main() {
 			count = strconv.Itoa(int(v.Exception))
 			fmt.Println(v.SrID + ";" + v.ApName + ";" + v.Hostname + ";" + login + ";" + count)
 		}
-	}
+	}*/
 
 	//
 	/*Для выгрузки в разрезе точек

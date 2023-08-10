@@ -110,18 +110,10 @@ func CreateWiFiTicketErr(
 					if errIOread == nil {
 						erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 						if erXmlUnmarshal == nil {
-							if envelope.Body.CreateRequestResponse.Code == 0 {
-								srID := envelope.Body.CreateRequestResponse.ID
-								srNumber := envelope.Body.CreateRequestResponse.Number
-								bpmLink := bpmUrl + srID
-								srSlice = append(srSlice, srID)
-								srSlice = append(srSlice, srNumber)
-								srSlice = append(srSlice, bpmLink)
-								myError = 0
-							} else {
-								fmt.Println("Заявка НЕ создалась на ФИНАЛЬНОМ этапе")
+							if envelope.Body.CreateRequestResponse.Code != 0 || envelope.Body.CreateRequestResponse.ID == "" {
 								fmt.Println(envelope.Body.CreateRequestResponse.Description)
-								fmt.Println("Проверь корректность:")
+								fmt.Println("Заявка НЕ создалась на ФИНАЛЬНОМ этапе")
+								fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
 								fmt.Println("SOAP-сервер: " + soapServer)
 								fmt.Println("User login: " + userLogin)
 								fmt.Println("Регион: " + region)
@@ -130,18 +122,26 @@ func CreateWiFiTicketErr(
 								fmt.Println("")
 								time.Sleep(60 * time.Second)
 								myError++
+							} else {
+								srID := envelope.Body.CreateRequestResponse.ID
+								srNumber := envelope.Body.CreateRequestResponse.Number
+								bpmLink := bpmUrl + srID
+								srSlice = append(srSlice, srID)
+								srSlice = append(srSlice, srNumber)
+								srSlice = append(srSlice, bpmLink)
+								myError = 0
 							}
 						} else {
 							//log.Fatalln(erXmlUnmarshal)
-							fmt.Println("Ошибка перекодировки ответа в xml")
 							fmt.Println(erXmlUnmarshal.Error())
+							fmt.Println("Ошибка перекодировки ответа в xml")
 							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 							time.Sleep(60 * time.Second)
 							myError++
 						}
 					} else {
-						fmt.Println("Ошибка чтения байтов из ответа")
 						fmt.Println(errIOread.Error())
+						fmt.Println("Ошибка чтения байтов из ответа")
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 						time.Sleep(60 * time.Second)
 						myError++
@@ -149,8 +149,8 @@ func CreateWiFiTicketErr(
 				} else {
 					//log.Fatal("Error on dispatching request. ", errClientDo.Error())
 					//return
-					fmt.Println("Ошибка отправки запроса")
 					fmt.Println(errClientDo.Error())
+					fmt.Println("Ошибка отправки запроса")
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 					time.Sleep(60 * time.Second)
 					myError++
@@ -158,18 +158,26 @@ func CreateWiFiTicketErr(
 			} else {
 				//log.Fatal("Error on creating request object. ", errHttpReq.Error())
 				//return
-				fmt.Println("Ошибка создания объекта запроса")
 				fmt.Println(errHttpReq.Error())
+				fmt.Println("Ошибка создания объекта запроса")
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 				time.Sleep(60 * time.Second)
 				myError++
 			}
+			if myError == 6 {
+				myError = 0
+				fmt.Println("После 6 неудачных попыток идём дальше. Заявка не была создана")
+				srSlice = append(srSlice, "")
+				srSlice = append(srSlice, "")
+				srSlice = append(srSlice, "")
+			}
 		}
 	} else {
 		//Для аномальных заявок
-		srSlice = append(srSlice, "Заявка не была создана. User Login пустой")
-		srSlice = append(srSlice, "Заявка не была создана. User Login пустой")
-		srSlice = append(srSlice, "Заявка не была создана. User Login пустой")
+		fmt.Println("Заявка не была создана. User Login пустой")
+		srSlice = append(srSlice, "")
+		srSlice = append(srSlice, "")
+		srSlice = append(srSlice, "")
 	}
 	return srSlice
 }
@@ -259,18 +267,10 @@ func CreateSmacWiFiTicketErr(
 					if errIOread == nil {
 						erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 						if erXmlUnmarshal == nil {
-							if envelope.Body.CreateRequestResponse.Code == 0 {
-								srID := envelope.Body.CreateRequestResponse.ID
-								srNumber := envelope.Body.CreateRequestResponse.Number
-								bpmLink := bpmUrl + srID
-								srSlice = append(srSlice, srID)
-								srSlice = append(srSlice, srNumber)
-								srSlice = append(srSlice, bpmLink)
-								myError = 0
-							} else {
-								fmt.Println("Заявка НЕ создалась на ФИНАЛЬНОМ этапе")
+							if envelope.Body.CreateRequestResponse.Code != 0 || envelope.Body.CreateRequestResponse.ID == "" {
 								fmt.Println(envelope.Body.CreateRequestResponse.Description)
-								fmt.Println("Проверь корректность:")
+								fmt.Println("Заявка НЕ создалась на ФИНАЛЬНОМ этапе")
+								fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
 								fmt.Println("SOAP-сервер: " + soapServer)
 								fmt.Println("User login: " + userLogin)
 								fmt.Println("Регион: " + region)
@@ -279,6 +279,14 @@ func CreateSmacWiFiTicketErr(
 								fmt.Println("")
 								time.Sleep(60 * time.Second)
 								myError++
+							} else {
+								srID := envelope.Body.CreateRequestResponse.ID
+								srNumber := envelope.Body.CreateRequestResponse.Number
+								bpmLink := bpmUrl + srID
+								srSlice = append(srSlice, srID)
+								srSlice = append(srSlice, srNumber)
+								srSlice = append(srSlice, bpmLink)
+								myError = 0
 							}
 						} else {
 							//log.Fatalln(erXmlUnmarshal)
@@ -984,121 +992,130 @@ func CreateAnomalyTicket(
 	return srSlice
 }
 
-func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string) {
-	if len(srID) == 36 {
-		//Убрать из строки \n
-		strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
-		replacer := strings.NewReplacer("SRid", srID)
-		strAfter := replacer.Replace(strBefore)
-		payload := []byte(strAfter)
-		httpMethod := "POST" // GET запрос не срабатывает
+// func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string) {
+func CheckTicketStatusErr(soapServer string, srID string) (status string) {
+	//if len(srID) == 36 {
+	//Убрать из строки \n
+	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+	replacer := strings.NewReplacer("SRid", srID)
+	strAfter := replacer.Replace(strBefore)
+	payload := []byte(strAfter)
+	httpMethod := "POST" // GET запрос не срабатывает
 
-		type Envelope struct {
-			XMLName xml.Name `xml:"Envelope"`
-			Text    string   `xml:",chardata"`
-			SOAPENV string   `xml:"SOAP-ENV,attr"`
-			Body    struct {
-				Text              string `xml:",chardata"`
-				BerNs0            string `xml:"ber-ns0,attr"`
-				GetStatusResponse struct {
-					Text        string `xml:",chardata"`
-					Code        int    `xml:"Code"`
-					Status      string `xml:"Status"`
-					StatisId    string `xml:"StatisId"`
-					Description string `xml:"Description"`
-				} `xml:"getStatusResponse"`
-			} `xml:"Body"`
-		}
+	type Envelope struct {
+		XMLName xml.Name `xml:"Envelope"`
+		Text    string   `xml:",chardata"`
+		SOAPENV string   `xml:"SOAP-ENV,attr"`
+		Body    struct {
+			Text              string `xml:",chardata"`
+			BerNs0            string `xml:"ber-ns0,attr"`
+			GetStatusResponse struct {
+				Text        string `xml:",chardata"`
+				Code        int    `xml:"Code"`
+				Status      string `xml:"Status"`
+				StatisId    string `xml:"StatisId"`
+				Description string `xml:"Description"`
+			} `xml:"getStatusResponse"`
+		} `xml:"Body"`
+	}
 
-		myError := 1
-		for myError != 0 {
-			//req, errHttpReq := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
-			req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
-			if errHttpReq == nil {
-				client := &http.Client{
-					Transport: &http.Transport{
-						TLSClientConfig: &tls.Config{
-							InsecureSkipVerify: true,
-						},
+	myError := 1
+	for myError != 0 {
+		//req, errHttpReq := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
+		if errHttpReq == nil {
+			client := &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: true,
 					},
+				},
+			}
+			res, errClientDo := client.Do(req)
+			if errClientDo == nil {
+				/*Посмотреть response Body, если понадобится
+				defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
+				b, err := io.ReadAll(res.Body)
+				if err != nil {
+					log.Fatalln(err)
 				}
-				res, errClientDo := client.Do(req)
-				if errClientDo == nil {
-					/*Посмотреть response Body, если понадобится
-					defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
-					b, err := io.ReadAll(res.Body)
-					if err != nil {
-						log.Fatalln(err)
-					}
-					fmt.Println(string(b))
-					//os.Exit(0)*/
+				fmt.Println(string(b))
+				//os.Exit(0)*/
 
-					envelope := &Envelope{}
-					bodyByte, errIOread := io.ReadAll(res.Body)
-					if errIOread == nil {
-						erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
-						if erXmlUnmarshal == nil {
-							if envelope.Body.GetStatusResponse.Code == 0 {
-								statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.StatisId)
-								statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.Status)
-								myError = 0
-							} else {
-								fmt.Println("Попытка получения Статуса обращения оборвалась на ПОСЛЕДНЕМ этапе")
-								fmt.Println(envelope.Body.GetStatusResponse.Description)
-								fmt.Println("Проверь корректность:")
-								fmt.Println("SOAP-сервер: " + soapServer)
-								fmt.Println("SR id: " + srID)
-								fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-								fmt.Println("")
-								time.Sleep(60 * time.Second)
-								fmt.Println("")
-								myError = 1
-							}
-						} else {
-							//log.Fatalln(erXmlUnmarshal)
-							fmt.Println("Ошибка перекодировки ответа в xml")
-							fmt.Println(erXmlUnmarshal.Error())
+				envelope := &Envelope{}
+				bodyByte, errIOread := io.ReadAll(res.Body)
+				if errIOread == nil {
+					erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
+					if erXmlUnmarshal == nil {
+						if envelope.Body.GetStatusResponse.Code != 0 || envelope.Body.GetStatusResponse.StatisId == "" {
+							fmt.Println(envelope.Body.GetStatusResponse.Description)
+							fmt.Println("Попытка получения Статуса обращения оборвалась на ПОСЛЕДНЕМ этапе")
+							fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
+							fmt.Println("SOAP-сервер: " + soapServer)
+							fmt.Println("SR id: " + srID)
 							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							fmt.Println("")
 							time.Sleep(60 * time.Second)
 							myError++
+						} else {
+							//statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.StatisId)
+							//statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.Status)
+							status = envelope.Body.GetStatusResponse.Status
+							myError = 0
 						}
 					} else {
-						//log.Fatalln(err)
-						fmt.Println("Ошибка чтения байтов из ответа")
-						fmt.Println(errIOread.Error())
+						//log.Fatalln(erXmlUnmarshal)
+						fmt.Println("Ошибка перекодировки ответа в xml")
+						fmt.Println(erXmlUnmarshal.Error())
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 						time.Sleep(60 * time.Second)
 						myError++
 					}
 				} else {
-					//log.Fatal("Error on dispatching request. ", err.Error())
-					//return
-					fmt.Println("Ошибка отправки запроса")
-					fmt.Println(errClientDo.Error())
+					//log.Fatalln(err)
+					fmt.Println("Ошибка чтения байтов из ответа")
+					fmt.Println(errIOread.Error())
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 					time.Sleep(60 * time.Second)
 					myError++
-					//Если ночью нет доступа к SOAP = в ЦОДЕ коллапс. Могу подождать 5 часов
-					//if myError == 300 { 					myError = 0				}
 				}
 			} else {
-				//log.Fatal("Error on creating request object. ", err.Error())
+				//log.Fatal("Error on dispatching request. ", err.Error())
 				//return
-				fmt.Println("Ошибка создания объекта запроса")
-				fmt.Println(errHttpReq.Error())
+				fmt.Println("Ошибка отправки запроса")
+				fmt.Println(errClientDo.Error())
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 				time.Sleep(60 * time.Second)
 				myError++
 				//Если ночью нет доступа к SOAP = в ЦОДЕ коллапс. Могу подождать 5 часов
 				//if myError == 300 { 					myError = 0				}
 			}
+		} else {
+			//log.Fatal("Error on creating request object. ", err.Error())
+			//return
+			fmt.Println("Ошибка создания объекта запроса")
+			fmt.Println(errHttpReq.Error())
+			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+			time.Sleep(60 * time.Second)
+			myError++
+			//Если ночью нет доступа к SOAP = в ЦОДЕ коллапс. Могу подождать 5 часов
+			//if myError == 300 { 					myError = 0				}
 		}
-	} else {
+		if myError == 6 {
+			myError = 0
+			fmt.Println("После 6 неудачных попыток идём дальше. Статус заявки НЕ был уточнён")
+			//statusSlice = append(statusSlice, "")
+			//statusSlice = append(statusSlice, "")
+			status = ""
+		}
+	}
+
+	/* }else {
 		//если передаётся пустая строка, не зная, существует ли заявка
 		statusSlice = append(statusSlice, "0")
-		statusSlice = append(statusSlice, "Тикет введён не корректно")
-	}
-	return statusSlice
+		statusSlice = append(statusSlice, "Тикет введён не корректно") //МЕНЯТЬ НЕ НУЖНО!!!
+	}*/
+	return status //Slice
 }
 
 func CheckTicketStatus(bpmServer string, srID string) (statusSlice []string) {
@@ -1232,20 +1249,21 @@ func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewSta
 				if errIOread == nil {
 					erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 					if erXmlUnmarshal == nil {
-						if envelope.Body.ChangeCaseStatusResponse.Code == 0 {
-							srDateChange := envelope.Body.ChangeCaseStatusResponse.ModifyOn
-							srNewStatus = envelope.Body.ChangeCaseStatusResponse.NewStatusId
-							fmt.Println("Статус обращения изменён на " + NewStatus + " в: " + srDateChange)
-							myError = 0
-						} else {
-							fmt.Println("НЕ УДАЛОСЬ изменить статус обращения на " + NewStatus)
+						if envelope.Body.ChangeCaseStatusResponse.Code != 0 || envelope.Body.ChangeCaseStatusResponse.NewStatusId == "" {
 							fmt.Println(envelope.Body.ChangeCaseStatusResponse.Description)
+							fmt.Println("НЕ УДАЛОСЬ изменить статус обращения на " + NewStatus)
+							fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
 							fmt.Println("SOAP-сервер: " + soapServer)
 							fmt.Println("SR id: " + srID)
 							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 							time.Sleep(60 * time.Second)
 							fmt.Println("")
-							myError = 1
+							myError++
+						} else {
+							srDateChange := envelope.Body.ChangeCaseStatusResponse.ModifyOn
+							srNewStatus = envelope.Body.ChangeCaseStatusResponse.NewStatusId
+							fmt.Println("Статус обращения изменён на " + NewStatus + " в: " + srDateChange)
+							myError = 0
 						}
 					} else {
 						//log.Fatalln(erXmlUnmarshal)
@@ -1279,6 +1297,11 @@ func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewSta
 			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 			time.Sleep(60 * time.Second)
 			myError++
+		}
+		if myError == 6 {
+			myError = 0
+			fmt.Println("После 6 неудачных попыток идём дальше. Статус заявки НЕ был изменён")
+			srNewStatus = ""
 		}
 	}
 	return srNewStatus
@@ -1360,7 +1383,7 @@ func ChangeStatus(soapServer string, srID string, NewStatus string) (srNewStatus
 	return srNewStatus
 }
 
-func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl string) {
+func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl string) (createdOn string) {
 	userLogin := "denis.tirskikh"
 	//Убрать из строки \n
 	//strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
@@ -1417,23 +1440,23 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 				if errIOread == nil {
 					erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 					if erXmlUnmarshal == nil {
-						if envelope.Body.CreateCommentResponse.Code == 0 {
-							srDateComment := envelope.Body.CreateCommentResponse.CreatedOn
-							//srNewStatus := envelope.Body.ChangeCaseStatusResponse.NewStatusId
-							fmt.Println("Оставлен комментарий в ")
-							fmt.Println(bpmUrl + srID)
-							fmt.Println(srDateComment)
-							myError = 0
-						} else {
-							fmt.Println("НЕ УДАЛОСЬ оставить комментарий")
+						if envelope.Body.CreateCommentResponse.Code != 0 || envelope.Body.CreateCommentResponse.CreatedOn == "" {
 							fmt.Println(envelope.Body.CreateCommentResponse.Description)
-							fmt.Println("Проверь корректность:")
+							fmt.Println("Попытка оставить комментарий ОБОРВАЛАСЬ на ПОСЛЕДНЕМ этапе")
+							fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
 							fmt.Println("SOAP-сервер: " + soapServer)
 							fmt.Println("SR id: " + srID)
 							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 							fmt.Println("")
 							time.Sleep(60 * time.Second)
-							myError = 1
+							myError++
+						} else {
+							//srDateComment := envelope.Body.CreateCommentResponse.CreatedOn
+							fmt.Println("Оставлен комментарий в ")
+							fmt.Println(bpmUrl + srID)
+							createdOn = envelope.Body.CreateCommentResponse.CreatedOn
+							fmt.Println(envelope.Body.CreateCommentResponse.CreatedOn)
+							myError = 0
 						}
 					} else {
 						//log.Fatalln(erXmlUnmarshal)
@@ -1468,7 +1491,13 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 			time.Sleep(60 * time.Second)
 			myError++
 		}
+		if myError == 6 {
+			myError = 0
+			fmt.Println("После 6 неудачных попыток идём дальше. Комментарий не был оставлен")
+			createdOn = ""
+		}
 	}
+	return createdOn
 }
 
 func AddComment(bpmServer string, srID string, myComment string, bpmUrl string) {

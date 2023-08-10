@@ -17,19 +17,18 @@ import (
 func main() {
 	//bpmUrl := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 	//soapServer := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //RIGHT
-	//soapServer := "http://10.12.15.149/specs/aoi/tele2/bpm/bpmPortType"  //WRONG
+	//soapServer := "http://10.12.15.149/specs/aoi/tele2/bpm/bpmPortType" //WRONG
 
-	bpmUrl := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	soapServer := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
+	//bpmUrl := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
+	//soapServer := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
 
 	//srID := "42255953-46aa-40c3-8df0-65a82e31b1d1"
 
-	//cswt := CheckTicketStatusErr(soapServer, "39f757ac-dd23-402d-bdb9-16afc34efb57")
-	cswt := CreateWiFiTicketErr(soapServer, bpmUrl, "denis.tirskikh", "description", "WSIR-BRONER", "БиДВ",
-		"IRK-CO-01", "Плохое качество соединения клиента")
-	fmt.Println(cswt[0])
-	fmt.Println(cswt[1])
-	fmt.Println(cswt[2])
+	//cswt := CheckTicketStatusErr(soapServer, "4b34ea8c-76df-40f5-a617-5d9843f5fc69")
+	//cswt := CreateWiFiTicketErr(soapServer, bpmUrl, "denis.tirskikh", "description", "WSIR-BRONER", "БиДВ","IRK-CO-01", "Плохое качество соединения клиента")
+	//fmt.Println(cswt[0])
+	//fmt.Println(cswt[1])
+	//fmt.Println(cswt[2])
 }
 
 func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewStatus string) {
@@ -229,10 +228,11 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 			Text                  string `xml:",chardata"`
 			BerNs0                string `xml:"ber-ns0,attr"`
 			CreateCommentResponse struct {
-				Text      string `xml:",chardata"`
-				Code      string `xml:"Code"`
-				CreatedOn string `xml:"CreatedOn"`
-				ID        string `xml:"Id"`
+				Text        string `xml:",chardata"`
+				Code        int    `xml:"Code"`
+				CreatedOn   string `xml:"CreatedOn"`
+				ID          string `xml:"Id"`
+				Description string `xml:"Description"`
 			} `xml:"createCommentResponse"`
 		} `xml:"Body"`
 	}
@@ -265,49 +265,48 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 				if errIOread == nil {
 					erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 					if erXmlUnmarshal == nil {
-						srDateComment := envelope.Body.CreateCommentResponse.CreatedOn
-						//srNewStatus := envelope.Body.ChangeCaseStatusResponse.NewStatusId
-
-						if srDateComment != "" {
+						if envelope.Body.CreateCommentResponse.Code != 0 || envelope.Body.CreateCommentResponse.CreatedOn == "" {
+							//srDateComment := envelope.Body.CreateCommentResponse.CreatedOn
 							fmt.Println("Оставлен комментарий в ")
 							fmt.Println(bpmUrl + srID)
-							fmt.Println(srDateComment)
+							fmt.Println(envelope.Body.CreateCommentResponse.CreatedOn)
+							myError = 0
 						} else {
-							fmt.Println("НЕ УДАЛОСЬ оставить комментарий")
+							fmt.Println(envelope.Body.CreateCommentResponse.Description)
+							fmt.Println("Попытка оставить комментарий ОБОРВАЛАСЬ на ПОСЛЕДНЕМ этапе")
+							fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
+							fmt.Println("SOAP-сервер: " + soapServer)
+							fmt.Println("SR id: " + srID)
+							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							fmt.Println("")
+							time.Sleep(60 * time.Second)
+							myError = 1
 						}
-						myError = 0
 					} else {
-						//log.Fatalln(erXmlUnmarshal)
-						fmt.Println("Ошибка перекодировки ответа в xml")
-						fmt.Println(erXmlUnmarshal.Error())
+						fmt.Println("Ошибка чтения байтов из ответа")
+						fmt.Println(errIOread.Error())
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 						time.Sleep(60 * time.Second)
 						myError++
 					}
 				} else {
-					fmt.Println("Ошибка чтения байтов из ответа")
-					fmt.Println(errIOread.Error())
+					//log.Fatal("Error on dispatching request. ", errClientDo.Error())
+					//return
+					fmt.Println("Ошибка отправки запроса")
+					fmt.Println(errClientDo.Error())
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 					time.Sleep(60 * time.Second)
 					myError++
 				}
 			} else {
-				//log.Fatal("Error on dispatching request. ", errClientDo.Error())
+				//log.Fatal("Error on creating request object. ", errHttpReq.Error())
 				//return
-				fmt.Println("Ошибка отправки запроса")
-				fmt.Println(errClientDo.Error())
+				fmt.Println("Ошибка создания объекта запроса")
+				fmt.Println(errHttpReq.Error())
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 				time.Sleep(60 * time.Second)
 				myError++
 			}
-		} else {
-			//log.Fatal("Error on creating request object. ", errHttpReq.Error())
-			//return
-			fmt.Println("Ошибка создания объекта запроса")
-			fmt.Println(errHttpReq.Error())
-			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-			time.Sleep(60 * time.Second)
-			myError++
 		}
 	}
 }
@@ -444,15 +443,16 @@ func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string)
 					if errIOread == nil {
 						erXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 						if erXmlUnmarshal == nil {
-							if envelope.Body.GetStatusResponse.Code != 0 {
-								fmt.Println("Попытка получения Статуса обращения оборвалась на ПОСЛЕДНЕМ этапе")
+							if envelope.Body.GetStatusResponse.Code != 0 || envelope.Body.GetStatusResponse.StatisId == "" {
 								fmt.Println(envelope.Body.GetStatusResponse.Description)
-								fmt.Println("Проверь корректность:")
+								fmt.Println("Попытка получения Статуса обращения оборвалась на ПОСЛЕДНЕМ этапе")
+								fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
 								fmt.Println("SOAP-сервер: " + soapServer)
 								fmt.Println("SR id: " + srID)
 								fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+								fmt.Println("")
 								time.Sleep(60 * time.Second)
-								myError = 1
+								myError++
 							} else {
 								statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.StatisId)
 								statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.Status)
@@ -480,7 +480,7 @@ func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string)
 					fmt.Println("Ошибка отправки запроса")
 					fmt.Println(errClientDo.Error())
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-					time.Sleep(60 * time.Second)
+					time.Sleep(10 * time.Second)
 					myError++
 					//Если ночью нет доступа к SOAP = в ЦОДЕ коллапс. Могу подождать 5 часов
 					//if myError == 300 { 					myError = 0				}
@@ -495,6 +495,12 @@ func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string)
 				myError++
 				//Если ночью нет доступа к SOAP = в ЦОДЕ коллапс. Могу подождать 5 часов
 				//if myError == 300 { 					myError = 0				}
+			}
+			if myError == 6 {
+				myError = 0
+				fmt.Println("После 6 неудачных попыток идём дальше. Статус заявки получить не удалось")
+				statusSlice = append(statusSlice, "")
+				statusSlice = append(statusSlice, "")
 			}
 		}
 	} else {
