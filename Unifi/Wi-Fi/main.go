@@ -260,6 +260,7 @@ func main() {
 											//Идём дальше
 											//
 
+											//
 											//Точка доступна. Заявка есть. +Имя точки обновляю
 										} else if apLastSeen != 0 && srID != "" {
 											fmt.Println(apName)
@@ -267,12 +268,13 @@ func main() {
 											fmt.Println("Точка доступна. Заявка есть")
 											//Оставляем коммент, ПЫТАЕМСЯ закрыть тикет, если на визировании, Очищаем запись в мапе,
 
+											commentForUpdate := valueAp.Comment
 											comment := "Точка появилась в сети: " + apName
-											//AddComment(soapServer, srID, comment, bpmUrl)
-											//createdOn := AddCommentErr(soapServer, srID, comment, bpmUrl)
 											if valueAp.Comment < 1 {
 												if AddCommentErr(soapServer, srID, comment, bpmUrl) != "" {
-													valueAp.Comment = 1
+													//valueAp.Comment = 1
+													//apMyMap[keyAp] = valueAp
+													commentForUpdate = 1
 												}
 											}
 
@@ -287,45 +289,56 @@ func main() {
 
 											if countOfIncident == 1 {
 												//если последняя запись, пробуем закрыть тикет
-												//sliceTicketStatus := CheckTicketStatusErr(soapServer, srID)
-												//fmt.Println(sliceTicketStatus[1])
 												status := CheckTicketStatusErr(soapServer, srID)
 												fmt.Println(status)
 
-												//if srStatusCodesForCancelTicket[sliceTicketStatus[1]] {
 												if srStatusCodesForCancelTicket[status] {
 													//Если статус заявки на Уточнении, Визирование, Назначено
-
 													if valueAp.Comment < 2 {
 														comment = "Будет предпринята попытка по отмене обращения, т.к. все точки из него появились в сети"
 														if AddCommentErr(soapServer, srID, comment, bpmUrl) != "" {
-															valueAp.Comment = 2
+															//valueAp.Comment = 2
+															//apMyMap[keyAp] = valueAp
+															commentForUpdate = 2
 														}
 													}
 
 													fmt.Println("Попытка изменить статус в На уточнении")
 													ChangeStatusErr(soapServer, srID, "На уточнении")
+													//if error не делаю, т.к. лишним не будет при любом раскладе попытаться вернуть на уточнение
 
 													fmt.Println("Попытка изменить статус в Отменено")
-													//ChangeStatusErr(soapServer, srID, "Отменено")
 													if ChangeStatusErr(soapServer, srID, "Отменено") != "" {
 														//Если отмена заявки прошла успешно, удалить запись из мапы, заодно и имя обновим
 														valueAp.Name = apName
 														valueAp.SrID = ""
 														valueAp.Comment = 0 //также обнулить параметр COMMENT
 														apMyMap[keyAp] = valueAp
+													} else {
+														//Если НЕ удалось отменить заявку
+														valueAp.Name = apName
+														//valueAp.SrID не зануляем, т.к. будет второй заход через 12 минут
+														valueAp.Comment = commentForUpdate
+														apMyMap[keyAp] = valueAp
 													}
+												} else {
+													//Если статус заявки В работе, Решено, Закрыто и т.д.
+													valueAp.Name = apName
+													valueAp.SrID = ""
+													valueAp.Comment = 0
+													apMyMap[keyAp] = valueAp
 												}
 											} else {
-												//Если запись НЕ последняя, только удалить из мапы, заодно и имя обновим
+												//Если запись НЕ последняя, только удалить из мапы sr и comment, заодно и имя обновим
 												valueAp.Name = apName
 												valueAp.SrID = ""
-												//valueAp.comment уже обновлён выше ДО if
+												valueAp.Comment = 0
 												apMyMap[keyAp] = valueAp
 											}
 
 											fmt.Println("")
 
+											//
 											//
 											//Точка недоступна
 										} else if apLastSeen == 0 {
