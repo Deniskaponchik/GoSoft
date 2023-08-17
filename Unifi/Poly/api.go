@@ -1,75 +1,175 @@
 package main
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"os"
+	"time"
 )
 
-func main() {
+//func main() {}
 
-}
+func apiLineInfo(ip string) (status string) {
 
-func HttpGetReq(ip string) {
-
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("server: %s /\n", r.Method)
-	})
-	server := http.Server{
-		//Addr:    fmt.Sprintf(":%d", serverPort),
-		Addr:    fmt.Sprintf(":%d", serverPort),
-		Handler: mux,
+	type Envelope struct {
+		//status string `json:"Status"`
+		Status string `json:"Status"`
+		Data   []struct {
+			LineNumber         string `json:"LineNumber"`
+			SIPAddress         string `json:"SIPAddress"`
+			LineType           string `json:"LineType"`
+			RegistrationStatus string `json:"RegistrationStatus"`
+			Label              string `json:"Label"`
+			UserID             string `json:"UserID"`
+			ProxyAddress       string `json:"ProxyAddress"`
+			Protocol           string `json:"Protocol"`
+			Port               string `json:"Port"`
+		} `json:"data"`
 	}
-	if err := server.ListenAndServe(); err != nil {
-		if !errors.Is(err, http.ErrServerClosed) {
-			fmt.Printf("error running http server: %s\n", err)
+	client := http.Client{Timeout: 5 * time.Second}
+
+	myError := 1
+	for myError != 0 {
+		url := "http://" + ip + "/api/v1/mgmt/lineInfo"
+		//url := ip + "/api/v1/mgmt/safeRestart"
+		req, errNewRequest := http.NewRequest(http.MethodGet, url, http.NoBody)
+		if errNewRequest == nil {
+			req.SetBasicAuth("Polycom", "3214")
+			//req.Header.Add("Content-Type", "application/json")
+
+			res, errClientDo := client.Do(req)
+			if errClientDo == nil {
+				defer res.Body.Close()
+
+				//body = string(resBody)
+				//statusHttp = res.StatusCode  //200
+				//statuses[0] = res.StatusCode
+				envelope := &Envelope{}
+
+				//if errDecode := json.NewDecoder(res.Body).Decode(&envelope); errDecode == nil {
+				if errDecode := json.NewDecoder(res.Body).Decode(envelope); errDecode == nil {
+					//statusPoly = envelope.status
+					//statuses[1] = envelope.status
+					//status = envelope.Status
+					if envelope.Status == "2000" {
+						fmt.Println("Запрос статуса Skype прошёл успешно.")
+						status = envelope.Data[0].RegistrationStatus
+						myError = 0
+					} else {
+						fmt.Println(status)
+						fmt.Println("От устройства получен Статус НЕ 2000")
+						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+						time.Sleep(60 * time.Second)
+						myError++
+					}
+				} else {
+					fmt.Println(errDecode.Error())
+					fmt.Println("Ошибка перекодировки ответа")
+					fmt.Println("Скорее всего, API недоступен")
+					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+					time.Sleep(60 * time.Second)
+					myError++
+				}
+			} else {
+				fmt.Println(errClientDo.Error())
+				fmt.Println("Ошибка отправки запроса")
+				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+				time.Sleep(60 * time.Second)
+				myError++
+			}
+		} else {
+			fmt.Println(errNewRequest.Error())
+			fmt.Println("Ошибка создания ОБЪЕКТА запроса")
+			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+			time.Sleep(60 * time.Second)
+			myError++
+		}
+		if myError == 6 {
+			myError = 0
+			fmt.Println("После 6 неудачных попыток идём дальше. Получить статус работы skype не удалось")
+			status = ""
+			//statuses = append(statuses, 0)
+			//statuses = append(statuses, 0)
 		}
 	}
-
-	requestURL := fmt.Sprintf("http://localhost:%d", serverPort)
-	res, err := http.Get(requestURL)
-	if err != nil {
-		fmt.Printf("error making http request: %s\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("client: got response!\n")
-	fmt.Printf("client: status code: %d\n", res.StatusCode)
-
+	//fmt.Printf("Status: %d\n", res.StatusCode)
+	//fmt.Printf("Body: %s\n", string(resBody))
+	return status
 }
 
-func HttpReq() {
-	mux := http.NewServeMux()
+func apiSafeRestart2(ip string) (status string) {
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("server: %s /\n", r.Method)
-		fmt.Fprintf(w, `{"message": "hello!"}`)
-	})
-
-	requestURL := fmt.Sprintf("http://localhost:%d", serverPort)
-	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
-	if err != nil {
-		fmt.Printf("client: could not create request: %s\n", err)
-		os.Exit(1)
+	type Envelope struct {
+		//status string `json:"Status"`
+		Status string `json:"Status"`
 	}
+	client := http.Client{Timeout: 5 * time.Second}
 
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		fmt.Printf("client: error making http request: %s\n", err)
-		os.Exit(1)
+	myError := 1
+	for myError != 0 {
+		url := "http://" + ip + "/api/v1/mgmt/safeRestart"
+		//url := ip + "/api/v1/mgmt/safeRestart"
+		req, errNewRequest := http.NewRequest(http.MethodPost, url, http.NoBody)
+		if errNewRequest == nil {
+			req.SetBasicAuth("Polycom", "3214")
+			req.Header.Add("Content-Type", "application/json")
+
+			res, errClientDo := client.Do(req)
+			if errClientDo == nil {
+				defer res.Body.Close()
+
+				//body = string(resBody)
+				//statusHttp = res.StatusCode
+				//statuses[0] = res.StatusCode
+				envelope := &Envelope{}
+
+				//if errDecode := json.NewDecoder(res.Body).Decode(&envelope); errDecode == nil {
+				if errDecode := json.NewDecoder(res.Body).Decode(envelope); errDecode == nil {
+					//log.Fatal("ooopsss! an error occurred, please try again")
+					//statusPoly = envelope.status
+					//statuses[1] = envelope.status
+					status = envelope.Status
+					if status == "2000" {
+						fmt.Println("Запрос на перезагрузку прошёл успешно. Устройство перезагрузится в течение 5 минут")
+						myError = 0
+					} else {
+						fmt.Println(status)
+						fmt.Println("От устройства получен Статус НЕ 2000")
+						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+						time.Sleep(60 * time.Second)
+						myError++
+					}
+				} else {
+					fmt.Println(errDecode.Error())
+					fmt.Println("Ошибка перекодировки ответа")
+					fmt.Println("Скорее всего, API недоступен")
+					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+					time.Sleep(60 * time.Second)
+					myError++
+				}
+			} else {
+				fmt.Println(errClientDo.Error())
+				fmt.Println("Ошибка отправки запроса")
+				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+				time.Sleep(60 * time.Second)
+				myError++
+			}
+		} else {
+			fmt.Println(errNewRequest.Error())
+			fmt.Println("Ошибка создания ОБЪЕКТА запроса")
+			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+			time.Sleep(60 * time.Second)
+			myError++
+		}
+		if myError == 6 {
+			myError = 0
+			fmt.Println("После 6 неудачных попыток идём дальше. Перезагрузка не была осуществлена")
+			status = ""
+			//statuses = append(statuses, 0)
+			//statuses = append(statuses, 0)
+		}
 	}
-
-	fmt.Printf("client: got response!\n")
-	fmt.Printf("client: status code: %d\n", res.StatusCode)
-
-	resBody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		fmt.Printf("client: could not read response body: %s\n", err)
-		os.Exit(1)
-	}
-	fmt.Printf("client: response body: %s\n", resBody)
+	//fmt.Printf("Status: %d\n", res.StatusCode)
+	//fmt.Printf("Body: %s\n", string(resBody))
+	return status
 }

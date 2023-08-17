@@ -1,13 +1,12 @@
 package main
 
-import "github.com/go-ping/ping"
-
-func main() {
-
-}
+import (
+	"fmt"
+	"github.com/go-ping/ping"
+)
 
 func ipPing(ip string) {
-	pinger, err := ping.NewPinger("www.google.com")
+	pinger, err := ping.NewPinger(ip)
 	if err != nil {
 		panic(err)
 	}
@@ -17,4 +16,6 @@ func ipPing(ip string) {
 		panic(err)
 	}
 	stats := pinger.Statistics() // get send/receive/duplicate/rtt stats
+
+	fmt.Println(stats)
 }

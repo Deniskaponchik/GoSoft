@@ -1,14 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"github.com/unpoller/unifi"
-	"io"
-	"log"
 	"strconv"
 	"strings"
 	"time"
+	//"github.com/go-ping/ping"
 )
 
 func main() {
@@ -16,19 +13,12 @@ func main() {
 
 	var url string
 
-	everyStartCode := map[int]bool{}
+	every20Code := map[int]bool{}
 	//everyStartCode := [10] int8 {3, 9, 15, 21, 27, 33, 39, 45, 51, 57}
-	everyStartCode = map[int]bool{
+	every20Code = map[int]bool{
 		3:  true,
-		9:  true,
-		15: true,
-		21: true,
-		27: true,
-		33: true,
-		39: true,
-		45: true,
-		51: true,
-		57: true,
+		23: true,
+		43: true,
 	}
 
 	var soapServer string
@@ -38,8 +28,8 @@ func main() {
 	bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 	bpmUrlTest := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 
-	count6minute := 0
-	countHourAnom := 0
+	count20minute := 0
+	countHourPoly := 0
 	countHourDB := 0
 	countDay := time.Now().Day()
 
@@ -51,13 +41,17 @@ func main() {
 		"Тикет введён не корректно": true,
 		"": true,
 	}
+	srStatusCodesForCancelTicket := map[string]bool{
+		"Визирование":  true,
+		"Назначено":    true,
+		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+	}
 
 	//Download MAPs from DB
 	//polyMyMap := map[string]PolyStruct{}
-	poly1map := DownloadMapFromDBaps(1)
-	poly2map := DownloadMapFromDBaps(2)
+	polyMap := DownloadMapFromDBvcsErr()
+	//poly2map := DownloadMapFromDBaps(2)
 
-	siteapNameForTickets := map[string]ForApsTicket{} //
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
 		for k, v := range siteApCutNameLogin {
@@ -69,368 +63,280 @@ func main() {
 
 	fmt.Println("")
 
-	log.SetOutput(io.Discard) //Отключить вывод лога
-	//
+	//log.SetOutput(io.Discard) //Отключить вывод лога
 	//
 
 	for true { //зацикливаем навечно
 		timeNow := time.Now()
 
-		if timeNow.Minute() != 0 && everyStartCode[timeNow.Minute()] && timeNow.Minute() != count6minute {
-			count6minute = timeNow.Minute()
+		if timeNow.Minute() != 0 && every20Code[timeNow.Minute()] && timeNow.Minute() != count20minute {
+			count20minute = timeNow.Minute()
 			fmt.Println(timeNow.Format("02 January, 15:04:05"))
 
-			//uni, err := unifi.NewUnifi(c)
-			uni, err := unifi.NewUnifi(&c)
-			if err != nil {
-				log.Fatalln("Error:", err)
-			} else {
-				fmt.Println("uni загрузился")
-			}
-
-			sites, err := uni.GetSites()
-			if err != nil {
-				log.Fatalln("Error:", err)
-			} else {
-				fmt.Println("sites загрузились")
-			}
-
-			devices, err := uni.GetDevices(sites) //devices = APs
-			if err != nil {
-				log.Fatalln("Error:", err)
-			} else {
-				fmt.Println("devices загрузились")
-			}
-			fmt.Println("")
-			//
-			//
-
-			//
-			//
-			//ТОЧКИ
-			soapServer = soapServerProd
+			//Опрос каждые 20 минут
+			soapServer = soapServerTest
 			fmt.Println("SOAP")
 			fmt.Println(soapServer)
-			bpmUrl = bpmUrlProd
+			bpmUrl = bpmUrlTest
 			fmt.Println("BPM")
 			fmt.Println(bpmUrl)
 			fmt.Println("")
 
-			//if time.Now().Minute()%3 == 0 && time.Now().Minute() != count3minute { //запускается раз в 3 минуты
-			fmt.Println("Обработка точек доступа...")
-			fmt.Println("")
-			for _, ap := range devices.UAPs {
-				siteID := ap.SiteID
-				//fmt.Println(ap.Name)	fmt.Println(ap.SiteID)
-				//if ap.SiteName[:len(ap.SiteName)-11] != "Резерв/Склад" {
-				//if ap.SiteID != "5f2285f3a1a7693ae6139c00" { //NOVOSIB
-				if !sitesException[siteID] { // НЕ Резерв/Склад
+			//siteapNameForTickets := map[string]ForPolyTicket{}
+			regionVcsSlice := map[string][]PolyStruct{}
 
-					apMac := ap.Mac
-					apName := ap.Name
-					apLastSeen := ap.Uptime.Int()
+			//fmt.Println("Обработка codec устройств")
+			//fmt.Println("")
+			for k, v := range polyMap {
+				ip := k
+				region := v.Region
+				roomName := v.RoomName
+				login := v.Login
+				srID := v.SrID
 
-					//fmt.Println(ap.Name)	fmt.Println(ap.Uptime.Int())  fmt.Println(ap.Uptime.String()) fmt.Println(ap.Uptime.Val)
+				//var commentUnreach string
+				var statusReach string
+				var vcsType string
 
-					//_, exisApMacSRid := apMacSRid[ap.Mac]
-					_, exisApMyMap := apMyMap[apMac]
-					//если в мапе нет записи, создаём
-					if !exisApMyMap {
-						apMyMap[apMac] = ApMyStruct{
-							apName,
-							0,
-							"",
-						}
-					}
-					/*else {  //случай, когда запись в мапе уже создана, думаю, можно упустить в пользу того,
-								//чтобы обновить данные с чем-нибудь другим далее ниже. Только ВСПОМНИТЬ ОБНОВИТь!!!
-						for k, v := range apMyMap {
-							if k == ap.Mac {
-								v.name = ap.Name
-								apMyMap[k] = v
-								break
-							}
-						}
-					}*/
-
-					for keyAp, valueAp := range apMyMap {
-						if keyAp == apMac {
-							srID := valueAp.SrID
-
-							//Точка доступна. Заявки нет.
-							//if apLastSeen != 0 && !exisApMy {
-							if apLastSeen != 0 && srID == "" {
-								//fmt.Println("Точка доступна. Заявки нет. Идём дальше")
-								//
-
-								//Точка доступна. Заявка есть.   +Имя точки обновляю
-								//} else if apLastSeen != 0 && exisApMacSRid {
-							} else if apLastSeen != 0 && srID != "" {
-								fmt.Println(apName)
-								fmt.Println(apMac)
-								fmt.Println("Точка доступна. Заявка есть")
-								//Оставляем коммент, Очищаем запись в мапе, ПЫТАЕМСЯ закрыть тикет, если на визировании
-
-								//comment := "Точка появилась в сети: " + ap.Name
-								comment := "Точка появилась в сети: " + apName
-								//AddComment(soapServer, apMacSRid[ap.Mac], comment, bpmUrl)
-								AddComment(soapServer, srID, comment, bpmUrl)
-
-								/*удалить запись из мапы, предварительно сохранив Srid
-								srID := apMacSRid[ap.Mac]
-								delete(apMacSRid, ap.Mac)
-								//сложной мапы здесь уже нет. И удалять её не нужно и нечего
-								*/
-								//удалить запись из мапы, заодно и имя обновим
-								valueAp.Name = apName
-								valueAp.SrID = ""
-								apMyMap[keyAp] = valueAp
-
-								//проверить, не последняя ли это запись была в мапе в массиве
-								countOfIncident := 0
-								/*Старый блок
-								for _, v := range apMacSRid {
-									if v == srID {
-										countOfIncident++
-									}
-								}*/
-								for _, v := range apMyMap {
-									if v.SrID == srID {
-										countOfIncident++
-										//fmt.Println(countOfIncident)
-									}
-								}
-								if countOfIncident == 0 {
-									//Пробуем закрыть тикет, только ЕСЛИ он на Визировании
-									//fmt.Println("Попали в блок изменения статусов заявок")
-									//sliceTicketStatus := CheckTicketStatus(soapServer, apMacSRid[ap.Mac]) //получаем статус
-									sliceTicketStatus := CheckTicketStatus(soapServer, srID) //получаем статус
-									fmt.Println(sliceTicketStatus[1])
-									if sliceTicketStatus[1] == "Визирование" {
-										//Если статус заявки по-прежнему на Визировании
-										ChangeStatus(soapServer, srID, "На уточнении")
-										AddComment(soapServer, srID, "Обращение отменено, т.к. все точки из него появились в сети", bpmUrl)
-										ChangeStatus(soapServer, srID, "Отменено")
-									}
-								}
-								fmt.Println("")
-
-								//
-								//Точка недоступна.
-							} else if apLastSeen == 0 {
-								apSiteName := ap.SiteName
-								fmt.Println(apName)
-								fmt.Println(apMac)
-								fmt.Println("Точка НЕ доступна")
-
-								//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
-								//checkSlice := CheckTicketStatus(soapServer, apMacSRid[ap.Mac])
-								checkSlice := CheckTicketStatus(soapServer, srID)
-
-								//if srStatusCodesForNewTicket[checkSlice[1]] || !exisApMacSRid {
-								if srStatusCodesForNewTicket[checkSlice[1]] || srID == "" {
-									fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ в мапе нет записи")
-
-									//delete(apMacSRid, ap.Mac) //удаляем заявку. если заявки нет - ничего страшного
-									//удаляем заявку + обновить имя
-									valueAp.Name = apName
-									valueAp.SrID = ""
-									apMyMap[keyAp] = valueAp
-
-									//Заполняем переменные, которые понадобятся дальше
-									//fmt.Println(ap.SiteID)
-									fmt.Println("Site ID: " + siteID)
-									var siteName string
-									//if ap.SiteID == "5e74aaa6a1a76964e770815c" { //6360a823a1a769286dc707f2
-									if siteID == "5e74aaa6a1a76964e770815c" { //6360a823a1a769286dc707f2
-										siteName = "Урал"
-									} else {
-										//siteName = ap.SiteName[:len(ap.SiteName)-11]
-										siteName = apSiteName[:len(apSiteName)-11]
-									}
-									//apCutName := ap.Name[:len(ap.Name)3]
-									//apCutName := strings.Split(ap.Name, "-")[0]
-									apCutName := strings.Split(apName, "-")[0]
-									siteApCutName := siteName + "_" + apCutName
-									fmt.Println(siteApCutName)
-
-									//Проверяем и Вносим во временную мапу. Заявка на данном этапе никакая ещё НЕ создаётся
-									_, exisSiteName := siteapNameForTickets[siteApCutName] //проверяем, есть ли в мапе ДЛЯтикетов
-									//for _, ticket := range sliceForTicket {
-
-									//если в мапе дляТикета сайта ещё НЕТ
-									if !exisSiteName {
-										fmt.Println("в мапе для Тикета записи ещё НЕТ")
-										//aps.mac := [string]
-										siteapNameForTickets[siteApCutName] = ForApsTicket{
-											siteName,
-											0,
-											//[]string{ap.Mac},
-											//apMac[apName],
-											map[string]string{apMac: apName},
-											//map[apMac]apName,
-										}
-
-										//если в мапе дляТикета сайт уже есть, добавляем в массив точку
-									} else {
-										fmt.Println("в мапе для Тикета запись ЕСТЬ")
-										//в мапе нельзя просто изменить значение.
-										for k, v := range siteapNameForTickets {
-											if k == siteApCutName {
-												_, exisApsMacName := v.apsMacName[apMac]
-												//for _, apMac := range v.apsMac {
-												//if !cointains(v.apsMac, ap.Name) { //своя функция contains
-												if !exisApsMacName {
-													//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
-													/*1.Using pointers. не смог победить указатели...
-													v2 := v
-													v2.corpAnomalies = append(v2.corpAnomalies, anomaly.Anomaly)
-													mapNoutnameFortickets[k] = v2 */
-
-													//2.Reassigning the modified struct.
-													/*первичное решение через другую мапу
-													//v.apNames = append(v.apNames, ap.Name)
-													//v.apsMac = append(v.apsMac, ap.Mac)
-													//прошлое решение через массив
-													//v.apsMac = append(v.apsMac, apMac)
-													//siteapNameForTickets[k] = v
-													*/
-													v.apsMacName[apMac] = apName
-													siteapNameForTickets[k] = v
-
-													break // ЗДЕСЬ break НЕ НУЖЕН! да вроде, нужен
-												}
-											}
-										}
-									}
-								} else {
-									fmt.Println("Созданное обращение:")
-									//fmt.Println(bpmUrl + apMacSRid[ap.Mac])
-									fmt.Println(bpmUrl + srID)
-									fmt.Println(checkSlice[1])
-								}
-								fmt.Println("")
-							}
-						}
-					}
-				} //fmt.Println("")
-			}
-			//Пробежались по всем точкам. Заводим заявки
-			fmt.Println("")
-			fmt.Println("Создание заявок по точкам:")
-			for k, v := range siteapNameForTickets {
-				//vCountIncident := v.countIncident
-				fmt.Println(k)
-				fmt.Println(v.countIncident) //"Число циклов захода на создание заявки: " +
-				//fmt.Println(vСountIncident) //"Число циклов захода на создание заявки: " +
-				v.countIncident++
-
-				//Если v.count < 10
-				if v.countIncident < 5 {
-					//обновляем мапу и инкрементируем count
-					siteapNameForTickets[k] = v
+				if v.PolyType == 1 {
+					vcsType = "Codec"
+					//commentUnreach = "Codec не отвечает на API-запросы"
+					statusReach = apiLineInfo(ip)
 				} else {
-					//Если count == 10, Создаём заявку
-					var apsNames []string
-					//for _, s := range v.apNames {	fmt.Println(s)	}
-					//for _, mac := range v.apsMac {
-					for _, name := range v.apsMacName {
-						//apName := apMacName[mac] //сходить в другую мапу
-						//apName := apMacName[name]
-						//apsNames = append(apsNames, apName)
-						apsNames = append(apsNames, name)
-						fmt.Println(name)
-					}
+					vcsType = "Visual"
+					//commentUnreach = "Visual не доступен по http"
+					statusReach = netDialTmt(ip)
+				}
 
-					//usrLogin := noutnameLogin[v.clientName]
-					usrLogin := siteApCutNameLogin[k]
-					fmt.Println(usrLogin)
+				//ВКС доступно. Заявки нет.
+				if statusReach != "" && srID == "" {
+					//Идём дальше
 
-					//desAps := strings.Join(v.apNames, "\n")
-					desAps := strings.Join(apsNames, "\n")
-					description := "Зафиксировано отключение точек:" + "\n" +
-						desAps + "\n" +
-						"" + "\n" +
-						"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
-						"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
-						""
-					incidentType := "Недоступна точка доступа"
+					//ВКС доступно. Заявка есть
+				} else if statusReach != "" && srID != "" {
+					fmt.Println(region)
+					fmt.Println(roomName)
+					fmt.Println(vcsType)
+					fmt.Println("ВКС доступно. Заявка есть")
+					//Оставляем коммент, ПЫТАЕМСЯ закрыть тикет, если на визировании, Очищаем запись в мапе,
 
-					//srTicketSlice := CreateApTicket(soapServer, usrLogin, description, v.site, incidentType)
-					srTicketSlice := CreateSmacWiFiTicket(soapServer, usrLogin, description, v.site, incidentType)
-					fmt.Println(srTicketSlice[2])
-
-					//apMacSRid[v.apMac] = srTicketSlice[0] //добавить в мапу apMac - ID Тикета
-					//for _, mac := range v.apsMac {
-					for mac, _ := range v.apsMacName {
-						//apMacSRid[mac] = srTicketSlice[0]
-						for key, value := range apMyMap {
-							if key == mac {
-								value.SrID = srTicketSlice[0]
-								apMyMap[key] = value
-								break
-							}
+					commentForUpdate := v.Comment
+					comment := vcsType + " появилсь в сети: " + roomName
+					if v.Comment < 1 {
+						if AddCommentErr(soapServer, srID, comment, bpmUrl) != "" {
+							commentForUpdate = 1
 						}
 					}
+
+					//проверить, не последняя ли это запись в мапе в массиве
+					countOfIncident := 0
+					for _, va := range polyMap {
+						if va.SrID == srID {
+							countOfIncident++
+							//BREAK здесь НЕ нужен. Пробежаться нужно по всем
+						}
+					}
+
+					if countOfIncident == 1 {
+						//если последняя запись, пробуем закрыть тикет
+						statusTicket := CheckTicketStatusErr(soapServer, srID)
+						fmt.Println(statusTicket)
+
+						if srStatusCodesForCancelTicket[statusTicket] {
+							//Если статус заявки на Уточнении, Визирование, Назначено
+							if v.Comment < 2 {
+								comment = "Будет предпринята попытка по отмене обращения, т.к. все точки из него появились в сети"
+								if AddCommentErr(soapServer, srID, comment, bpmUrl) != "" {
+									commentForUpdate = 2
+								}
+							}
+
+							fmt.Println("Попытка изменить статус в На уточнении")
+							ChangeStatusErr(soapServer, srID, "На уточнении")
+							//if error не делаю, т.к. лишним не будет при любом раскладе попытаться вернуть на уточнение
+
+							fmt.Println("Попытка изменить статус в Отменено")
+							if ChangeStatusErr(soapServer, srID, "Отменено") != "" {
+								//Если отмена заявки прошла успешно, удалить запись из мапы, заодно и имя обновим
+								//valueAp.Name = apName
+								v.SrID = ""
+								v.Comment = 0 //также обнулить параметр COMMENT
+								polyMap[k] = v
+							} else {
+								//Если НЕ удалось отменить заявку
+								//valueAp.Name = apName
+								//valueAp.SrID не зануляем, т.к. будет второй заход через 12 минут
+								v.Comment = commentForUpdate
+								polyMap[k] = v
+							}
+						} else {
+							//Если статус заявки В работе, Решено, Закрыто и т.д.
+							//valueAp.Name = apName
+							v.SrID = ""
+							v.Comment = 0
+							polyMap[k] = v
+						}
+					} else {
+						//Если запись НЕ последняя, только удалить из мапы sr и comment, заодно и имя обновим
+						//valueAp.Name = apName
+						v.SrID = ""
+						v.Comment = 0
+						polyMap[k] = v
+					}
+
 					fmt.Println("")
 
-					//Удаляем запись в мапе
-					delete(siteapNameForTickets, k)
+					//ВКС недоступна
+				} else if statusReach == "" {
+					fmt.Println(region)
+					fmt.Println(roomName)
+					fmt.Println(vcsType)
+					fmt.Println("ВКС НЕ доступно")
+
+					//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
+					var statusTicket string
+					if srID != "" {
+						statusTicket = CheckTicketStatusErr(soapServer, srID)
+					}
+
+					if srStatusCodesForNewTicket[statusTicket] || srID == "" {
+						fmt.Println(bpmUrl + srID)
+						fmt.Println("Статус: " + statusTicket) //checkSlice[1])
+						fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ заявки нет вовсе")
+
+						//удаляем заявку
+						//valueAp.Name = apName
+						v.SrID = ""
+						polyMap[k] = v
+
+						//Заполняем переменные, которые понадобятся дальше
+						fmt.Println(k)
+						fmt.Println(login)
+
+						//Проверяем и вносим во временную мапу. Заявка на данном этапе никакая ещё НЕ создаётся
+						//_, exisSiteName := siteapNameForTickets[siteApCutName] //проверяем, есть ли в мапе ДЛЯтикетов
+						_, exisRegion := regionVcsSlice[region] //проверяем, есть ли в мапе ДЛЯтикетов
+
+						//если в мапе дляТикета сайта ещё НЕТ
+						if !exisRegion {
+							fmt.Println("в мапе для Тикета записи ещё НЕТ")
+							/*
+								siteapNameForTickets[siteApCutName] = ForApsTicket{
+									siteName,
+									0,
+									map[string]string{apMac: apName},
+								}*/
+							newPolySlice := []PolyStruct{}
+							newPolySlice = append(newPolySlice, v)
+							regionVcsSlice[region] = newPolySlice
+
+							//если в мапе дляТикета сайт уже есть, добавляем в массив точку
+						} else {
+							fmt.Println("в мапе для Тикета запись ЕСТЬ")
+							//в мапе нельзя просто изменить значение.
+							for ke, va := range regionVcsSlice {
+								if ke == region {
+									//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
+									//2.Reassigning the modified struct.
+									va = append(va, v)
+									regionVcsSlice[ke] = va
+									break
+									/*
+										_, exisApsMacName := v.apsMacName[apMac]
+										if !exisApsMacName {
+											v.apsMacName[apMac] = apName
+											siteapNameForTickets[k] = v
+
+											break // ЗДЕСЬ break НЕ НУЖЕН! да вроде, нужен
+										}*/
+								}
+							}
+						}
+					} else {
+						fmt.Println("Созданное обращение:")
+						fmt.Println(bpmUrl + srID)
+						fmt.Println(statusTicket) //checkSlice[1])
+					}
+					fmt.Println("")
 				}
+				break
+			}
+
+			//
+			//
+			//Пробежались по всем vcs. Заводим заявки
+			fmt.Println("")
+			fmt.Println("Создание заявок по ВКС:")
+			for k, v := range regionVcsSlice {
+				fmt.Println(k)
+
+				var vcsInfo []string
+				var usrLogin string
+
+				for _, vcs := range v {
+					//apsNames = append(apsNames, name)
+					vcsInfo = append(vcsInfo, vcs.RoomName)
+					vcsInfo = append(vcsInfo, vcs.IP)
+					if vcs.PolyType == 1 {
+						vcsInfo = append(vcsInfo, "Codec не отвечает на API-запросы")
+					} else {
+						vcsInfo = append(vcsInfo, "Visual не доступен по http")
+					}
+					vcsInfo = append(vcsInfo, "")
+					usrLogin = vcs.Login
+
+					fmt.Println(vcs.RoomName)
+					fmt.Println(vcs.IP)
+					fmt.Println(vcs.PolyType)
+				}
+
+				if usrLogin == "" {
+					usrLogin = "denis.tirskikh"
+				}
+				fmt.Println(usrLogin)
+
+				//desAps := strings.Join(apsNames, "\n")
+				desVcs := strings.Join(vcsInfo, "\n")
+				description := "Зафиксировано отключение устройств ВКС Poly:" + "\n" +
+					desVcs + "\n" +
+					"" + "\n" +
+					"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+					"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+					"" + "\n" +
+					"!!! Не нужно решать/отменять/отклонять/возвращать/закрывать заявку, пока работа всех ВКС устройств не будет восстановлена - автоматически создастся новый тикет !!!" + "\n" +
+					""
+				incidentType := "Устройство недоступно"
+				monitoring := "https://monitoring.tele2.ru/zabbix1/zabbix.php?show=1&application=&name=&inventory%5B0%5D%5Bfield%5D=type&inventory%5B0%5D%5Bvalue%5D=&evaltype=0&tags%5B0%5D%5Btag%5D=&tags%5B0%5D%5Boperator%5D=0&tags%5B0%5D%5Bvalue%5D=&show_tags=3&tag_name_format=0&tag_priority=&show_opdata=0&show_timeline=1&filter_name=&filter_show_counter=0&filter_custom_time=0&sort=clock&sortorder=DESC&age_state=0&show_suppressed=0&unacknowledged=0&compact_view=0&details=0&highlight_row=0&action=problem.view&groupids%5B%5D=163&hostids%5B%5D=11224&hostids%5B%5D=11381"
+
+				fmt.Println("Попытка создания заявки")
+				srTicketSlice := CreatePolyTicketErr(soapServer, bpmUrl, usrLogin, description, "", k, monitoring, incidentType)
+				if srTicketSlice[0] != "" {
+					fmt.Println(srTicketSlice[2])
+					//delete(regionVcsSlice, k)  //думаю, что удалять не стоит, т.к. будет каждый раз новая мапа создаваться
+				}
+				fmt.Println("")
 			}
 			fmt.Println("")
 			//
 			//
 
-
 			//
 			//
-			//Обновление мап и БД
-			//запустится, если в этот ЧАС он ещё НЕ выполнялся
-			//if time.Now().Hour() != countHourDB {
+			//Обновление БД. Запустится, если в этот ЧАС он ещё НЕ выполнялся
 			if timeNow.Hour() != countHourDB {
-				//countHourDB = time.Now().Hour()
 				countHourDB = timeNow.Hour()
 
-				bdCntrl := strconv.Itoa(int(bdController))
-				var lenMap int
-				var count int
-				var exception string
-				var b1 bytes.Buffer
-				var b2 bytes.Buffer
-				var query string
-
-				//b.WriteString("REPLACE INTO " + tableName + " VALUES ")
-				b1.WriteString("REPLACE INTO " + "it_support_db.ap" + " VALUES ")
-				//lenMap := len(uploadMap)
-				lenMap = len(apMyMap)
-				count = 0
-				//for k, v := range uploadMap {
-				for k, v := range apMyMap {
-					exception = strconv.Itoa(int(v.Exception))
-					count++
-					if count != lenMap {
-						// mac, name, controller, exception, srid
-						b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "'),")
-					} else {
-						b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "')")
-						//в конце НЕ ставим запятую
-					}
+				var queries []string
+				for k, v := range polyMap {
+					queries = append(queries, "UPDATE it_support_db.poly SET srid = "+v.SrID+", comment = "+strconv.Itoa(int(v.Comment))+" WHERE mac = '"+k+";")
 				}
-				query = b1.String()
-				fmt.Println(query)
-				if count != 0 {
-					UploadMapsToDBstring("it_support_db", query)
-				} else {
-					fmt.Println("Передана пустая карта. Запрос не выполнен")
-				}
+				UpdateMapsToDBerr(queries)
 				fmt.Println("")
 			}
 
 			//
 			//
-			//Обновление мап раз в сутки
-			//if time.Now().Day() != countDay {
+			//Обновление мап раз в час. для контроля корректности ip-адресов
 			if timeNow.Day() != countDay {
 				//countDay = time.Now().Day()
 				countDay = timeNow.Day()
@@ -444,7 +350,7 @@ func main() {
 		} //Снятие показаний раз в 6 минут
 		fmt.Println("Sleep 58s")
 		fmt.Println("")
-		time.Sleep(58 * time.Second) //Изменить на 5 секунд на ПРОДе
+		time.Sleep(58 * time.Second)
 
 	} // while TRUE
 
@@ -460,12 +366,13 @@ func cointains(slice []string, compareString string) bool {
 }
 
 type PolyStruct struct {
+	IP       string
 	Region   string
-	Room     string
-	login    string
-	srid     string
-	type	 int
-	countInc int
+	RoomName string
+	Login    string
+	SrID     string
+	PolyType int
+	Comment  int
 }
 type ForPolyTicket struct {
 	site          string
