@@ -18,8 +18,8 @@ func main() {
 	os.Setenv("http_proxy", "http://127.0.0.1:3128")
 	os.Setenv("https_proxy", "http://127.0.0.1:3128")
 
-	status := safeRestart2("10.57.178.41")
-	//status := lineInfo("10.78.28.150")
+	//status := safeRestart2("10.57.178.41")
+	status := lineInfo("10.57.178.41")
 	fmt.Println(status)
 	//fmt.Println(statuses[1])
 }
@@ -74,7 +74,7 @@ func lineInfo(ip string) (status string) {
 						fmt.Println(status)
 						fmt.Println("От устройства получен Статус НЕ 2000")
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-						time.Sleep(60 * time.Second)
+						time.Sleep(30 * time.Second)
 						myError++
 					}
 				} else {
@@ -82,21 +82,21 @@ func lineInfo(ip string) (status string) {
 					fmt.Println("Ошибка перекодировки ответа")
 					fmt.Println("Скорее всего, API недоступен")
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-					time.Sleep(60 * time.Second)
+					time.Sleep(30 * time.Second)
 					myError++
 				}
 			} else {
 				fmt.Println(errClientDo.Error())
 				fmt.Println("Ошибка отправки запроса")
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-				time.Sleep(60 * time.Second)
+				time.Sleep(30 * time.Second)
 				myError++
 			}
 		} else {
 			fmt.Println(errNewRequest.Error())
 			fmt.Println("Ошибка создания ОБЪЕКТА запроса")
 			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-			time.Sleep(60 * time.Second)
+			time.Sleep(30 * time.Second)
 			myError++
 		}
 		if myError == 6 {
@@ -177,7 +177,7 @@ func safeRestart2(ip string) (status string) {
 						fmt.Println(status)
 						fmt.Println("От устройства получен Статус НЕ 2000")
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-						time.Sleep(60 * time.Second)
+						time.Sleep(30 * time.Second)
 						myError++
 					}
 				} else {
@@ -185,21 +185,21 @@ func safeRestart2(ip string) (status string) {
 					fmt.Println("Ошибка перекодировки ответа")
 					fmt.Println("Скорее всего, API недоступен")
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-					time.Sleep(60 * time.Second)
+					time.Sleep(30 * time.Second)
 					myError++
 				}
 			} else {
 				fmt.Println(errClientDo.Error())
 				fmt.Println("Ошибка отправки запроса")
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-				time.Sleep(60 * time.Second)
+				time.Sleep(30 * time.Second)
 				myError++
 			}
 		} else {
 			fmt.Println(errNewRequest.Error())
 			fmt.Println("Ошибка создания ОБЪЕКТА запроса")
 			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-			time.Sleep(60 * time.Second)
+			time.Sleep(30 * time.Second)
 			myError++
 		}
 		if myError == 6 {
@@ -251,28 +251,28 @@ func safeRestart1(ip string) (statuses []int) {
 						fmt.Println(errJsonUnmarshal.Error())
 						fmt.Println("Ошибка перекодировки ответа в json")
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-						time.Sleep(60 * time.Second)
+						time.Sleep(30 * time.Second)
 						myError++
 					}
 				} else {
 					fmt.Println(errIOread.Error())
 					fmt.Println("Ошибка чтения байтов из ответа")
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-					time.Sleep(60 * time.Second)
+					time.Sleep(30 * time.Second)
 					myError++
 				}
 			} else {
 				fmt.Println(errClientDo.Error())
 				fmt.Println("Ошибка отправки запроса")
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-				time.Sleep(60 * time.Second)
+				time.Sleep(30 * time.Second)
 				myError++
 			}
 		} else {
 			fmt.Println(errNewRequest.Error())
 			fmt.Println("Ошибка создания ОБЪЕКТА запроса")
 			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-			time.Sleep(60 * time.Second)
+			time.Sleep(30 * time.Second)
 			myError++
 		}
 		if myError == 6 {

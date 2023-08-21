@@ -123,13 +123,15 @@ func UploadMapsToDBerr(query string) {
 
 func DownloadMapFromDBvcsErr() map[string]PolyStruct {
 	type TagAp struct {
-		IP       string `json:"ip"`
-		Region   string `json:"region"`
-		RoomName string `json:"room_name"`
-		Login    string `json:"login"`
-		SrID     string `json:"srid"`
-		PolyType int    `json:"type"`
-		Comment  int    `json:"comment"`
+		Mac       string `json:"mac"`
+		IP        string `json:"ip"`
+		Region    string `json:"region"`
+		RoomName  string `json:"room_name"`
+		Login     string `json:"login"`
+		SrID      string `json:"srid"`
+		PolyType  int    `json:"type"`
+		Comment   int    `json:"comment"`
+		Exception int    `json:"exception"`
 	}
 
 	m := make(map[string]PolyStruct)
@@ -149,10 +151,10 @@ func DownloadMapFromDBvcsErr() map[string]PolyStruct {
 					if errQuery == nil {
 						var tag TagAp
 						for results.Next() {
-							errScan := results.Scan(&tag.IP, &tag.Region, &tag.RoomName, &tag.Login, &tag.SrID, &tag.PolyType, &tag.Comment)
+							errScan := results.Scan(&tag.Mac, &tag.IP, &tag.Region, &tag.RoomName, &tag.Login, &tag.SrID, &tag.PolyType, &tag.Comment, &tag.Exception)
 							if errScan == nil {
 								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
-								m[tag.IP] = PolyStruct{
+								m[tag.Mac] = PolyStruct{
 									tag.IP,
 									tag.Region,
 									tag.RoomName,
@@ -160,6 +162,7 @@ func DownloadMapFromDBvcsErr() map[string]PolyStruct {
 									tag.SrID,
 									tag.PolyType,
 									tag.Comment,
+									tag.Exception,
 								}
 							} else {
 								//panic(errScan.Error()) // proper error handling instead of panic in your app

@@ -295,7 +295,7 @@ func main() {
 												if srStatusCodesForCancelTicket[status] {
 													//Если статус заявки на Уточнении, Визирование, Назначено
 													if valueAp.Comment < 2 {
-														comment = "Будет предпринята попытка по отмене обращения, т.к. все точки из него появились в сети"
+														comment = "Будет предпринята попытка отмены обращения, т.к. все точки из него появились в сети"
 														if AddCommentErr(soapServer, srID, comment, bpmUrl) != "" {
 															//valueAp.Comment = 2
 															//apMyMap[keyAp] = valueAp

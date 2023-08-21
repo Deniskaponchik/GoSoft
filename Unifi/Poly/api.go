@@ -40,7 +40,6 @@ func apiLineInfo(ip string) (status string) {
 			res, errClientDo := client.Do(req)
 			if errClientDo == nil {
 				defer res.Body.Close()
-
 				//body = string(resBody)
 				//statusHttp = res.StatusCode  //200
 				//statuses[0] = res.StatusCode
@@ -59,7 +58,7 @@ func apiLineInfo(ip string) (status string) {
 						fmt.Println(status)
 						fmt.Println("От устройства получен Статус НЕ 2000")
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-						time.Sleep(60 * time.Second)
+						time.Sleep(30 * time.Second)
 						myError++
 					}
 				} else {
@@ -67,21 +66,21 @@ func apiLineInfo(ip string) (status string) {
 					fmt.Println("Ошибка перекодировки ответа")
 					fmt.Println("Скорее всего, API недоступен")
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-					time.Sleep(60 * time.Second)
+					time.Sleep(30 * time.Second)
 					myError++
 				}
 			} else {
 				fmt.Println(errClientDo.Error())
 				fmt.Println("Ошибка отправки запроса")
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-				time.Sleep(60 * time.Second)
+				time.Sleep(30 * time.Second)
 				myError++
 			}
 		} else {
 			fmt.Println(errNewRequest.Error())
 			fmt.Println("Ошибка создания ОБЪЕКТА запроса")
 			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-			time.Sleep(60 * time.Second)
+			time.Sleep(30 * time.Second)
 			myError++
 		}
 		if myError == 6 {
@@ -136,7 +135,7 @@ func apiSafeRestart2(ip string) (status string) {
 						fmt.Println(status)
 						fmt.Println("От устройства получен Статус НЕ 2000")
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-						time.Sleep(60 * time.Second)
+						time.Sleep(30 * time.Second)
 						myError++
 					}
 				} else {
@@ -144,21 +143,21 @@ func apiSafeRestart2(ip string) (status string) {
 					fmt.Println("Ошибка перекодировки ответа")
 					fmt.Println("Скорее всего, API недоступен")
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-					time.Sleep(60 * time.Second)
+					time.Sleep(30 * time.Second)
 					myError++
 				}
 			} else {
 				fmt.Println(errClientDo.Error())
 				fmt.Println("Ошибка отправки запроса")
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-				time.Sleep(60 * time.Second)
+				time.Sleep(30 * time.Second)
 				myError++
 			}
 		} else {
 			fmt.Println(errNewRequest.Error())
 			fmt.Println("Ошибка создания ОБЪЕКТА запроса")
 			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-			time.Sleep(60 * time.Second)
+			time.Sleep(30 * time.Second)
 			myError++
 		}
 		if myError == 6 {

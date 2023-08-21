@@ -16,15 +16,15 @@ func netDialTmt(ipString string) (status string) {
 	//	Dial("tcp", "198.51.100.1:80")
 	//conn, err := net.DialTimeout("tcp","mysyte:myport", timeout)
 	//conn, err := net.DialTimeout("tcp", url, timeout)
-	conn, err := net.DialTimeout("tcp", url, timeout)
+	_, err := net.DialTimeout("tcp", url, timeout)
 	if err != nil {
 		//log.Println("Site unreachable, error: ", err)
 		fmt.Println("Visual не доступен по http")
 		status = ""
 	} else {
-		//log.Println("Site reachable")
+		fmt.Println("Visual доступен")
 		status = "ok"
 	}
-	conn.Close()
+	//conn.Close()
 	return
 }

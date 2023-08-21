@@ -119,7 +119,7 @@ func CreatePolyTicketErr(
 								fmt.Println("Тип инцидента: " + incidentType)
 								fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 								fmt.Println("")
-								time.Sleep(60 * time.Second)
+								time.Sleep(30 * time.Second)
 								myError++
 							} else {
 								srID := envelope.Body.CreateRequestResponse.ID
@@ -135,14 +135,14 @@ func CreatePolyTicketErr(
 							fmt.Println(erXmlUnmarshal.Error())
 							fmt.Println("Ошибка перекодировки ответа в xml")
 							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-							time.Sleep(60 * time.Second)
+							time.Sleep(30 * time.Second)
 							myError++
 						}
 					} else {
 						fmt.Println(errIOread.Error())
 						fmt.Println("Ошибка чтения байтов из ответа")
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-						time.Sleep(60 * time.Second)
+						time.Sleep(30 * time.Second)
 						myError++
 					}
 				} else {
@@ -151,7 +151,7 @@ func CreatePolyTicketErr(
 					fmt.Println(errClientDo.Error())
 					fmt.Println("Ошибка отправки запроса")
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-					time.Sleep(60 * time.Second)
+					time.Sleep(30 * time.Second)
 					myError++
 				}
 			} else {
@@ -160,7 +160,7 @@ func CreatePolyTicketErr(
 				fmt.Println(errHttpReq.Error())
 				fmt.Println("Ошибка создания объекта запроса")
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-				time.Sleep(60 * time.Second)
+				time.Sleep(30 * time.Second)
 				myError++
 			}
 			if myError == 6 {
@@ -286,7 +286,7 @@ func CreateWiFiTicketErr(
 								fmt.Println("Тип инцидента: " + incidentType)
 								fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 								fmt.Println("")
-								time.Sleep(60 * time.Second)
+								time.Sleep(30 * time.Second)
 								myError++
 							} else {
 								srID := envelope.Body.CreateRequestResponse.ID
@@ -302,14 +302,14 @@ func CreateWiFiTicketErr(
 							fmt.Println(erXmlUnmarshal.Error())
 							fmt.Println("Ошибка перекодировки ответа в xml")
 							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-							time.Sleep(60 * time.Second)
+							time.Sleep(30 * time.Second)
 							myError++
 						}
 					} else {
 						fmt.Println(errIOread.Error())
 						fmt.Println("Ошибка чтения байтов из ответа")
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-						time.Sleep(60 * time.Second)
+						time.Sleep(30 * time.Second)
 						myError++
 					}
 				} else {
@@ -318,7 +318,7 @@ func CreateWiFiTicketErr(
 					fmt.Println(errClientDo.Error())
 					fmt.Println("Ошибка отправки запроса")
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-					time.Sleep(60 * time.Second)
+					time.Sleep(30 * time.Second)
 					myError++
 				}
 			} else {
@@ -327,7 +327,7 @@ func CreateWiFiTicketErr(
 				fmt.Println(errHttpReq.Error())
 				fmt.Println("Ошибка создания объекта запроса")
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-				time.Sleep(60 * time.Second)
+				time.Sleep(30 * time.Second)
 				myError++
 			}
 			if myError == 6 {
@@ -410,7 +410,7 @@ func CheckTicketStatusErr(soapServer string, srID string) (status string) {
 							fmt.Println("SR id: " + srID)
 							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 							fmt.Println("")
-							time.Sleep(60 * time.Second)
+							time.Sleep(30 * time.Second)
 							myError++
 						} else {
 							//statusSlice = append(statusSlice, envelope.Body.GetStatusResponse.StatisId)
@@ -423,7 +423,7 @@ func CheckTicketStatusErr(soapServer string, srID string) (status string) {
 						fmt.Println("Ошибка перекодировки ответа в xml")
 						fmt.Println(erXmlUnmarshal.Error())
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-						time.Sleep(60 * time.Second)
+						time.Sleep(30 * time.Second)
 						myError++
 					}
 				} else {
@@ -431,7 +431,7 @@ func CheckTicketStatusErr(soapServer string, srID string) (status string) {
 					fmt.Println("Ошибка чтения байтов из ответа")
 					fmt.Println(errIOread.Error())
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-					time.Sleep(60 * time.Second)
+					time.Sleep(30 * time.Second)
 					myError++
 				}
 			} else {
@@ -440,7 +440,7 @@ func CheckTicketStatusErr(soapServer string, srID string) (status string) {
 				fmt.Println("Ошибка отправки запроса")
 				fmt.Println(errClientDo.Error())
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-				time.Sleep(60 * time.Second)
+				time.Sleep(30 * time.Second)
 				myError++
 				//Если ночью нет доступа к SOAP = в ЦОДЕ коллапс. Могу подождать 5 часов
 				//if myError == 300 { 					myError = 0				}
@@ -451,7 +451,7 @@ func CheckTicketStatusErr(soapServer string, srID string) (status string) {
 			fmt.Println("Ошибка создания объекта запроса")
 			fmt.Println(errHttpReq.Error())
 			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-			time.Sleep(60 * time.Second)
+			time.Sleep(30 * time.Second)
 			myError++
 			//Если ночью нет доступа к SOAP = в ЦОДЕ коллапс. Могу подождать 5 часов
 			//if myError == 300 { 					myError = 0				}
@@ -535,7 +535,7 @@ func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewSta
 							fmt.Println("SOAP-сервер: " + soapServer)
 							fmt.Println("SR id: " + srID)
 							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-							time.Sleep(60 * time.Second)
+							time.Sleep(30 * time.Second)
 							fmt.Println("")
 							myError++
 						} else {
@@ -549,14 +549,14 @@ func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewSta
 						fmt.Println("Ошибка перекодировки ответа в xml")
 						fmt.Println(erXmlUnmarshal.Error())
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-						time.Sleep(60 * time.Second)
+						time.Sleep(30 * time.Second)
 						myError++
 					}
 				} else {
 					fmt.Println("Ошибка чтения байтов из ответа")
 					fmt.Println(errIOread.Error())
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-					time.Sleep(60 * time.Second)
+					time.Sleep(30 * time.Second)
 					myError++
 				}
 			} else {
@@ -565,7 +565,7 @@ func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewSta
 				fmt.Println("Ошибка отправки запроса")
 				fmt.Println(errClientDo.Error())
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-				time.Sleep(60 * time.Second)
+				time.Sleep(30 * time.Second)
 				myError++
 			}
 		} else {
@@ -574,7 +574,7 @@ func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewSta
 			fmt.Println("Ошибка создания объекта запроса")
 			fmt.Println(errHttpReq.Error())
 			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-			time.Sleep(60 * time.Second)
+			time.Sleep(30 * time.Second)
 			myError++
 		}
 		if myError == 6 {
@@ -651,7 +651,7 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 							fmt.Println("SR id: " + srID)
 							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 							fmt.Println("")
-							time.Sleep(60 * time.Second)
+							time.Sleep(30 * time.Second)
 							myError++
 						} else {
 							//srDateComment := envelope.Body.CreateCommentResponse.CreatedOn
@@ -666,14 +666,14 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 						fmt.Println("Ошибка перекодировки ответа в xml")
 						fmt.Println(erXmlUnmarshal.Error())
 						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-						time.Sleep(60 * time.Second)
+						time.Sleep(30 * time.Second)
 						myError++
 					}
 				} else {
 					fmt.Println("Ошибка чтения байтов из ответа")
 					fmt.Println(errIOread.Error())
 					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-					time.Sleep(60 * time.Second)
+					time.Sleep(30 * time.Second)
 					myError++
 				}
 			} else {
@@ -682,7 +682,7 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 				fmt.Println("Ошибка отправки запроса")
 				fmt.Println(errClientDo.Error())
 				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-				time.Sleep(60 * time.Second)
+				time.Sleep(30 * time.Second)
 				myError++
 			}
 		} else {
@@ -691,7 +691,7 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 			fmt.Println("Ошибка создания объекта запроса")
 			fmt.Println(errHttpReq.Error())
 			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-			time.Sleep(60 * time.Second)
+			time.Sleep(30 * time.Second)
 			myError++
 		}
 		if myError == 6 {
