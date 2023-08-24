@@ -548,26 +548,6 @@ func main() {
 											clExInt = 0
 										}
 									}
-									/*1. Если разработчик исправит скрипт, и будет возможность получать имя точек у клиентов
-									_, exisNoutMyMap := machineMyMap[clientMac]
-									if !exisNoutMyMap { //если записи клиента НЕТ
-										machineMyMap[clientMac] = MachineMyStruct{
-											clientName,
-											0,
-											"",
-											apName,
-										}
-									} else {
-										for ke, va := range machineMyMap {
-											if ke == clientMac {
-												va.ApName = apName
-												va.Hostname = clientName
-												va.Exception = clExInt
-												machineMyMap[ke] = va
-												break //прекращаем цикл, когда найден клиент и имя точки присвоено ему
-											}
-										}
-									}*/
 									//2. Если разработчик НЕ исправит: https://github.com/unpoller/unifi/issues/90
 									//пробегаемся по всей мапе точек и получаем имя соответствию мака
 									for k, v := range apMyMap {
