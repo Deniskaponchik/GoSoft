@@ -22,7 +22,7 @@ func netDialTmt(ipString string) (status string) {
 		fmt.Println("Visual не доступен по http")
 		status = ""
 	} else {
-		fmt.Println("Visual доступен")
+		//fmt.Println("Visual доступен")
 		status = "ok"
 	}
 	//conn.Close()

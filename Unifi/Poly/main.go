@@ -50,7 +50,7 @@ func main() {
 	count20minute := 0
 	countHourFromDB := 0
 	countHourToDB := 0
-	//countDay := time.Now().Day()
+	reboot := 0
 
 	srStatusCodesForNewTicket := map[string]bool{
 		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
@@ -96,10 +96,11 @@ func main() {
 			//polyMap = make(map[string]PolyStruct{})
 			polyMap = map[string]PolyStruct{}
 			//clear(polyMyMap)
-
 			polyMap = DownloadMapFromDBvcsErr()
 		}
 
+		//
+		//
 		if timeNow.Minute() != 0 && every20Code[timeNow.Minute()] && timeNow.Minute() != count20minute {
 			count20minute = timeNow.Minute()
 			fmt.Println(timeNow.Format("02 January, 15:04:05"))
@@ -126,12 +127,13 @@ func main() {
 					login := v.Login
 					srID := v.SrID
 
-					fmt.Println(ip)
-					fmt.Println(region)
-					fmt.Println(roomName)
-					fmt.Println(v.PolyType)
-					fmt.Println(srID)
-
+					/*
+						fmt.Println(ip)
+						fmt.Println(region)
+						fmt.Println(roomName)
+						fmt.Println(v.PolyType)
+						fmt.Println(srID)
+					*/
 					//var commentUnreach string
 					var statusReach string
 					var vcsType string
@@ -240,7 +242,7 @@ func main() {
 						if srStatusCodesForNewTicket[statusTicket] || srID == "" {
 							fmt.Println(bpmUrl + srID)
 							fmt.Println("Статус: " + statusTicket) //checkSlice[1])
-							fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ заявки нет вовсе")
+							fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ её нет вовсе")
 
 							//удаляем заявку
 							//valueAp.Name = apName
@@ -258,12 +260,6 @@ func main() {
 							//если в мапе дляТикета сайта ещё НЕТ
 							if !exisRegion {
 								fmt.Println("в мапе для Тикета записи ещё НЕТ")
-								/*
-									siteapNameForTickets[siteApCutName] = ForApsTicket{
-										siteName,
-										0,
-										map[string]string{apMac: apName},
-									}*/
 								newPolySlice := []PolyStruct{}
 								newPolySlice = append(newPolySlice, v)
 								regionVcsSlice[region] = newPolySlice
@@ -279,14 +275,6 @@ func main() {
 										va = append(va, v)
 										regionVcsSlice[ke] = va
 										break
-										/*
-											_, exisApsMacName := v.apsMacName[apMac]
-											if !exisApsMacName {
-												v.apsMacName[apMac] = apName
-												siteapNameForTickets[k] = v
-
-												break // ЗДЕСЬ break НЕ НУЖЕН! да вроде, нужен
-											}*/
 									}
 								}
 							}
@@ -353,6 +341,17 @@ func main() {
 				if srTicketSlice[0] != "" {
 					fmt.Println(srTicketSlice[2])
 					//delete(regionVcsSlice, k)  //думаю, что удалять не стоит, т.к. будет каждый раз новая мапа создаваться
+
+					//обновляем в мапе srid
+					for _, va := range v {
+						for key, val := range polyMap {
+							if va.IP == val.IP {
+								val.SrID = srTicketSlice[0]
+								polyMap[key] = val
+								break
+							}
+						}
+					}
 				}
 				fmt.Println("")
 			}
@@ -368,7 +367,7 @@ func main() {
 
 				var queries []string
 				for k, v := range polyMap {
-					queries = append(queries, "UPDATE it_support_db.poly SET srid = "+v.SrID+", comment = "+strconv.Itoa(int(v.Comment))+" WHERE mac = '"+k+";")
+					queries = append(queries, "UPDATE it_support_db.poly SET srid = '"+v.SrID+"', comment = "+strconv.Itoa(int(v.Comment))+" WHERE mac = '"+k+"';")
 				}
 				UpdateMapsToDBerr(queries)
 				fmt.Println("")
@@ -376,6 +375,20 @@ func main() {
 
 			//
 			//
+			//Перезагрузка
+			if timeNow.Hour() == 7 && reboot == 0 {
+				for _, v := range polyMap {
+					if v.PolyType == 1 {
+						fmt.Println(v.RoomName)
+						apiSafeRestart2(v.IP)
+					}
+				}
+				reboot = 1
+			}
+			if timeNow.Hour() == 8 {
+				reboot = 0
+			}
+
 		} //Снятие показаний раз в 20 минут
 		fmt.Println("Sleep 58s")
 		fmt.Println("")

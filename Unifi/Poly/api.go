@@ -51,7 +51,7 @@ func apiLineInfo(ip string) (status string) {
 					//statuses[1] = envelope.status
 					//status = envelope.Status
 					if envelope.Status == "2000" {
-						fmt.Println("Запрос статуса Skype прошёл успешно.")
+						//fmt.Println("Запрос статуса Skype прошёл успешно.")
 						status = envelope.Data[0].RegistrationStatus
 						myError = 0
 					} else {
@@ -83,9 +83,9 @@ func apiLineInfo(ip string) (status string) {
 			time.Sleep(30 * time.Second)
 			myError++
 		}
-		if myError == 6 {
+		if myError == 3 {
 			myError = 0
-			fmt.Println("После 6 неудачных попыток идём дальше. Получить статус работы skype не удалось")
+			fmt.Println("После 3 неудачных попыток идём дальше. Получить статус работы skype не удалось")
 			status = ""
 			//statuses = append(statuses, 0)
 			//statuses = append(statuses, 0)
@@ -160,9 +160,9 @@ func apiSafeRestart2(ip string) (status string) {
 			time.Sleep(30 * time.Second)
 			myError++
 		}
-		if myError == 6 {
+		if myError == 3 {
 			myError = 0
-			fmt.Println("После 6 неудачных попыток идём дальше. Перезагрузка не была осуществлена")
+			fmt.Println("После 3 неудачных попыток идём дальше. Перезагрузка не была осуществлена")
 			status = ""
 			//statuses = append(statuses, 0)
 			//statuses = append(statuses, 0)
