@@ -13,11 +13,12 @@ import (
 func main() {
 	fmt.Println("")
 
-	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
-	//everyStartCode := map[int]bool{}
-	every12start := map[int]bool{}
+	//every12start := map[int]bool{}
+	every20start := map[int]bool{}
+
 	//ROSTOV
 	if unifiController == 10 || unifiController == 11 {
 		bdController = 1
@@ -27,7 +28,7 @@ func main() {
 			urlController = "https://10.78.221.142:8443/"
 		}
 		/*everyStartCode := [10] int8 {3, 9, 15, 21, 27, 33, 39, 45, 51, 57}
-		everyStartCode = map[int]bool{
+		every6start = map[int]bool{
 			3:  true,
 			9:  true,
 			15: true,
@@ -38,13 +39,18 @@ func main() {
 			45: true,
 			51: true,
 			57: true,
-		}*/
+		}
 		every12start = map[int]bool{
 			9:  true,
 			21: true,
 			33: true,
 			45: true,
 			57: true,
+		}*/
+		every20start = map[int]bool{
+			5:  true,
+			25: true,
+			45: true,
 		}
 
 		//NOVOSIB
@@ -69,12 +75,10 @@ func main() {
 			54: true,
 			59: true,
 		}*/
-		every12start = map[int]bool{
-			3:  true,
+		every20start = map[int]bool{
 			15: true,
-			27: true,
-			39: true,
-			51: true,
+			35: true,
+			55: true,
 		}
 	}
 	fmt.Println("Unifi controller")
@@ -104,8 +108,8 @@ func main() {
 		fmt.Println("")
 	*/
 
-	//count6minute := 0
-	count12minute := 0
+	//count12minute := 0
+	count20minute := 0
 	//countHourAnom := 0
 	countHourDBap := 0
 	//countHourDBmachine := 0
@@ -173,19 +177,16 @@ func main() {
 
 	//log.SetOutput(io.Discard) //Отключить вывод лога
 
-	//var uni unifi.Unifi
-	//sites := []*unifi.Site()
-
 	for true { //зацикливаем навечно
 		//currentMinute := time.Now().Minute()
 		timeNow := time.Now()
 
-		//Снятие показаний с контрллера раз в 6 минут. промежутки разные для контроллеров
-		//if currentMinute != 0 && everyStartCode[currentMinute] && currentMinute != count6minute {
-		//if timeNow.Minute() != 0 && everyStartCode[timeNow.Minute()] && timeNow.Minute() != count6minute {
-		if timeNow.Minute() != 0 && every12start[timeNow.Minute()] && timeNow.Minute() != count12minute {
-			//count6minute = timeNow.Minute()
-			count12minute = timeNow.Minute()
+		//Снятие показаний с контроллера раз в 20 минут. промежутки разные для контроллеров
+		//if timeNow.Minute() != 0 && every12start[timeNow.Minute()] && timeNow.Minute() != count12minute {
+		if timeNow.Minute() != 0 && every20start[timeNow.Minute()] && timeNow.Minute() != count20minute {
+			//count12minute = timeNow.Minute()
+			count20minute = timeNow.Minute()
+
 			//fmt.Println(time.Now().String())
 			fmt.Println(timeNow.Format("02 January, 15:04:05"))
 
