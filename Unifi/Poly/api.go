@@ -31,7 +31,8 @@ func apiLineInfo(ip string) (status string) {
 	myError := 1
 	for myError != 0 {
 		url := "http://" + ip + "/api/v1/mgmt/lineInfo"
-		//url := ip + "/api/v1/mgmt/safeRestart"
+		fmt.Println(url)
+
 		req, errNewRequest := http.NewRequest(http.MethodGet, url, http.NoBody)
 		if errNewRequest == nil {
 			req.SetBasicAuth("Polycom", "3214")
@@ -51,9 +52,17 @@ func apiLineInfo(ip string) (status string) {
 					//statuses[1] = envelope.status
 					//status = envelope.Status
 					if envelope.Status == "2000" {
-						//fmt.Println("Запрос статуса Skype прошёл успешно.")
-						status = envelope.Data[0].RegistrationStatus
-						myError = 0
+						//fmt.Println("Запрос статуса прошёл.")
+						if len(envelope.Data) > 0 {
+							//fmt.Println("Получен статус skype")
+							status = envelope.Data[0].RegistrationStatus
+							myError = 0
+						} else {
+							fmt.Println("Получен ответ 2000 от устройства, но тело ответа пустое")
+							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							time.Sleep(30 * time.Second)
+							myError++
+						}
 					} else {
 						fmt.Println(status)
 						fmt.Println("От устройства получен Статус НЕ 2000")

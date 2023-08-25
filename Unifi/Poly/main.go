@@ -10,19 +10,19 @@ import (
 
 func main() {
 	fmt.Println("")
-
-	every20Code := map[int]bool{
-		6:  true,
-		12: true,
-		18: true,
-		24: true,
-		30: true,
-		36: true,
-		42: true,
-		48: true,
-		54: true,
-		59: true,
-	} /*
+	/*
+		every20Code := map[int]bool{
+			6:  true,
+			12: true,
+			18: true,
+			24: true,
+			30: true,
+			36: true,
+			42: true,
+			48: true,
+			54: true,
+			59: true,
+		}
 		every20Code := map[int]bool{ //6 minutes
 			3:  true,
 			9:  true,
@@ -33,19 +33,19 @@ func main() {
 			45: true,
 			51: true,
 			57: true,
-		}
-		every20Code := map[int]bool{
-			3:  true,
-			23: true,
-			43: true,
 		}*/
+	every20Code := map[int]bool{
+		5:  true,
+		25: true,
+		45: true,
+	}
 
 	var soapServer string
-	//soapServerProd := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"      //PROD
-	soapServerTest := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
+	soapServerProd := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //PROD
+	//soapServerTest := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
 	var bpmUrl string
-	//bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	bpmUrlTest := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
+	bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
+	//bpmUrlTest := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 
 	count20minute := 0
 	countHourFromDB := 0
@@ -86,6 +86,7 @@ func main() {
 
 	for true { //зацикливаем навечно
 		timeNow := time.Now()
+		//fmt.Println(timeNow)
 
 		//
 		//
@@ -106,10 +107,12 @@ func main() {
 			fmt.Println(timeNow.Format("02 January, 15:04:05"))
 
 			//Опрос каждые 20 минут
-			soapServer = soapServerTest
+			//soapServer = soapServerTest
+			soapServer = soapServerProd
 			fmt.Println("SOAP")
 			fmt.Println(soapServer)
-			bpmUrl = bpmUrlTest
+			//bpmUrl = bpmUrlTest
+			bpmUrl = bpmUrlProd
 			fmt.Println("BPM")
 			fmt.Println(bpmUrl)
 			fmt.Println("")
@@ -145,7 +148,7 @@ func main() {
 					} else {
 						vcsType = "Visual"
 						//commentUnreach = "Visual не доступен по http"
-						statusReach = netDialTmt(ip)
+						statusReach = netDialTmtErr(ip)
 					}
 
 					//ВКС доступно. Заявки нет.
@@ -231,7 +234,7 @@ func main() {
 						fmt.Println(region)
 						fmt.Println(roomName)
 						fmt.Println(vcsType)
-						fmt.Println("ВКС НЕ доступно")
+						fmt.Println("ВКС Недоступно")
 
 						//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
 						var statusTicket string
@@ -307,7 +310,7 @@ func main() {
 					if vcs.PolyType == 1 {
 						vcsInfo = append(vcsInfo, "Codec не отвечает на API-запросы")
 					} else {
-						vcsInfo = append(vcsInfo, "Visual не доступен по http")
+						vcsInfo = append(vcsInfo, "Visual недоступен по http")
 					}
 					vcsInfo = append(vcsInfo, "")
 					usrLogin = vcs.Login
