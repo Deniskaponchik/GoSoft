@@ -31,7 +31,7 @@ func netDialTmtErr(ipString string) (status string) {
 			myError = 0
 		}
 		//conn.Close()
-		if myError == 3 {
+		if myError == 4 {
 			myError = 0
 			fmt.Println("После 3 неудачных попыток идём дальше. Получить статус работы skype не удалось")
 			status = ""

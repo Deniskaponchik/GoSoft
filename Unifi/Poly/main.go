@@ -68,7 +68,7 @@ func main() {
 
 	//Download MAPs from DB
 	polyMap := map[string]PolyStruct{} //просто создаю пустую
-	//polyMap := DownloadMapFromDBvcsErr()
+	polyMap = DownloadMapFromDBvcsErr()
 
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
@@ -86,19 +86,6 @@ func main() {
 
 	for true { //зацикливаем навечно
 		timeNow := time.Now()
-		//fmt.Println(timeNow)
-
-		//
-		//
-		//Обновление мап раз в час. для контроля корректности ip-адресов
-		if timeNow.Hour() != countHourFromDB {
-			countHourFromDB = timeNow.Hour()
-
-			//polyMap = make(map[string]PolyStruct{})
-			polyMap = map[string]PolyStruct{}
-			//clear(polyMyMap)
-			polyMap = DownloadMapFromDBvcsErr()
-		}
 
 		//
 		//
@@ -188,7 +175,7 @@ func main() {
 							if srStatusCodesForCancelTicket[statusTicket] {
 								//Если статус заявки на Уточнении, Визирование, Назначено
 								if v.Comment < 2 {
-									comment = "Будет предпринята попытка по отмене обращения, т.к. все точки из него появились в сети"
+									comment = "Будет предпринята попытка по отмене обращения, т.к. все устройства из него появились в сети"
 									if AddCommentErr(soapServer, srID, comment, bpmUrl) != "" {
 										commentForUpdate = 2
 									}
@@ -212,9 +199,12 @@ func main() {
 									v.Comment = commentForUpdate
 									polyMap[k] = v
 								}
+							} else if statusTicket == "" {
+								// если Не удалось получить статус
+								v.Comment = commentForUpdate
+								polyMap[k] = v
 							} else {
-								//Если статус заявки В работе, Решено, Закрыто и т.д.
-								//valueAp.Name = apName
+								//Если статус заявки В работе, на 3 линии, Решено, Закрыто
 								v.SrID = ""
 								v.Comment = 0
 								polyMap[k] = v
@@ -304,7 +294,6 @@ func main() {
 				var usrLogin string
 
 				for _, vcs := range v {
-					//apsNames = append(apsNames, name)
 					vcsInfo = append(vcsInfo, vcs.RoomName)
 					vcsInfo = append(vcsInfo, vcs.IP)
 					if vcs.PolyType == 1 {
@@ -375,6 +364,18 @@ func main() {
 				UpdateMapsToDBerr(queries)
 				fmt.Println("")
 			}
+			//
+			//
+			//Обновление мап раз в час. для контроля корректности ip-адресов
+			if timeNow.Hour() != countHourFromDB {
+				countHourFromDB = timeNow.Hour()
+
+				//polyMap = make(map[string]PolyStruct{})
+				//polyMap = map[string]PolyStruct{}
+				//clear(polyMyMap)
+				polyMap = DownloadMapFromDBvcsErr()
+				fmt.Println("")
+			}
 
 			//
 			//
@@ -387,6 +388,7 @@ func main() {
 					}
 				}
 				reboot = 1
+				time.Sleep(2400 * time.Second) //40 minutes
 			}
 			if timeNow.Hour() == 8 {
 				reboot = 0
@@ -400,15 +402,6 @@ func main() {
 	} // while TRUE
 
 } //main func
-
-func cointains(slice []string, compareString string) bool {
-	for _, v := range slice {
-		if v == compareString {
-			return true
-		}
-	}
-	return false
-}
 
 type PolyStruct struct {
 	IP        string
@@ -427,3 +420,12 @@ type ForPolyTicket struct {
 	countIncident int
 	apsMacName    map[string]string
 }*/
+
+func cointains(slice []string, compareString string) bool {
+	for _, v := range slice {
+		if v == compareString {
+			return true
+		}
+	}
+	return false
+}

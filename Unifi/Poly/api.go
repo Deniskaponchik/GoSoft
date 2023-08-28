@@ -31,7 +31,7 @@ func apiLineInfo(ip string) (status string) {
 	myError := 1
 	for myError != 0 {
 		url := "http://" + ip + "/api/v1/mgmt/lineInfo"
-		fmt.Println(url)
+		//fmt.Println(url)
 
 		req, errNewRequest := http.NewRequest(http.MethodGet, url, http.NoBody)
 		if errNewRequest == nil {
@@ -92,7 +92,7 @@ func apiLineInfo(ip string) (status string) {
 			time.Sleep(30 * time.Second)
 			myError++
 		}
-		if myError == 3 {
+		if myError == 4 {
 			myError = 0
 			fmt.Println("После 3 неудачных попыток идём дальше. Получить статус работы skype не удалось")
 			status = ""
@@ -169,7 +169,7 @@ func apiSafeRestart2(ip string) (status string) {
 			time.Sleep(30 * time.Second)
 			myError++
 		}
-		if myError == 3 {
+		if myError == 4 {
 			myError = 0
 			fmt.Println("После 3 неудачных попыток идём дальше. Перезагрузка не была осуществлена")
 			status = ""
