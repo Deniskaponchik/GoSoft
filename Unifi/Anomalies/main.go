@@ -27,7 +27,7 @@ type Machine struct {
 func main() {
 	fmt.Println("")
 
-	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 
@@ -116,8 +116,8 @@ func main() {
 		}
 	*/
 
-	//count := 60 //минус 70 минут
-	count := 720 //минус 30 день
+	count := 60 //минус 70 минут
+	//count := 720 //минус 30 день
 	//count := 3600
 	//count := 36000 //+++
 	//count := 86400

@@ -279,7 +279,7 @@ func main() {
 						fmt.Println("")
 					}
 				}
-				fmt.Println("")
+				//fmt.Println("")
 			} //for
 
 			//
@@ -316,7 +316,7 @@ func main() {
 
 				//desAps := strings.Join(apsNames, "\n")
 				desVcs := strings.Join(vcsInfo, "\n")
-				description := "Зафиксировано отключение устройств ВКС Poly:" + "\n" +
+				description := "Зафиксированы сбои в работе устройств ВидеоКонференцСвязи Poly Trio 8800:" + "\n" +
 					desVcs + "\n" +
 					"" + "\n" +
 					"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +

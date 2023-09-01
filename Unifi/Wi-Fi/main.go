@@ -13,7 +13,7 @@ import (
 func main() {
 	fmt.Println("")
 
-	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 	every12start := map[int]bool{}
@@ -27,26 +27,26 @@ func main() {
 		} else {
 			urlController = "https://10.78.221.142:8443/"
 		}
-		/*
-			every6start = map[int]bool{
-				3:  true,
-				9:  true,
-				15: true,
-				21: true,
-				27: true,
-				33: true,
-				39: true,
-				45: true,
-				51: true,
-				57: true,
-			}*/
+
 		every12start = map[int]bool{
+			3:  true,
 			9:  true,
+			15: true,
 			21: true,
+			27: true,
 			33: true,
+			39: true,
 			45: true,
+			51: true,
 			57: true,
 		} /*
+			every12start = map[int]bool{
+				9:  true,
+				21: true,
+				33: true,
+				45: true,
+				57: true,
+			}
 			every20start = map[int]bool{
 				5:  true,
 				25: true,
@@ -62,8 +62,8 @@ func main() {
 		} else {
 			urlController = "https://10.8.176.8:8443/"
 		}
-		/*everyStartCode := [10] int8 {6, 12, 18, 24, 30, 36, 42, 48, 54, 59}
-		everyStartCode = map[int]bool{
+
+		every12start = map[int]bool{
 			6:  true,
 			12: true,
 			18: true,
@@ -74,14 +74,14 @@ func main() {
 			48: true,
 			54: true,
 			59: true,
-		}*/
-		every12start = map[int]bool{
-			3:  true,
-			15: true,
-			27: true,
-			39: true,
-			51: true,
 		} /*
+			every12start = map[int]bool{
+				3:  true,
+				15: true,
+				27: true,
+				39: true,
+				51: true,
+			}
 			every20start = map[int]bool{
 				15: true,
 				35: true,
@@ -117,7 +117,7 @@ func main() {
 
 	count12minute := 0
 	//count20minute := 0
-	//countHourAnom := 0
+	countHourAnom := 0
 	countHourDBap := 0
 	//countHourDBmachine := 0
 	//countDayAnom := 0
@@ -531,14 +531,22 @@ func main() {
 						if errGetClients == nil {
 							fmt.Println("clients загрузились")
 							fmt.Println("")
-							//var apName string
+
+							var apName string
+							var clientMac string
+							var clientName string
+							//var clientIP string
+							//var siteName string
+							//region_guestClients := map[string][]ForGuestClientTicket{}
+
 							for _, client := range clients {
+								apName = client.ApName //НИЧЕГО не выводит и не содержит. Имя точки берётся ниже на основании сравнения мапой точек
+								clientMac = client.Mac
+								clientName = client.Name
+								//clientIP = client.IP
+								//siteName = client.SiteName
+
 								if !client.IsGuest.Val {
-
-									apName := client.ApName //НИЧЕГО не выводит и не содержит...
-									clientMac := client.Mac
-									clientName := client.Name
-
 									var clExInt int
 									if client.Noted.Val {
 										clientExceptionStr := strings.Split(client.Note, " ")[0]
@@ -577,15 +585,47 @@ func main() {
 											break //прекращаем цикл, когда найден мак точки
 										}
 									}
-								}
+								} /* До будущих времён, когда буду обрабатывать Клиентов
+								else {
+									//Если клиент Guest
+									splitIP := strings.Split(clientIP, ".")[0]
+									if splitIP == "169" {
+										forGuestClientTicket := ForGuestClientTicket{
+											clientMac,
+											clientName,
+											clientIP,
+										}
+
+										//Заносим в мапу для заявки
+										_, exisRegion := region_guestClients[region]
+										if exisRegion {
+											for k, v := range region_guestClients {
+												if k == region {
+													v = append(v, forGuestClientTicket)
+													region_guestClients[k] = v
+													break
+												}
+											}
+										} else {
+											forGuestClientTicketSlice := []ForGuestClientTicket{
+												forGuestClientTicket,
+											}
+											region_guestClients[region] = forGuestClientTicketSlice
+										}
+									}
+								}*/
 							}
+							//Пробежались по всем клиентам. Заводим заявки по Guest
 
 							//
 							//
-							//АНОМАЛИИ
-							//if timeNow.Hour() != countHourAnom {
-							//if timeNow.Day() != countDayAnom {
-							if false {
+
+							//
+							//
+							//АНОМАЛИИ. Corp
+							if timeNow.Hour() != countHourAnom {
+								//if timeNow.Day() != countDayAnom {
+								//if false {
 								//countHourAnom = timeNow.Hour()
 								//countDayAnom = timeNow.Day()
 
@@ -597,7 +637,8 @@ func main() {
 								fmt.Println(bpmUrl)
 								fmt.Println("")
 
-								count := 720 //минус 30 день
+								//count := 720 //минус 30 день
+								count := 1 //минус 1 час
 								//then := timeNow.Add(time.Duration(-count) * time.Minute)
 								then := timeNow.Add(time.Duration(-count) * time.Hour)
 
@@ -611,144 +652,107 @@ func main() {
 									fmt.Println("")
 
 									//mac_dateSite_anom := map[string]DateSite_anom{}
-									mac_dateSite_anom := map[string]map[string][]string{}
+									//mac_dateSite_anom := map[string]map[string][]string{}
+									mac_DateSiteAnom := map[string]DateSiteAnom{}
 
 									var siteName string
 									var noutMac string
 									var anomalyStr string
-									var anomalyDatetime time.Time
+									//var anomalyDatetime time.Time
+									var anomalyDatetimeMySQL string
+									var dateSiteAnom DateSiteAnom
 
-									for _, anomaly := range anomalies {
-										siteName = anomaly.SiteName
-										noutMac = anomaly.DeviceMAC
-										anomalyStr = anomaly.Anomaly
-										anomalyDatetime = anomaly.Datetime
-										//fmt.Println(anomalyDatetime, siteName, noutMac, anomalyStr)
+									for _, v := range anomalies {
+										noutMac = v.DeviceMAC
+										_, exisMac1 := machineMyMap[noutMac]
+										if exisMac1 {
+											siteName = v.SiteName
+											anomalyStr = v.Anomaly
+											anomalyDatetimeMySQL = v.Datetime.Format("2006-01-02 15:04:05")
 
-										anomalyDatetime.String()
-										dateSite := anomalyDatetime.Format("2006-01-02") + "_" + siteName
-
-										dateSite_anom := map[string][]string{}
-
-										_, exisMac := mac_dateSite_anom[noutMac]
-										if !exisMac {
-											//Если мака вообще нет, создаём новую мапу внутри мапы
-											dateSite_anom[dateSite] = []string{anomalyStr}
-											mac_dateSite_anom[noutMac] = dateSite_anom
-
-										} else {
-											//Если мак есть
-											dateSite_anom = mac_dateSite_anom[noutMac]
-											_, exisDateSite := dateSite_anom[dateSite]
-											if !exisDateSite {
-												//если НЕТ записи с датой дня
-												dateSite_anom[dateSite] = []string{anomalyStr}
-											} else {
-												//если запись дня есть
-												sliceAnom := dateSite_anom[dateSite]
-												sliceAnom = append(sliceAnom, anomalyStr)
-												dateSite_anom[dateSite] = sliceAnom
-											}
-											mac_dateSite_anom[noutMac] = dateSite_anom
-										}
-									}
-
-									fmt.Println("")
-									fmt.Println("Tele2Corp клиенты с более чем 2 аномалиями:")
-
-									var countIncident int
-									var noutName string
-									var usrLogin string
-									var srID string
-									var exception int
-									var apName string
-									var region string
-									incidentType := "Плохое качество соединения клиента"
-
-									var b bytes.Buffer
-
-									for k, v := range mac_dateSite_anom {
-										countIncident = len(v)
-										if countIncident > 10 {
-											for ke, va := range machineMyMap {
-												if k == ke {
-													noutName = va.Hostname
-													fmt.Println(noutName)
-													srID = va.SrID
-													exception = va.Exception
-													apName = va.ApName
-													fmt.Println(apName)
-
-													//checkSlice := CheckTicketStatusErr(soapServer, srID)
-													//fmt.Println(checkSlice[1])  //статус обращения
-													status := CheckTicketStatusErr(soapServer, srID)
-
-													if exception == 0 && srStatusCodesForNewTicket[status] { //checkSlice[1]] { //srID != "" {
-														//завести заявку
-														usrLogin = GetLoginPCerr(va.Hostname)
-														fmt.Println(usrLogin)
-
-														for key, val := range v {
-															region = strings.Split(key, "_")[1]
-															b.WriteString(key + "\n")
-															for _, valu := range val {
-																b.WriteString(valu + "\n")
-															}
-															b.WriteString("\n")
-														}
-
-														description := "На ноутбуке:" + "\n" +
-															noutName + "\n" + "" + "\n" +
-															"За последние 30 дней зафиксировано более 10 Аномалий" + "\n" +
-															"" + "\n" +
-															"Предполагаемое, но не на 100% точное имя точки:" + "\n" +
-															apName + "\n" +
-															"" + "\n" +
-															"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
-															"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
-															"" + "\n" +
-															b.String() +
-															""
-
-														srTicketSlice := CreateWiFiTicketErr(soapServer, bpmUrl, usrLogin, description, noutName, region, apName, incidentType)
-														fmt.Println(srTicketSlice[2])
-
-														va.SrID = srTicketSlice[0]
-														machineMyMap[ke] = va
-
-													} else if exception != 0 && srStatusCodesForNewTicket[status] { //checkSlice[1]] {
-														fmt.Println("По пользователю или точке выставлено исключение")
-														//fmt.Println("Exception = " + )
-													} else {
-														fmt.Println("Обращение по пользователю уже создано")
-														//Как бы добавить аномалии, появившиеся за последние сутки?
-														fmt.Println(bpmUrl + srID)
-														fmt.Println(status) //checkSlice[1])
-													}
-													break
+											_, exisMac2 := mac_DateSiteAnom[noutMac]
+											if !exisMac2 {
+												//Если мака вообще нет, создаём новую мапу внутри мапы
+												anomSlice := []string{anomalyStr}
+												mac_DateSiteAnom[noutMac] = DateSiteAnom{
+													anomalyDatetimeMySQL,
+													siteName,
+													anomSlice,
 												}
+											} else {
+												//Если мак есть
+												dateSiteAnom = mac_DateSiteAnom[noutMac]
+												dateSiteAnom.anom_slice = append(dateSiteAnom.anom_slice, anomalyStr)
+												mac_DateSiteAnom[noutMac] = dateSiteAnom
 											}
+										}
+									} // k,v
 
+									fmt.Println("")
+									fmt.Println("Ежечасовое занесение аномалий в БД")
+
+									bdCntrl := strconv.Itoa(int(bdController))
+									var anomSliceString string
+									var query string
+									var b1 bytes.Buffer
+									b1.WriteString("INSERT INTO it_support_db.anomalies VALUES ")
+									lenMap := len(mac_DateSiteAnom)
+									var lenSlice int
+									var siteNameCut string
+									countB1 := 0
+
+									for k, v := range mac_DateSiteAnom {
+										countB1++
+										lenSlice = len(v.anom_slice)
+										if lenSlice > 1 {
+											siteNameCut = v.siteName[:len(v.siteName)-11]
+											anomSliceString = strings.Join(v.anom_slice, ";")
+											b1.WriteString("('" + v.datetime + "','" + k + "','" + bdCntrl + "','" + siteNameCut + "','" + anomSliceString + "'),")
+											/*
+												if countB1 != lenMap {
+													b1.WriteString("('" + v.datetime + "','" + k + "','" + bdCntrl + "','" + siteNameCut + "','" + anomSliceString + "'),")
+												} else {
+													b1.WriteString("('" + v.datetime + "','" + k + "','" + bdCntrl + "','" + siteNameCut + "','" + anomSliceString + "')")
+													//в конце НЕ ставим запятую
+												}*/
 										}
 									}
-
-									//UploadMapsToDBreplace(machineMacSRid, "wifi_db", "wifi_db.machine_mac_srid", "srid", bdController)
+									query = b1.String()
+									//strings.TrimSuffix(query, ",")
+									//Возможно, не самый энергоэффективный метод обрезать строку с конца, но рабочий
+									if last := len(query) - 1; last >= 0 && query[last] == ',' {
+										query = query[:last]
+									}
+									fmt.Println(query)
+									if countB1 != 0 {
+										UploadMapsToDBerr(query)
+									} else {
+										fmt.Println("Передана пустая карта. Запрос не выполнен")
+									}
 									fmt.Println("")
+									//
+									//
 
 									//
 									//
-									//Обновление БД machine раз в час  countDayDBmachine
+									//Здесь будет блок про обработку аномалий раз в сутки
+									//
+									//
+
+									//
+									//
+									//Обновление БД machine раз в сутки countDayDBmachine
 									//if timeNow.Hour() != countHourDBmachine {
 									if timeNow.Day() != countDayDBmachine {
 										//countHourDBmachine = timeNow.Hour()
 										countDayDBmachine = timeNow.Day()
 
-										bdCntrl := strconv.Itoa(int(bdController))
-										var lenMap int
-										var count int
+										bdCntrl = strconv.Itoa(int(bdController))
+										//var lenMap int
+										//var count int
 										var exception string
 										var b2 bytes.Buffer
-										var query string
+										//var query string
 
 										//b.WriteString("REPLACE INTO " + tableName + " VALUES ")
 										b2.WriteString("REPLACE INTO " + "it_support_db.machine" + " VALUES ")
@@ -855,14 +859,24 @@ type ForApsTicket struct {
 	//apNames []string //сделано для массовых отключений точек при отключении света в офисе
 }
 
+type GuestClient struct {
+}
+type ForGuestClientTicket struct {
+	mac      string
+	hostname string
+	ip       string
+}
+
 type MachineMyStruct struct {
 	Hostname  string
 	Exception int
 	SrID      string
 	ApName    string
 }
-type DateSite_anom struct {
-	dateSite   string
+type DateSiteAnom struct {
+	//datetime   time.Time
+	datetime   string
+	siteName   string
 	anom_slice []string
 }
 type ForAnomalyTicket struct {
