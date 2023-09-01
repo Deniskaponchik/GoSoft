@@ -27,31 +27,31 @@ func main() {
 		} else {
 			urlController = "https://10.78.221.142:8443/"
 		}
-		/*
-			every12start = map[int]bool{
-				3:  true,
-				9:  true,
-				15: true,
-				21: true,
-				27: true,
-				33: true,
-				39: true,
-				45: true,
-				51: true,
-				57: true,
-			} */
+		//
 		every12start = map[int]bool{
+			3:  true,
 			9:  true,
+			15: true,
 			21: true,
+			27: true,
 			33: true,
+			39: true,
 			45: true,
+			51: true,
 			57: true,
 		} /*
-			every20start = map[int]bool{
-				5:  true,
-				25: true,
+			every12start = map[int]bool{
+				9:  true,
+				21: true,
+				33: true,
 				45: true,
-			}*/
+				57: true,
+			}
+				every20start = map[int]bool{
+					5:  true,
+					25: true,
+					45: true,
+				}*/
 
 		//NOVOSIB
 	} else if unifiController == 20 || unifiController == 21 {
@@ -62,31 +62,31 @@ func main() {
 		} else {
 			urlController = "https://10.8.176.8:8443/"
 		}
-		/*
-			every12start = map[int]bool{
-				6:  true,
-				12: true,
-				18: true,
-				24: true,
-				30: true,
-				36: true,
-				42: true,
-				48: true,
-				54: true,
-				59: true,
-			} */
+		//
 		every12start = map[int]bool{
-			3:  true,
-			15: true,
-			27: true,
-			39: true,
-			51: true,
+			6:  true,
+			12: true,
+			18: true,
+			24: true,
+			30: true,
+			36: true,
+			42: true,
+			48: true,
+			54: true,
+			59: true,
 		} /*
-			every20start = map[int]bool{
+			every12start = map[int]bool{
+				3:  true,
 				15: true,
-				35: true,
-				55: true,
-			}*/
+				27: true,
+				39: true,
+				51: true,
+			}
+				every20start = map[int]bool{
+					15: true,
+					35: true,
+					55: true,
+				}*/
 	}
 	fmt.Println("Unifi controller")
 	fmt.Println(urlController)
@@ -125,10 +125,10 @@ func main() {
 	countDay := time.Now().Day()
 
 	srStatusCodesForNewTicket := map[string]bool{
-		"Отменено":                  true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-		"Решено":                    true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-		"Закрыто":                   true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-		"На уточнении":              true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
+		"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
+		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
+		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 		"Тикет введён не корректно": true,
 		//"": true,
 	}
@@ -704,9 +704,9 @@ func main() {
 									countB1 := 0
 
 									for k, v := range mac_DateSiteAnom {
-										countB1++
 										lenSlice = len(v.AnomSlice)
 										if lenSlice > 1 {
+											countB1++
 											siteNameCut = v.SiteName[:len(v.SiteName)-11]
 											anomSliceString = strings.Join(v.AnomSlice, ";")
 											b1.WriteString("('" + v.DateTime + "','" + k + "','" + bdCntrl + "','" + siteNameCut + "','" + anomSliceString + "'),")
@@ -727,7 +727,7 @@ func main() {
 									}
 									fmt.Println(query)
 									if countB1 != 0 {
-										UploadMapsToDBerr(query)
+										//UploadMapsToDBerr(query)
 									} else {
 										fmt.Println("Передана пустая карта. Запрос не выполнен")
 									}
@@ -737,7 +737,7 @@ func main() {
 
 									//
 									//
-									//Обновление БД machine раз в сутки countDayDBmachine
+									//Создание заявок по машинам раз в сутки
 									//if timeNow.Hour() != countHourDBmachine {
 									if timeNow.Day() != countDayDBmachine {
 										//countHourDBmachine = timeNow.Hour()
@@ -745,18 +745,111 @@ func main() {
 
 										//Загружаем из БД аномалии за последние 30 дн. в массив структур DateSiteAnom
 										before30days := timeNow.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
-										before30days := timeNow.Add(time.Duration(-5) * time.Hour).Format("2006-01-02 15:04:05")
-										//golangDateTime := time.Now().Format("2006-01-02 15:04:05")
-										
+										//before30days := timeNow.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
+
 										//macDay_DateSiteAnom := map[string]DateSiteAnom{}
 										macDay_DateSiteAnom := DownloadMapFromDBanomaliesErr(bdController, before30days)
 
+										mac_DateSiteAnomSlice := map[string][]DateSiteAnom{}
+										dateSiteAnomSlice := []DateSiteAnom{}
+
 										//Обрабатываем
-										for k, v := range macDay_DateSiteAnom {
-											fmt.Println(k, v.DateTime)
+										for _, v := range macDay_DateSiteAnom {
+											//fmt.Println(k, v.DateTime, v.Mac)
+											_, exis := mac_DateSiteAnomSlice[v.Mac]
+											if !exis {
+												dateSiteAnomSlice = []DateSiteAnom{v}
+												mac_DateSiteAnomSlice[v.Mac] = dateSiteAnomSlice
+											} else {
+												dateSiteAnomSlice = mac_DateSiteAnomSlice[v.Mac]
+												dateSiteAnomSlice = append(dateSiteAnomSlice, v)
+												mac_DateSiteAnomSlice[v.Mac] = dateSiteAnomSlice
+											}
 										}
 
 										//Создаём заявки
+										//var countIncident int
+										var noutName string
+										var usrLogin string
+										var srID string
+										var exceptionInt int
+										//var apName string
+										var region string
+										incidentType := "Плохое качество соединения клиента"
+										var b2 bytes.Buffer
+
+										for k, v := range mac_DateSiteAnomSlice {
+											if len(v) > 9 {
+												_, exis := machineMyMap[k]
+												if exis {
+													for ke, va := range machineMyMap {
+														if k == ke {
+															noutName = va.Hostname
+															fmt.Println(noutName)
+															srID = va.SrID
+															exceptionInt = va.Exception
+															apName = va.ApName
+															fmt.Println(apName)
+
+															var statusTicket string
+															if srID != "" {
+																statusTicket = CheckTicketStatusErr(soapServer, srID)
+															}
+															if exceptionInt == 0 && (srStatusCodesForNewTicket[statusTicket] || srID == "") {
+																//Если заявки ещё нет, либо закрыта отменена
+																usrLogin = GetLoginPCerr(va.Hostname)
+																fmt.Println(usrLogin)
+
+																for _, val := range v {
+																	//region = val.SiteName
+																	b2.WriteString(val.SiteName + "\n")
+																	b2.WriteString(val.DateTime + "\n")
+																	for _, valu := range val.AnomSlice {
+																		b2.WriteString(valu + "\n")
+																	}
+																	b2.WriteString("\n")
+																}
+
+																description := "На ноутбуке:" + "\n" +
+																	noutName + "\n" + "" + "\n" +
+																	"За последние 30 дней зафиксировано более 10 дней с Аномалиями качества работы Wi-Fi сети Tele2Corp" + "\n" +
+																	"" + "\n" +
+																	"Предполагаемое, но не на 100% точное имя точки:" + "\n" +
+																	apName + "\n" +
+																	"" + "\n" +
+																	"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+																	"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+																	"" + "\n" +
+																	b2.String() +
+																	""
+
+																fmt.Println("Попытка создания заявки")
+																srTicketSlice := CreateWiFiTicketErr(soapServer, bpmUrl, usrLogin, description, noutName, region, apName, incidentType)
+
+																if srTicketSlice[0] != "" {
+																	fmt.Println(srTicketSlice[2])
+
+																	va.SrID = srTicketSlice[0]
+																	machineMyMap[ke] = va
+																}
+															} else if exceptionInt == 1 {
+																fmt.Println("Клиент добавлен в исключение")
+															} else {
+																//либо заявка уже есть. добавить коммент?
+																fmt.Println("Созданное обращение:")
+																fmt.Println(bpmUrl + srID)
+																fmt.Println(statusTicket)
+															}
+
+															break
+														}
+													}
+												} else {
+													fmt.Println("Не удалось найти запись по маку в мапе машин. Создать заявку невозможно")
+												}
+
+											}
+										}
 
 										//
 										//
@@ -765,28 +858,28 @@ func main() {
 										bdCntrl = strconv.Itoa(int(bdController))
 										//var lenMap int
 										//var count int
-										var exception string
-										var b2 bytes.Buffer
+										var exceptionStr string
+										var b3 bytes.Buffer
 										//var query string
 
 										//b.WriteString("REPLACE INTO " + tableName + " VALUES ")
-										b2.WriteString("REPLACE INTO " + "it_support_db.machine" + " VALUES ")
+										b3.WriteString("REPLACE INTO " + "it_support_db.machine" + " VALUES ")
 										//lenMap := len(uploadMap)
 										lenMap = len(machineMyMap)
 										count = 0
 										//for k, v := range uploadMap {
 										for k, v := range machineMyMap {
-											exception = strconv.Itoa(int(v.Exception))
+											exceptionStr = strconv.Itoa(int(v.Exception))
 											count++
 											if count != lenMap {
 												// mac, hostname, controller, exception, srid, apname
-												b2.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "','" + v.ApName + "'),")
+												b3.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exceptionStr + "','" + v.SrID + "','" + v.ApName + "'),")
 											} else {
-												b2.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "','" + v.ApName + "')")
+												b3.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exceptionStr + "','" + v.SrID + "','" + v.ApName + "')")
 												//в конце НЕ ставим запятую
 											}
 										}
-										query = b2.String()
+										query = b3.String()
 										fmt.Println(query)
 										if count != 0 {
 											//UploadMapsToDBstring("it_support_db", query)

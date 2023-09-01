@@ -58,7 +58,7 @@ func main() {
 		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
 		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 		"Тикет введён не корректно": true,
-		"": true,
+		//"": true,
 	}
 	srStatusCodesForCancelTicket := map[string]bool{
 		"Визирование":  true,

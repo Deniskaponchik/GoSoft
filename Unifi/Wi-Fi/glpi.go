@@ -201,7 +201,7 @@ func UploadsMapsToDBdelete(uploadMap map[string]string, dbName string, tableName
 	}
 }
 
-func DownloadMapFromDBanomaliesErr(bdController int8, before30days string) map[string]DateSiteAnom {
+func DownloadMapFromDBanomaliesErr(bdController int8, beforeDays string) map[string]DateSiteAnom {
 	type TagAnomaly struct {
 		Mac        string `json:"mac"`
 		Datetime   string `json:"date_hour"`
@@ -221,7 +221,7 @@ func DownloadMapFromDBanomaliesErr(bdController int8, before30days string) map[s
 			if errDBping == nil {
 				defer db.Close() // defer the close till after the main function has finished
 				//queryAfter := "SELECT * FROM it_support_db.anomalies WHERE controller = " + strconv.Itoa(int(bdController))
-				queryAfter := "SELECT * FROM it_support_db.anomalies WHERE date_hour <= '" + before30days + "', controller = " + strconv.Itoa(int(bdController))
+				queryAfter := "SELECT * FROM it_support_db.anomalies WHERE date_hour >= '" + beforeDays + "' AND controller = " + strconv.Itoa(int(bdController))
 				fmt.Println(queryAfter)
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)
