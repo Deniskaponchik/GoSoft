@@ -13,7 +13,7 @@ import (
 func main() {
 	fmt.Println("")
 
-	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 	every12start := map[int]bool{}
@@ -27,26 +27,26 @@ func main() {
 		} else {
 			urlController = "https://10.78.221.142:8443/"
 		}
-
+		/*
+			every12start = map[int]bool{
+				3:  true,
+				9:  true,
+				15: true,
+				21: true,
+				27: true,
+				33: true,
+				39: true,
+				45: true,
+				51: true,
+				57: true,
+			} */
 		every12start = map[int]bool{
-			3:  true,
 			9:  true,
-			15: true,
 			21: true,
-			27: true,
 			33: true,
-			39: true,
 			45: true,
-			51: true,
 			57: true,
 		} /*
-			every12start = map[int]bool{
-				9:  true,
-				21: true,
-				33: true,
-				45: true,
-				57: true,
-			}
 			every20start = map[int]bool{
 				5:  true,
 				25: true,
@@ -62,26 +62,26 @@ func main() {
 		} else {
 			urlController = "https://10.8.176.8:8443/"
 		}
-
-		every12start = map[int]bool{
-			6:  true,
-			12: true,
-			18: true,
-			24: true,
-			30: true,
-			36: true,
-			42: true,
-			48: true,
-			54: true,
-			59: true,
-		} /*
+		/*
 			every12start = map[int]bool{
-				3:  true,
-				15: true,
-				27: true,
-				39: true,
-				51: true,
-			}
+				6:  true,
+				12: true,
+				18: true,
+				24: true,
+				30: true,
+				36: true,
+				42: true,
+				48: true,
+				54: true,
+				59: true,
+			} */
+		every12start = map[int]bool{
+			3:  true,
+			15: true,
+			27: true,
+			39: true,
+			51: true,
+		} /*
 			every20start = map[int]bool{
 				15: true,
 				35: true,
@@ -125,10 +125,10 @@ func main() {
 	countDay := time.Now().Day()
 
 	srStatusCodesForNewTicket := map[string]bool{
-		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-		"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+		"Отменено":                  true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
+		"Решено":                    true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
+		"Закрыто":                   true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
+		"На уточнении":              true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 		"Тикет введён не корректно": true,
 		//"": true,
 	}
@@ -616,7 +616,6 @@ func main() {
 								}*/
 							}
 							//Пробежались по всем клиентам. Заводим заявки по Guest
-
 							//
 							//
 
@@ -626,7 +625,7 @@ func main() {
 							if timeNow.Hour() != countHourAnom {
 								//if timeNow.Day() != countDayAnom {
 								//if false {
-								//countHourAnom = timeNow.Hour()
+								countHourAnom = timeNow.Hour()
 								//countDayAnom = timeNow.Day()
 
 								soapServer = soapServerTest
@@ -675,6 +674,7 @@ func main() {
 												//Если мака вообще нет, создаём новую мапу внутри мапы
 												anomSlice := []string{anomalyStr}
 												mac_DateSiteAnom[noutMac] = DateSiteAnom{
+													noutMac,
 													anomalyDatetimeMySQL,
 													siteName,
 													anomSlice,
@@ -682,12 +682,14 @@ func main() {
 											} else {
 												//Если мак есть
 												dateSiteAnom = mac_DateSiteAnom[noutMac]
-												dateSiteAnom.anom_slice = append(dateSiteAnom.anom_slice, anomalyStr)
+												dateSiteAnom.AnomSlice = append(dateSiteAnom.AnomSlice, anomalyStr)
 												mac_DateSiteAnom[noutMac] = dateSiteAnom
 											}
 										}
 									} // k,v
 
+									//
+									//
 									fmt.Println("")
 									fmt.Println("Ежечасовое занесение аномалий в БД")
 
@@ -703,11 +705,11 @@ func main() {
 
 									for k, v := range mac_DateSiteAnom {
 										countB1++
-										lenSlice = len(v.anom_slice)
+										lenSlice = len(v.AnomSlice)
 										if lenSlice > 1 {
-											siteNameCut = v.siteName[:len(v.siteName)-11]
-											anomSliceString = strings.Join(v.anom_slice, ";")
-											b1.WriteString("('" + v.datetime + "','" + k + "','" + bdCntrl + "','" + siteNameCut + "','" + anomSliceString + "'),")
+											siteNameCut = v.SiteName[:len(v.SiteName)-11]
+											anomSliceString = strings.Join(v.AnomSlice, ";")
+											b1.WriteString("('" + v.DateTime + "','" + k + "','" + bdCntrl + "','" + siteNameCut + "','" + anomSliceString + "'),")
 											/*
 												if countB1 != lenMap {
 													b1.WriteString("('" + v.datetime + "','" + k + "','" + bdCntrl + "','" + siteNameCut + "','" + anomSliceString + "'),")
@@ -735,18 +737,31 @@ func main() {
 
 									//
 									//
-									//Здесь будет блок про обработку аномалий раз в сутки
-									//
-									//
-
-									//
-									//
 									//Обновление БД machine раз в сутки countDayDBmachine
 									//if timeNow.Hour() != countHourDBmachine {
 									if timeNow.Day() != countDayDBmachine {
 										//countHourDBmachine = timeNow.Hour()
 										countDayDBmachine = timeNow.Day()
 
+										//Загружаем из БД аномалии за последние 30 дн. в массив структур DateSiteAnom
+										before30days := timeNow.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
+										before30days := timeNow.Add(time.Duration(-5) * time.Hour).Format("2006-01-02 15:04:05")
+										//golangDateTime := time.Now().Format("2006-01-02 15:04:05")
+										
+										//macDay_DateSiteAnom := map[string]DateSiteAnom{}
+										macDay_DateSiteAnom := DownloadMapFromDBanomaliesErr(bdController, before30days)
+
+										//Обрабатываем
+										for k, v := range macDay_DateSiteAnom {
+											fmt.Println(k, v.DateTime)
+										}
+
+										//Создаём заявки
+
+										//
+										//
+										fmt.Println("")
+										fmt.Println("Ежесуточное занесение машин в БД")
 										bdCntrl = strconv.Itoa(int(bdController))
 										//var lenMap int
 										//var count int
@@ -874,10 +889,10 @@ type MachineMyStruct struct {
 	ApName    string
 }
 type DateSiteAnom struct {
-	//datetime   time.Time
-	datetime   string
-	siteName   string
-	anom_slice []string
+	Mac       string
+	DateTime  string
+	SiteName  string
+	AnomSlice []string
 }
 type ForAnomalyTicket struct {
 	site   string
