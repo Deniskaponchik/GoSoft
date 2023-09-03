@@ -12,9 +12,9 @@ import (
 	"time"
 )
 
-func UploadMapsToDBerr(query string) {
+func UploadMapsToDBerr(datasource string, query string) {
 
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
 
 	myError := 1
 	for myError != 0 {
@@ -201,7 +201,7 @@ func UploadsMapsToDBdelete(uploadMap map[string]string, dbName string, tableName
 	}
 }
 
-func DownloadMapFromDBanomaliesErr(bdController int8, beforeDays string) map[string]DateSiteAnom {
+func DownloadMapFromDBanomaliesErr(datasource string, bdController int8, beforeDays string) map[string]DateSiteAnom {
 	type TagAnomaly struct {
 		Mac        string `json:"mac"`
 		Datetime   string `json:"date_hour"`
@@ -210,7 +210,7 @@ func DownloadMapFromDBanomaliesErr(bdController int8, beforeDays string) map[str
 		Anomalies  string `json:"anomalies"`
 	}
 	m := make(map[string]DateSiteAnom)
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
 	var anomSlice []string
 	var dayMac string
 
@@ -312,7 +312,7 @@ func DownloadMapFromDBanomaliesErr(bdController int8, beforeDays string) map[str
 	return m
 }
 
-func DownloadMapFromDBmachinesErr(bdController int8) map[string]MachineMyStruct {
+func DownloadMapFromDBmachinesErr(datasource string, bdController int8) map[string]MachineMyStruct {
 	type TagMachine struct {
 		Mac        string `json:"mac"`
 		Name       string `json:"name"`
@@ -322,7 +322,7 @@ func DownloadMapFromDBmachinesErr(bdController int8) map[string]MachineMyStruct 
 		ApName     string `json:"apname"`
 	}
 	m := make(map[string]MachineMyStruct)
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
 
 	myError := 1
 	for myError != 0 {
@@ -474,7 +474,7 @@ func DownloadMapFromDBmachines(bdController int8) map[string]MachineMyStruct {
 	return m
 }
 
-func DownloadMapFromDBapsErr(bdController int8) map[string]ApMyStruct {
+func DownloadMapFromDBapsErr(datasource string, bdController int8) map[string]ApMyStruct {
 	type TagAp struct {
 		Mac        string `json:"mac"`
 		Name       string `json:"name"`
@@ -483,7 +483,7 @@ func DownloadMapFromDBapsErr(bdController int8) map[string]ApMyStruct {
 		SrID       string `json:"srid"`
 	}
 	m := make(map[string]ApMyStruct)
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
 
 	myError := 1
 	for myError != 0 {
@@ -634,13 +634,13 @@ func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 	return m
 }
 
-func DownloadMapFromDBerr() map[string]string {
+func DownloadMapFromDBerr(datasource string) map[string]string {
 	type Tag struct {
 		KeyDB   sql.NullString `json:"keyDB""`
 		ValueDB sql.NullString `json:"valueDB"`
 	}
 	m := make(map[string]string)
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
 
 	myError := 1
 	for myError != 0 {
@@ -822,13 +822,13 @@ func GetLoginAP(siteApCutName string) string {
 	//return pc.UserName
 }
 
-func GetLoginPCerr(pcName string) string {
+func GetLoginPCerr(datasource string, pcName string) string {
 	type PC struct {
 		UserName string `json:"user_name"`
 	}
 	var pc PC
 	var result string
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
+	//datasource := "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
 	myError := 1
 
 	for myError != 0 {

@@ -21,16 +21,6 @@ type WiFiConfig struct {
 	GlpiConnectStringGlpi      string
 }
 
-type WiFiConfigExt struct {
-	WiFi WiFiConfig
-	//DebugMode bool
-	//
-	//UserRoles []string
-	Paths []string
-	//MaxUsers  int
-	ZesEnableSysman int
-}
-
 func NewWiFiConfig() *WiFiConfig {
 	return &WiFiConfig{
 		//OneDrive: getEnv("OneDrive", ""),
@@ -45,6 +35,16 @@ func NewWiFiConfig() *WiFiConfig {
 		GlpiConnectStringITsupport: getEnv("GLPI_CONNECT_STR_ITSUP", ""),
 		GlpiConnectStringGlpi:      getEnv("GLPI_CONNECT_STR_GLPI", ""),
 	}
+}
+
+type WiFiConfigExt struct {
+	WiFi WiFiConfig
+	//DebugMode bool
+	//
+	//UserRoles []string
+	Paths []string
+	//MaxUsers  int
+	ZesEnableSysman int
 }
 
 // New returns a new Config struct

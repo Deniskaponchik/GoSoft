@@ -10,14 +10,14 @@ import (
 	"time"
 )
 
-func main34564() {
+func main() {
 	fmt.Println("")
+	wifiConf := NewWiFiConfig()
 
 	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 	every12start := map[int]bool{}
-	//every20start := map[int]bool{}
 
 	//ROSTOV
 	if unifiController == 10 || unifiController == 11 {
@@ -25,33 +25,34 @@ func main34564() {
 		if unifiController == 10 {
 			urlController = "https://localhost:8443/"
 		} else {
-			urlController = "https://10.78.221.142:8443/"
+			//urlController = "https://10.78.221.142:8443/"
+			urlController = wifiConf.UnifiControllerRostov
 		}
-		//
+		/*
+			every12start = map[int]bool{
+				3:  true,
+				9:  true,
+				15: true,
+				21: true,
+				27: true,
+				33: true,
+				39: true,
+				45: true,
+				51: true,
+				57: true,
+			} */
 		every12start = map[int]bool{
-			3:  true,
 			9:  true,
-			15: true,
 			21: true,
-			27: true,
 			33: true,
-			39: true,
 			45: true,
-			51: true,
 			57: true,
 		} /*
-			every12start = map[int]bool{
-				9:  true,
-				21: true,
-				33: true,
+			every20start = map[int]bool{
+				5:  true,
+				25: true,
 				45: true,
-				57: true,
-			}
-				every20start = map[int]bool{
-					5:  true,
-					25: true,
-					45: true,
-				}*/
+			}*/
 
 		//NOVOSIB
 	} else if unifiController == 20 || unifiController == 21 {
@@ -60,43 +61,48 @@ func main34564() {
 		if unifiController == 20 {
 			urlController = "https://localhost:8443/"
 		} else {
-			urlController = "https://10.8.176.8:8443/"
+			//urlController = "https://10.8.176.8:8443/"
+			urlController = wifiConf.UnifiControllerNovosib
 		}
-		//
-		every12start = map[int]bool{
-			6:  true,
-			12: true,
-			18: true,
-			24: true,
-			30: true,
-			36: true,
-			42: true,
-			48: true,
-			54: true,
-			59: true,
-		} /*
+		/*
 			every12start = map[int]bool{
-				3:  true,
+				6:  true,
+				12: true,
+				18: true,
+				24: true,
+				30: true,
+				36: true,
+				42: true,
+				48: true,
+				54: true,
+				59: true,
+			} */
+		every12start = map[int]bool{
+			3:  true,
+			15: true,
+			27: true,
+			39: true,
+			51: true,
+		} /*
+			every20start = map[int]bool{
 				15: true,
-				27: true,
-				39: true,
-				51: true,
-			}
-				every20start = map[int]bool{
-					15: true,
-					35: true,
-					55: true,
-				}*/
+				35: true,
+				55: true,
+			}*/
 	}
 	fmt.Println("Unifi controller")
 	fmt.Println(urlController)
 
 	var soapServer string
-	soapServerProd := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"      //PROD
-	soapServerTest := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
+	//soapServerProd := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"      //PROD
+	//soapServerTest := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
+	soapServerProd := wifiConf.SoapProd
+	soapServerTest := wifiConf.SoapTest
 	var bpmUrl string
-	bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	bpmUrlTest := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
+	//bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
+	//bpmUrlTest := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
+	bpmUrlProd := wifiConf.BpmProd
+	bpmUrlTest := wifiConf.BpmTest
 
 	count12minute := 0
 	//count20minute := 0
@@ -130,18 +136,18 @@ func main34564() {
 	//Download MAPs from DB
 	//apMyMap := map[string]ApMyStruct{}
 	//apMyMap := DownloadMapFromDBaps(bdController)
-	apMyMap := DownloadMapFromDBapsErr(bdController)
+	apMyMap := DownloadMapFromDBapsErr(wifiConf.GlpiConnectStringITsupport, bdController)
 
 	//НЕ должна создаваться новая раз в 12 минут
 	siteapNameForTickets := map[string]ForApsTicket{}
 
 	//machineMyMap := map[string]MachineMyStruct{}
 	//machineMyMap := DownloadMapFromDBmachines(bdController)
-	machineMyMap := DownloadMapFromDBmachinesErr(bdController)
+	machineMyMap := DownloadMapFromDBmachinesErr(wifiConf.GlpiConnectStringITsupport, bdController)
 
 	//siteApCutNameLogin := map[string]string{}
 	//siteApCutNameLogin := DownloadMapFromDB("it_support_db", "site_apcut", "login", "it_support_db.site_apcut_login", 0, "site_apcut")
-	siteApCutNameLogin := DownloadMapFromDBerr()
+	siteApCutNameLogin := DownloadMapFromDBerr(wifiConf.GlpiConnectStringITsupport)
 
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
@@ -157,12 +163,12 @@ func main34564() {
 
 	c := unifi.Config{
 		//c := *unifi.Config{  //ORIGINAL
-		User: "unifi",
-		Pass: "FORCEpower23",
-		//URL: "https://localhost:8443/"
-		//URL: "https://10.78.221.142:8443/", //ROSTOV
-		//URL: "https://10.8.176.8:8443/",     //NOVOSIB
-		URL: urlController,
+		//User: "unifi",
+		User: wifiConf.UnifiUsername,
+		//Pass: "FORCEpower23",
+		Pass: wifiConf.UnifiPassword,
+		URL:  urlController,
+
 		// Log with log.Printf or make your own interface that accepts (msg, test_SOAP)
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,
@@ -500,7 +506,7 @@ func main34564() {
 							fmt.Println(query)
 							if count != 0 {
 								//UploadMapsToDBstring("it_support_db", query)
-								UploadMapsToDBerr(query)
+								UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
 							} else {
 								fmt.Println("Передана пустая карта. Запрос не выполнен")
 							}
@@ -709,7 +715,7 @@ func main34564() {
 									}
 									fmt.Println(query)
 									if countB1 != 0 {
-										//UploadMapsToDBerr(query)
+										UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
 									} else {
 										fmt.Println("Передана пустая карта. Запрос не выполнен")
 									}
@@ -730,7 +736,7 @@ func main34564() {
 										//before30days := timeNow.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
 
 										//macDay_DateSiteAnom := map[string]DateSiteAnom{}
-										macDay_DateSiteAnom := DownloadMapFromDBanomaliesErr(bdController, before30days)
+										macDay_DateSiteAnom := DownloadMapFromDBanomaliesErr(wifiConf.GlpiConnectStringITsupport, bdController, before30days)
 
 										mac_DateSiteAnomSlice := map[string][]DateSiteAnom{}
 										dateSiteAnomSlice := []DateSiteAnom{}
@@ -779,7 +785,7 @@ func main34564() {
 															}
 															if exceptionInt == 0 && (srStatusCodesForNewTicket[statusTicket] || srID == "") {
 																//Если заявки ещё нет, либо закрыта отменена
-																usrLogin = GetLoginPCerr(va.Hostname)
+																usrLogin = GetLoginPCerr(wifiConf.GlpiConnectStringGlpi, va.Hostname)
 																fmt.Println(usrLogin)
 
 																for _, val := range v {
@@ -817,7 +823,7 @@ func main34564() {
 															} else if exceptionInt > 0 {
 																fmt.Println("Клиент добавлен в исключение")
 															} else {
-																//либо заявка уже есть. добавить коммент?
+																//Либо заявка уже есть. Добавить коммент?
 																fmt.Println("Созданное обращение:")
 																fmt.Println(bpmUrl + srID)
 																fmt.Println(statusTicket)
@@ -865,7 +871,7 @@ func main34564() {
 										fmt.Println(query)
 										if count != 0 {
 											//UploadMapsToDBstring("it_support_db", query)
-											UploadMapsToDBerr(query)
+											UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
 										} else {
 											fmt.Println("Передана пустая карта. Запрос не выполнен")
 										}
@@ -913,7 +919,7 @@ func main34564() {
 
 			//siteApCutNameLogin = DownloadMapFromDB("wifi_db", "site_apcut", "login", "wifi_db.site_apcut_login", 0, "site_apcut")
 			//siteApCutNameLogin = DownloadMapFromDB("it_support_db", "site_apcut", "login", "it_support_db.site_apcut_login", 0, "site_apcut")
-			siteApCutNameLogin = DownloadMapFromDBerr()
+			siteApCutNameLogin = DownloadMapFromDBerr(wifiConf.GlpiConnectStringITsupport)
 		}
 		//
 		//

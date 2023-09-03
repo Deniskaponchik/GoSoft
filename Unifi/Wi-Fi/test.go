@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func main() {
+func main545344645() {
 	wifiConf := NewWiFiConfig()
 	//fmt.Println(wifiConf.OneDrive)
 	fmt.Println(wifiConf.UnifiUsername)
