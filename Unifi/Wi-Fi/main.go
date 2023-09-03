@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func main() {
+func main34564() {
 	fmt.Println("")
 
 	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
@@ -97,23 +97,6 @@ func main() {
 	var bpmUrl string
 	bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 	bpmUrlTest := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	/*
-		bpm := 1 // 0-PROD; 1-TEST
-		var soapServer string
-		var bpmUrl string
-		if bpm == 0 {
-			soapServer = "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //PROD
-			bpmUrl = "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-		} else {
-			soapServer = "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
-			bpmUrl = "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-		}
-		fmt.Println("SOAP")
-		fmt.Println(soapServer)
-		fmt.Println("BPM")
-		fmt.Println(bpmUrl)
-		fmt.Println("")
-	*/
 
 	count12minute := 0
 	//count20minute := 0
@@ -138,7 +121,7 @@ func main() {
 		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 	}
 	sitesException := map[string]bool{
-		"5f2285f3a1a7693ae6139c00": true, //Novosi. Резерв/Склад
+		"5f2285f3a1a7693ae6139c00": true, //Novosib. Резерв/Склад
 		"5f5b49d1a9f6167b55119c9b": true, //Ростов. Резерв/Склад
 		//"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
 		//"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
@@ -365,7 +348,6 @@ func main() {
 												status = CheckTicketStatusErr(soapServer, srID)
 											}
 
-											//if srStatusCodesForNewTicket[checkSlice[1]] || !exisApMacSRid {
 											//if srStatusCodesForNewTicket[checkSlice[1]] || srID == "" {
 											if srStatusCodesForNewTicket[status] || srID == "" {
 												fmt.Println(bpmUrl + srID)
@@ -832,7 +814,7 @@ func main() {
 																	va.SrID = srTicketSlice[0]
 																	machineMyMap[ke] = va
 																}
-															} else if exceptionInt == 1 {
+															} else if exceptionInt > 0 {
 																fmt.Println("Клиент добавлен в исключение")
 															} else {
 																//либо заявка уже есть. добавить коммент?
