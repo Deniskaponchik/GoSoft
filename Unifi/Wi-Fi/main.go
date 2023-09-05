@@ -14,7 +14,7 @@ func main() {
 	fmt.Println("")
 	wifiConf := NewWiFiConfig()
 
-	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 	every12start := map[int]bool{}
@@ -725,7 +725,8 @@ func main() {
 
 									//
 									//
-									//Создание заявок по машинам раз в сутки
+									fmt.Println("")
+									fmt.Println("Ежесуточное создание заявок по аномалиям")
 									//if timeNow.Hour() != countHourDBmachine {
 									if timeNow.Day() != countDayDBmachine {
 										//countHourDBmachine = timeNow.Hour()
