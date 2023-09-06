@@ -25,7 +25,6 @@ func main() {
 		if unifiController == 10 {
 			urlController = "https://localhost:8443/"
 		} else {
-			//urlController = "https://10.78.221.142:8443/"
 			urlController = wifiConf.UnifiControllerRostov
 		}
 		/*
@@ -61,7 +60,6 @@ func main() {
 		if unifiController == 20 {
 			urlController = "https://localhost:8443/"
 		} else {
-			//urlController = "https://10.8.176.8:8443/"
 			urlController = wifiConf.UnifiControllerNovosib
 		}
 		/*
@@ -94,13 +92,9 @@ func main() {
 	fmt.Println(urlController)
 
 	var soapServer string
-	//soapServerProd := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"      //PROD
-	//soapServerTest := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
 	soapServerProd := wifiConf.SoapProd
 	soapServerTest := wifiConf.SoapTest
 	var bpmUrl string
-	//bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	//bpmUrlTest := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 	bpmUrlProd := wifiConf.BpmProd
 	bpmUrlTest := wifiConf.BpmTest
 
@@ -163,12 +157,9 @@ func main() {
 
 	c := unifi.Config{
 		//c := *unifi.Config{  //ORIGINAL
-		//User: "unifi",
 		User: wifiConf.UnifiUsername,
-		//Pass: "FORCEpower23",
 		Pass: wifiConf.UnifiPassword,
 		URL:  urlController,
-
 		// Log with log.Printf or make your own interface that accepts (msg, test_SOAP)
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,

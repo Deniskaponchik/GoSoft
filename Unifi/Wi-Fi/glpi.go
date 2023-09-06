@@ -14,8 +14,6 @@ import (
 
 func UploadMapsToDBerr(datasource string, query string) {
 
-	//datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
-
 	myError := 1
 	for myError != 0 {
 		if db, errSqlOpen := sql.Open("mysql", datasource); errSqlOpen == nil {
@@ -77,7 +75,7 @@ func UploadMapsToDBerr(datasource string, query string) {
 func UploadMapsToDBstring(dbName string, query string) {
 
 	var datasource string
-	datasource = "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	datasource = ""
 	db, err := sql.Open("mysql", datasource)
 	if err != nil {
 		panic(err.Error())
@@ -95,9 +93,9 @@ func UploadMapsToDBreplace(uploadMap map[string]string, dbName string, tableName
 
 	var datasource string
 	if dbName == "glpi_db" {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
+		datasource = ""
 	} else {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
+		datasource = ""
 	}
 	db, err := sql.Open("mysql", datasource)
 	if err != nil {
@@ -159,9 +157,9 @@ func UploadsMapsToDBdelete(uploadMap map[string]string, dbName string, tableName
 
 	var datasource string
 	if dbName == "glpi_db" {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
+		datasource = ""
 	} else {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
+		datasource = ""
 	}
 	db, err := sql.Open("mysql", datasource)
 	if err != nil {
@@ -210,7 +208,7 @@ func DownloadMapFromDBanomaliesErr(datasource string, bdController int8, beforeD
 		Anomalies  string `json:"anomalies"`
 	}
 	m := make(map[string]DateSiteAnom)
-	//datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := ""
 	var anomSlice []string
 	var dayMac string
 
@@ -322,7 +320,7 @@ func DownloadMapFromDBmachinesErr(datasource string, bdController int8) map[stri
 		ApName     string `json:"apname"`
 	}
 	m := make(map[string]MachineMyStruct)
-	//datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := ""
 
 	myError := 1
 	for myError != 0 {
@@ -434,7 +432,7 @@ func DownloadMapFromDBmachines(bdController int8) map[string]MachineMyStruct {
 	//var machine MachineMyStruct
 	m := make(map[string]MachineMyStruct)
 
-	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/it_support_db")
+	db, err := sql.Open("mysql", "")
 	//db, err := sql.Open("mysql", datasource)
 	if err != nil {
 		log.Print(err.Error())
@@ -483,7 +481,7 @@ func DownloadMapFromDBapsErr(datasource string, bdController int8) map[string]Ap
 		SrID       string `json:"srid"`
 	}
 	m := make(map[string]ApMyStruct)
-	//datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := ""
 
 	myError := 1
 	for myError != 0 {
@@ -593,7 +591,7 @@ func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 	//var machine MachineMyStruct
 	m := make(map[string]ApMyStruct)
 
-	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/it_support_db")
+	db, err := sql.Open("mysql", "")
 	//db, err := sql.Open("mysql", datasource)
 	if err != nil {
 		log.Print(err.Error())
@@ -640,7 +638,7 @@ func DownloadMapFromDBerr(datasource string) map[string]string {
 		ValueDB sql.NullString `json:"valueDB"`
 	}
 	m := make(map[string]string)
-	//datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := ""
 
 	myError := 1
 	for myError != 0 {
@@ -745,9 +743,9 @@ func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName st
 
 	datasource := ""
 	if dbName == "glpi_db" {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
+		datasource = ""
 	} else {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
+		datasource = ""
 	}
 
 	//db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/glpi_db")
@@ -802,7 +800,7 @@ func GetLoginAP(siteApCutName string) string {
 		UserLogin string `json:"login"`
 	}
 
-	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/wifi_db")
+	db, err := sql.Open("mysql", "")
 	if err != nil {
 		log.Print(err.Error())
 	}
@@ -828,7 +826,7 @@ func GetLoginPCerr(datasource string, pcName string) string {
 	}
 	var pc PC
 	var result string
-	//datasource := "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
+	//datasource := ""
 	myError := 1
 
 	for myError != 0 {
@@ -891,7 +889,7 @@ func GetLoginPC(pcName string) string {
 		//Date_Mod string `json:"date_mod"`
 	}
 
-	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/glpi_db")
+	db, err := sql.Open("mysql", "")
 	if err != nil {
 		log.Print(err.Error())
 	}
