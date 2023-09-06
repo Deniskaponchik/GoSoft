@@ -8,11 +8,10 @@ import (
 )
 
 type PolyConfig struct {
-	//OneDrive string
-	PolyUsername               string
-	PolyPassword               string
-	PolyControllerRostov       string
-	PolyControllerNovosib      string
+	PolyUsername string
+	PolyPassword string
+	//PolyControllerRostov       string
+	//PolyControllerNovosib      string
 	BpmProd                    string
 	BpmTest                    string
 	SoapProd                   string

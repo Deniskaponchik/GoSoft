@@ -8,9 +8,8 @@ import (
 	"time"
 )
 
-func UpdateMapsToDBerr(queries []string) {
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
-	//datasource := "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
+func UpdateMapsToDBerr(datasource string, queries []string) {
+	//datasource := ""
 
 	myError := 1
 	for myError != 0 {
@@ -62,7 +61,7 @@ func UpdateMapsToDBerr(queries []string) {
 
 func UploadMapsToDBerr(query string) {
 
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	datasource := ""
 
 	myError := 1
 	for myError != 0 {
@@ -121,7 +120,7 @@ func UploadMapsToDBerr(query string) {
 	} //sql.Open
 }
 
-func DownloadMapFromDBvcsErr() map[string]PolyStruct {
+func DownloadMapFromDBvcsErr(datasource string) map[string]PolyStruct {
 	type TagAp struct {
 		Mac       string `json:"mac"`
 		IP        string `json:"ip"`
@@ -135,7 +134,7 @@ func DownloadMapFromDBvcsErr() map[string]PolyStruct {
 	}
 
 	m := make(map[string]PolyStruct)
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := ""
 
 	myError := 1
 	for myError != 0 {

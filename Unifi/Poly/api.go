@@ -9,7 +9,7 @@ import (
 
 //func main() {}
 
-func apiLineInfo(ip string) (status string) {
+func apiLineInfo(ip string, polyLogin string, polyPassword string) (status string) {
 
 	type Envelope struct {
 		//status string `json:"Status"`
@@ -35,7 +35,7 @@ func apiLineInfo(ip string) (status string) {
 
 		req, errNewRequest := http.NewRequest(http.MethodGet, url, http.NoBody)
 		if errNewRequest == nil {
-			req.SetBasicAuth("Polycom", "3214")
+			req.SetBasicAuth(polyLogin, polyPassword)
 			//req.Header.Add("Content-Type", "application/json")
 
 			res, errClientDo := client.Do(req)
@@ -105,7 +105,7 @@ func apiLineInfo(ip string) (status string) {
 	return status
 }
 
-func apiSafeRestart2(ip string) (status string) {
+func apiSafeRestart2(ip string, polyLogin string, polyPassword string) (status string) {
 
 	type Envelope struct {
 		//status string `json:"Status"`
@@ -119,7 +119,7 @@ func apiSafeRestart2(ip string) (status string) {
 		//url := ip + "/api/v1/mgmt/safeRestart"
 		req, errNewRequest := http.NewRequest(http.MethodPost, url, http.NoBody)
 		if errNewRequest == nil {
-			req.SetBasicAuth("Polycom", "3214")
+			req.SetBasicAuth(polyLogin, polyPassword)
 			req.Header.Add("Content-Type", "application/json")
 
 			res, errClientDo := client.Do(req)

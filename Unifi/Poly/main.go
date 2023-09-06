@@ -10,7 +10,7 @@ import (
 
 func main() {
 	fmt.Println("")
-	//polyConf := NewPolyConfig()
+	polyConf := NewPolyConfig()
 
 	/*
 		every20Code := map[int]bool{
@@ -43,14 +43,10 @@ func main() {
 	}
 
 	var soapServer string
-	soapServerProd := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //PROD
-	//soapServerTest := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
-	//soapServerProd := polyConf.SoapProd
+	soapServerProd := polyConf.SoapProd
 	//soapServerTest := polyConf.SoapTest
 	var bpmUrl string
-	bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	//bpmUrlTest := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	//bpmUrlProd := polyConf.BpmProd
+	bpmUrlProd := polyConf.BpmProd
 	//bpmUrlTest := polyConf.BpmTest
 
 	count20minute := 0
@@ -74,7 +70,7 @@ func main() {
 
 	//Download MAPs from DB
 	polyMap := map[string]PolyStruct{} //просто создаю пустую
-	polyMap = DownloadMapFromDBvcsErr()
+	polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
 
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
@@ -137,7 +133,7 @@ func main() {
 					if v.PolyType == 1 {
 						vcsType = "Codec"
 						//commentUnreach = "Codec не отвечает на API-запросы"
-						statusReach = apiLineInfo(ip)
+						statusReach = apiLineInfo(ip, polyConf.PolyUsername, polyConf.PolyPassword)
 					} else {
 						vcsType = "Visual"
 						//commentUnreach = "Visual не доступен по http"
@@ -367,7 +363,7 @@ func main() {
 				for k, v := range polyMap {
 					queries = append(queries, "UPDATE it_support_db.poly SET srid = '"+v.SrID+"', comment = "+strconv.Itoa(int(v.Comment))+" WHERE mac = '"+k+"';")
 				}
-				UpdateMapsToDBerr(queries)
+				UpdateMapsToDBerr(polyConf.GlpiConnectStringITsupport, queries)
 				fmt.Println("")
 			}
 			//
@@ -379,7 +375,7 @@ func main() {
 				//polyMap = make(map[string]PolyStruct{})
 				//polyMap = map[string]PolyStruct{}
 				//clear(polyMyMap)
-				polyMap = DownloadMapFromDBvcsErr()
+				polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
 				fmt.Println("")
 			}
 
@@ -390,7 +386,7 @@ func main() {
 				for _, v := range polyMap {
 					if v.PolyType == 1 {
 						fmt.Println(v.RoomName)
-						apiSafeRestart2(v.IP)
+						apiSafeRestart2(v.IP, polyConf.PolyUsername, polyConf.PolyPassword)
 					}
 				}
 				reboot = 1
