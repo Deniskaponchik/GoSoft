@@ -10,6 +10,8 @@ import (
 
 func main() {
 	fmt.Println("")
+	//polyConf := NewPolyConfig()
+
 	/*
 		every20Code := map[int]bool{
 			6:  true,
@@ -43,9 +45,13 @@ func main() {
 	var soapServer string
 	soapServerProd := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //PROD
 	//soapServerTest := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
+	//soapServerProd := polyConf.SoapProd
+	//soapServerTest := polyConf.SoapTest
 	var bpmUrl string
 	bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
 	//bpmUrlTest := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
+	//bpmUrlProd := polyConf.BpmProd
+	//bpmUrlTest := polyConf.BpmTest
 
 	count20minute := 0
 	countHourFromDB := 0
