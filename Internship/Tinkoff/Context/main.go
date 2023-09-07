@@ -1,5 +1,5 @@
 package main
 
 func main() {
-	task40()
+	task30()
 }
