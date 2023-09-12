@@ -687,6 +687,23 @@ func main() {
 										if lenSlice > 1 {
 											countB1++
 											siteNameCut = v.SiteName[:len(v.SiteName)-11]
+
+											if strings.Contains(siteNameCut, "Волг") {
+												siteNameCut = "Волга"
+											} else if strings.Contains(siteNameCut, "Ура") {
+												siteNameCut = "Урал"
+											}
+											/*
+												apSiteName := ap.SiteName
+												var siteName string
+												if siteID == "Ура�" {
+													siteName = "Урал" //5e74aaa6a1a76964e770815c
+												} else if siteID == "Волг�" {
+													siteName = "Волга" //5e758bdca9f6163bb0c3c962
+												} else {
+													siteName = apSiteName[:len(apSiteName)-11]
+												}*/
+
 											anomSliceString = strings.Join(v.AnomSlice, ";")
 											b1.WriteString("('" + v.DateTime + "','" + k + "','" + bdCntrl + "','" + siteNameCut + "','" + anomSliceString + "'),")
 											/*
@@ -706,6 +723,7 @@ func main() {
 									}
 									fmt.Println(query)
 									if countB1 != 0 {
+										// КОММЕНТИРОВАТЬ ЕЁ НА ВРЕМЯ ТЕСТА
 										UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
 									} else {
 										fmt.Println("Передана пустая карта. Запрос не выполнен")
@@ -723,10 +741,10 @@ func main() {
 										//countHourDBmachine = timeNow.Hour()
 										countDayDBmachine = timeNow.Day()
 
-										//Загружаем из БД аномалии за последние 30 дн. в массив структур DateSiteAnom
 										before30days := timeNow.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
 										//before30days := timeNow.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
 
+										//Загружаем из БД аномалии за последние 30 дн. в массив структур DateSiteAnom
 										//macDay_DateSiteAnom := map[string]DateSiteAnom{}
 										macDay_DateSiteAnom := DownloadMapFromDBanomaliesErr(wifiConf.GlpiConnectStringITsupport, bdController, before30days)
 
@@ -756,7 +774,7 @@ func main() {
 										//var apName string
 										var region string
 										incidentType := "Плохое качество соединения клиента"
-										var b2 bytes.Buffer
+										//var b2 bytes.Buffer
 
 										for k, v := range mac_DateSiteAnomSlice {
 											if len(v) > 9 {
@@ -766,10 +784,12 @@ func main() {
 														if k == ke {
 															noutName = va.Hostname
 															fmt.Println(noutName)
-															srID = va.SrID
-															exceptionInt = va.Exception
+															fmt.Println(k) //mac
 															apName = va.ApName
 															fmt.Println(apName)
+															srID = va.SrID
+															//fmt.Println(srID)
+															exceptionInt = va.Exception
 
 															var statusTicket string
 															if srID != "" {
@@ -780,8 +800,9 @@ func main() {
 																usrLogin = GetLoginPCerr(wifiConf.GlpiConnectStringGlpi, va.Hostname)
 																fmt.Println(usrLogin)
 
+																var b2 bytes.Buffer
 																for _, val := range v {
-																	//region = val.SiteName
+																	region = val.SiteName //А если сотрудник был в разных регионах?
 																	b2.WriteString(val.SiteName + "\n")
 																	b2.WriteString(val.DateTime + "\n")
 																	for _, valu := range val.AnomSlice {
@@ -820,7 +841,7 @@ func main() {
 																fmt.Println(bpmUrl + srID)
 																fmt.Println(statusTicket)
 															}
-
+															fmt.Println("")
 															break
 														}
 													}
