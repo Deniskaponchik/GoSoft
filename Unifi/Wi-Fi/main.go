@@ -27,6 +27,7 @@ func main() {
 		} else {
 			urlController = wifiConf.UnifiControllerRostov
 		}
+		// TODO: Change run time Rostov
 		/*
 			every12start = map[int]bool{
 				3:  true,
@@ -62,6 +63,7 @@ func main() {
 		} else {
 			urlController = wifiConf.UnifiControllerNovosib
 		}
+		// TODO: Change run time Novosib
 		/*
 			every12start = map[int]bool{
 				6:  true,
@@ -723,7 +725,7 @@ func main() {
 									}
 									fmt.Println(query)
 									if countB1 != 0 {
-										// КОММЕНТИРОВАТЬ ЕЁ НА ВРЕМЯ ТЕСТА
+										// TODO: TEST. Comment UploadMapsToDBerr
 										UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
 									} else {
 										fmt.Println("Передана пустая карта. Запрос не выполнен")
@@ -777,6 +779,7 @@ func main() {
 										//var b2 bytes.Buffer
 
 										for k, v := range mac_DateSiteAnomSlice {
+											// TODO: TEST. Change count of caught anomalies
 											if len(v) > 9 {
 												_, exis := machineMyMap[k]
 												if exis {
