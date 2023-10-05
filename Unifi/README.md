@@ -1,4 +1,6 @@
 # [Main]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/main/Unifi))
+| | |
+| - | - |
 | Code Structure | github.com/golang-standards/project-layout |
 | ORM | github.com/jinzhu/gorm |
 | Aps | тикеты создаются со второй попытки (через 24 минуты) |
