@@ -7,11 +7,6 @@
 | Anomalies | Ежедневная обработка |
 | Poly | с перезагрузками |
 
-- Structure. 
-- AP. тикеты со второй попытки
-- Anomalies. Ежедневная обработка
-- Poly. с перезагрузками
-- 
 
 # [Dev1]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev1/Unifi))
 - AP тикеты сразу
