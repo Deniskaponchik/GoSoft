@@ -627,6 +627,10 @@ func main() {
 									//time.Date(2023, 07, 01, 0, 0, 0, 0, time.Local), //time.Now(),
 									then,
 								)
+
+								//мапа будет использоваться для добавления комментария в уже созданную заявку с новыми аномалиями, если они были за последние сутки
+								//mac_DateSiteAnom := map[string]DateSiteAnom{}
+
 								if errGetAnomalies == nil {
 									fmt.Println("anomalies загрузились")
 									fmt.Println("")
@@ -753,7 +757,7 @@ func main() {
 										mac_DateSiteAnomSlice := map[string][]DateSiteAnom{}
 										dateSiteAnomSlice := []DateSiteAnom{}
 
-										//Обрабатываем
+										//Переделываем в мапу типа мак-структура DateSiteAnom за каждый день
 										for _, v := range macDay_DateSiteAnom {
 											//fmt.Println(k, v.DateTime, v.Mac)
 											_, exis := mac_DateSiteAnomSlice[v.Mac]
@@ -839,10 +843,26 @@ func main() {
 															} else if exceptionInt > 0 {
 																fmt.Println("Клиент добавлен в исключение")
 															} else {
-																//Либо заявка уже есть. Добавить коммент?
+																//Либо заявка уже есть.
 																fmt.Println("Созданное обращение:")
 																fmt.Println(bpmUrl + srID)
 																fmt.Println(statusTicket)
+																//Добавить коммент с аномалиями за последние сутки
+																yesterday := timeNow.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
+																dayMac := yesterday + k
+																_, exisDayMac := macDay_DateSiteAnom[dayMac]
+																if exisDayMac {
+																	anomSlice := macDay_DateSiteAnom[dayMac].AnomSlice
+																	var b2 bytes.Buffer
+																	for _, val := range anomSlice {
+																		b2.WriteString(val + "\n")
+																	}
+																	comment := "За последние сутки появились новые аномалии:" + "\n" +
+																		b2.String() +
+																		""
+																	AddCommentErr(soapServer, srID, comment, bpmUrl)
+																}
+
 															}
 															fmt.Println("")
 															break
