@@ -40,7 +40,7 @@ func main() {
 	}
 	log.Println(len(devices.UAPs), "Unifi Wireless APs Found:")
 	for i, uap := range devices.UAPs {
-		log.Println(i+1, uap.Name, uap.IP)
+		log.Println(i+1, uap.Name, uap.IP, uap.)
 	}
 
 	clients, err := uni.GetClients(sites)
@@ -49,6 +49,8 @@ func main() {
 	}
 	log.Println(len(clients), "Clients connected:")
 	for _, client := range clients {
+		client.
+
 		splitIP := strings.Split(client.IP, ".")[0]
 		//if splitIP == "169" {
 		if splitIP != "10" && splitIP != "192" {

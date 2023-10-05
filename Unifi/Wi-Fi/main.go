@@ -95,10 +95,10 @@ func main() {
 
 	var soapServer string
 	soapServerProd := wifiConf.SoapProd
-	soapServerTest := wifiConf.SoapTest
+	//soapServerTest := wifiConf.SoapTest
 	var bpmUrl string
 	bpmUrlProd := wifiConf.BpmProd
-	bpmUrlTest := wifiConf.BpmTest
+	//bpmUrlTest := wifiConf.BpmTest
 
 	count12minute := 0
 	//count20minute := 0
@@ -609,10 +609,10 @@ func main() {
 								countHourAnom = timeNow.Hour()
 								//countDayAnom = timeNow.Day()
 
-								soapServer = soapServerTest
+								soapServer = soapServerProd
 								fmt.Println("SOAP")
 								fmt.Println(soapServer)
-								bpmUrl = bpmUrlTest
+								bpmUrl = bpmUrlProd
 								fmt.Println("BPM")
 								fmt.Println(bpmUrl)
 								fmt.Println("")
