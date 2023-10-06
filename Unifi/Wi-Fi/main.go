@@ -852,6 +852,7 @@ func main() {
 																dayMac := yesterday + k
 																_, exisDayMac := macDay_DateSiteAnom[dayMac]
 																if exisDayMac {
+																	fmt.Println("Есть аномалии за прошедшие сутки. Попытка добавить комментарий...")
 																	anomSlice := macDay_DateSiteAnom[dayMac].AnomSlice
 																	var b2 bytes.Buffer
 																	for _, val := range anomSlice {
@@ -860,6 +861,7 @@ func main() {
 																	comment := "За последние сутки появились новые аномалии:" + "\n" +
 																		b2.String() +
 																		""
+																	//fmt.Println(comment)
 																	AddCommentErr(soapServer, srID, comment, bpmUrl)
 																}
 
