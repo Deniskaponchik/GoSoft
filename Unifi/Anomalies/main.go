@@ -6,9 +6,6 @@ import (
 	"github.com/unpoller/unifi"
 	"io"
 	"log"
-	"strconv"
-	"strings"
-
 	//"strconv"
 	//"strings"
 	"time"
@@ -30,7 +27,7 @@ type Machine struct {
 func main() {
 	fmt.Println("")
 
-	unifiController := 11 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
+	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
 	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
 
@@ -58,7 +55,7 @@ func main() {
 	fmt.Println(bdController)
 
 	//machineMyMap := map[string]MachineMyStruct{}
-	machineMyMap := DownloadMapFromDBmachines(bdController)
+	//machineMyMap := DownloadMapFromDBmachines(bdController)
 
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
@@ -119,18 +116,19 @@ func main() {
 		}
 	*/
 
-	/*
-		//count := 60 //минус 70 минут
-		//count := 3600
-		//count := 36000 //+++
-		//count := 86400
-		//then := now.Add(time.Duration(-count) * time.Minute)
-		//then := timeNow.Add(time.Duration(-count) * time.Minute)
-		//then := timeNow.Add(time.Duration(-count) * time.)
-	*/
+	count := 60 //минус 70 минут
+	//count := 720 //минус 30 день
+	//count := 3600
+	//count := 36000 //+++
+	//count := 86400
+	//then := now.Add(time.Duration(-count) * time.Minute)
+	//then := timeNow.Add(time.Duration(-count) * time.Minute)
+	//then := timeNow.Add(time.Duration(-count) * time.)
+	then := timeNow.Add(time.Duration(-count) * time.Hour)
+
 	anomalies, err := uni.GetAnomalies(sites,
-		time.Date(2023, 07, 01, 0, 0, 0, 0, time.Local), //time.Now(),
-		//then,
+		//time.Date(2023, 7, 9, 0, 0, 0, 0, time.Local), //time.Now(),
+		then,
 	)
 	if err != nil {
 		log.Fatalln("Error:", err)
@@ -139,47 +137,8 @@ func main() {
 	}
 	fmt.Println("")
 
-	//
-	//Для выгрузки в разрезе точек
-	dateName_site := map[string]string{}
-
-	var siteName string
-	var noutMac string
-	//var anomalyStr string
-	var anomalyDatetime time.Time
-	for _, anomaly := range anomalies {
-		anomalyDatetime = anomaly.Datetime
-		siteName = anomaly.SiteName
-		noutMac = anomaly.DeviceMAC
-		//anomalyStr = anomaly.Anomaly
-		//fmt.Println(anomalyDatetime, siteName, noutMac, anomalyStr)
-		for k, v := range machineMyMap {
-			if k == noutMac {
-				anomalyDatetime.String()
-				uniqKey := anomalyDatetime.Format("2006-01-02") + "+" + v.ApName
-				//dateMac_mac[uniqKey] = noutMac
-				dateName_site[uniqKey] = siteName //[:len(siteName)-11]
-				break
-			}
-		}
-	}
-	for k, v := range dateName_site {
-		kName := strings.Split(k, "+")[1]
-		for ke, va := range machineMyMap {
-			if kName == va.ApName {
-				va.Exception++
-				va.SrID = v[:len(v)-11]
-				machineMyMap[ke] = va
-				break
-			}
-		}
-	}
-	var count string
-	for _, v := range machineMyMap {
-		if v.Exception != 0 {
-			count = strconv.Itoa(int(v.Exception))
-			fmt.Println(v.SrID + ";" + v.ApName + ";" + count)
-		}
+	for _, v := range anomalies {
+		fmt.Println(v.Datetime)
 	}
 
 	//
@@ -221,8 +180,50 @@ func main() {
 			count = strconv.Itoa(int(v.Exception))
 			fmt.Println(v.SrID + ";" + v.ApName + ";" + v.Hostname + ";" + login + ";" + count)
 		}
+	}*/
+
+	//
+	/*Для выгрузки в разрезе точек
+	dateName_site := map[string]string{}
+
+	var siteName string
+	var noutMac string
+	//var anomalyStr string
+	var anomalyDatetime time.Time
+	for _, anomaly := range anomalies {
+		anomalyDatetime = anomaly.Datetime
+		siteName = anomaly.SiteName
+		noutMac = anomaly.DeviceMAC
+		//anomalyStr = anomaly.Anomaly
+		//fmt.Println(anomalyDatetime, siteName, noutMac, anomalyStr)
+		for k, v := range machineMyMap {
+			if k == noutMac {
+				anomalyDatetime.String()
+				uniqKey := anomalyDatetime.Format("2006-01-02") + "+" + v.ApName
+				//dateMac_mac[uniqKey] = noutMac
+				dateName_site[uniqKey] = siteName //[:len(siteName)-11]
+				break
+			}
+		}
 	}
-	*/
+	for k, v := range dateName_site {
+		kName := strings.Split(k, "+")[1]
+		for ke, va := range machineMyMap {
+			if kName == va.ApName {
+				va.Exception++
+				va.SrID = v[:len(v)-11]
+				machineMyMap[ke] = va
+				break
+			}
+		}
+	}
+	var count string
+	for _, v := range machineMyMap {
+		if v.Exception != 0 {
+			count = strconv.Itoa(int(v.Exception))
+			fmt.Println(v.SrID + ";" + v.ApName + ";" + count)
+		}
+	}*/
 
 } //main func
 

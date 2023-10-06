@@ -12,23 +12,68 @@ import (
 )
 
 func main() {
-	newMap := DownloadMapFromDBerr()
-	for k, v := range newMap {
-		//fmt.Printf("key: %d, value: %t\n", k, v)
-		fmt.Println("newMap "+k, v)
-	}
-	k := "Центр_IVN"
-	usrLogin := newMap[k]
-	if usrLogin == "" {
-		usrLogin = "denis.tirskikh"
-	}
-	fmt.Println(usrLogin)
-	//fmt.Println(GetLoginPCerr("WSIR-BRONER"))
+	var queries []string
+	queries = append(queries, "UPDATE wifi_db.machine_mac_name SET controller = 2 WHERE mac = '00:23:15:d4:5e:bd';")
+	queries = append(queries, "UPDATE wifi_db.machine_mac_name SET controller = 2 WHERE mac = '00:23:15:d4:5e:d6';")
+	UpdateMapsToDBerr(queries)
 }
 
-func UploadMapsToDBerr(dbName string, query string) {
+func UpdateMapsToDBerr(queries []string) {
+	//datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	datasource := "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
 
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	myError := 1
+	for myError != 0 {
+		if db, errSqlOpen := sql.Open("mysql", datasource); errSqlOpen == nil {
+			errDBping := db.Ping()
+			if errDBping == nil {
+				defer db.Close() // defer the close till after the main function has finished
+
+				for _, query := range queries {
+					fmt.Println(query)
+					_, errQuery := db.Exec(query)
+					if errQuery == nil {
+						myError = 0
+					} else {
+						fmt.Println(errQuery.Error())
+						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						myError = 0
+					}
+				}
+				if errDBclose := db.Close(); errDBclose != nil {
+					fmt.Println("Закрытие подключения к БД завершилось не корректно")
+				}
+
+			} else {
+				fmt.Println("db.Ping failed:", errDBping)
+				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				time.Sleep(60 * time.Second)
+				//myError = 1
+				myError++
+				if myError == 5 { //У меня всё равно будет повторная попытка выгрузки в БД через час. Не критично останавливаться на этом
+					myError = 0
+				}
+			}
+		} else {
+			fmt.Println("Error creating DB:", errSqlOpen)
+			fmt.Println("To verify, db is:", db)
+			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			time.Sleep(60 * time.Second)
+			//myError = 1
+			myError++
+			if myError == 5 {
+				myError = 0
+			}
+		}
+	} //sql.Open
+}
+
+func UploadMapsToDBerr(query string) {
+
+	//datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	datasource := "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
 
 	myError := 1
 	for myError != 0 {

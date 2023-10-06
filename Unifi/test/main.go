@@ -1,15 +1,20 @@
 package main
 
-import "fmt"
+import "github.com/go-ping/ping"
 
 func main() {
-	myMap := map[string]bool{}
-	myMap["a"] = true
-	myMap["b"] = true
-	if myMap["c"] {
-		fmt.Println("c is exist")
-	} else {
-		fmt.Println("c is NOT exist")
-	}
 
+}
+
+func ipPing(ip string) {
+	pinger, err := ping.NewPinger("www.google.com")
+	if err != nil {
+		panic(err)
+	}
+	pinger.Count = 3
+	err = pinger.Run() // Blocks until finished.
+	if err != nil {
+		panic(err)
+	}
+	stats := pinger.Statistics() // get send/receive/duplicate/rtt stats
 }
