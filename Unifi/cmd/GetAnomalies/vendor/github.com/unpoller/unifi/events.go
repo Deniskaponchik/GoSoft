@@ -72,20 +72,20 @@ func (u *Unifi) GetSiteEvents(site *Site, hours time.Duration) ([]*Event, error)
 // Event describes a UniFi Event.
 // API Path: /api/s/default/stat/event.
 type Event struct {
-	IsAdmin               FlexBool  `json:"is_admin"`
-	DestPort              int       `json:"dest_port"`
-	SrcPort               int       `json:"src_port"`
-	Bytes                 FlexInt   `json:"bytes"`
-	Duration              FlexInt   `json:"duration"`
-	FlowID                FlexInt   `json:"flow_id"`
-	InnerAlertGID         FlexInt   `json:"inner_alert_gid"`
-	InnerAlertRev         FlexInt   `json:"inner_alert_rev"`
-	InnerAlertSeverity    FlexInt   `json:"inner_alert_severity"`
-	InnerAlertSignatureID FlexInt   `json:"inner_alert_signature_id"`
-	Channel               FlexInt   `json:"channel"`
-	ChannelFrom           FlexInt   `json:"channel_from"`
-	ChannelTo             FlexInt   `json:"channel_to"`
-	Time                  int64     `json:"time"`
+	IsAdmin               FlexBool `json:"is_admin"`
+	DestPort              int      `json:"dest_port"`
+	SrcPort               int      `json:"src_port"`
+	Bytes                 FlexInt  `json:"bytes"`
+	Duration              FlexInt  `json:"duration"`
+	FlowID                FlexInt  `json:"flow_id"`
+	InnerAlertGID         FlexInt  `json:"inner_alert_gid"`
+	InnerAlertRev         FlexInt  `json:"inner_alert_rev"`
+	InnerAlertSeverity    FlexInt  `json:"inner_alert_severity"`
+	InnerAlertSignatureID FlexInt  `json:"inner_alert_signature_id"`
+	Channel               FlexInt  `json:"channel"`
+	ChannelFrom           FlexInt  `json:"channel_from"`
+	ChannelTo             FlexInt  `json:"channel_to"`
+	Time                  int64    `json:"time"`
 	Timestamp             int64     `json:"timestamp"`
 	Datetime              time.Time `json:"datetime"`
 	Admin                 string    `json:"admin"`
@@ -131,10 +131,10 @@ type Event struct {
 	User                  string    `json:"user"`
 	USGIP                 string    `json:"usgip"`
 	USGIPASN              string    `json:"usgipASN"`
-	USGIPCountry          string    `json:"usgipCountry"`
-	DestIPGeo             IPGeo     `json:"dstipGeo"`
-	SourceIPGeo           IPGeo     `json:"srcipGeo"`
-	USGIPGeo              IPGeo     `json:"usgipGeo"`
+	USGIPCountry          string   `json:"usgipCountry"`
+	DestIPGeo             IPGeo    `json:"dstipGeo"`
+	SourceIPGeo           IPGeo    `json:"srcipGeo"`
+	USGIPGeo              IPGeo    `json:"usgipGeo"`
 }
 
 // IPGeo is part of the UniFi Event data. Each event may have up to three of these.

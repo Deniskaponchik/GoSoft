@@ -9,8 +9,8 @@ import (
 
 // IDS holds an Intrusion Prevention System Event.
 type IDS struct {
-	Archived              FlexBool  `json:"archived"`
-	DestPort              int       `json:"dest_port,omitempty"`
+	Archived     FlexBool `json:"archived"`
+	DestPort     int      `json:"dest_port,omitempty"`
 	SrcPort               int       `json:"src_port,omitempty"`
 	FlowID                int64     `json:"flow_id"`
 	InnerAlertRev         int64     `json:"inner_alert_rev"`
@@ -47,10 +47,10 @@ type IDS struct {
 	UniqueAlertID         string    `json:"unique_alertid"`
 	USGIP                 string    `json:"usgip"`
 	USGIPASN              string    `json:"usgipASN"`
-	USGIPCountry          string    `json:"usgipCountry"`
-	DestIPGeo             IPGeo     `json:"dstipGeo"`
-	SourceIPGeo           IPGeo     `json:"srcipGeo"`
-	USGIPGeo              IPGeo     `json:"usgipGeo"`
+	USGIPCountry string   `json:"usgipCountry"`
+	DestIPGeo    IPGeo    `json:"dstipGeo"`
+	SourceIPGeo  IPGeo    `json:"srcipGeo"`
+	USGIPGeo     IPGeo    `json:"usgipGeo"`
 }
 
 // GetIDS returns Intrusion Detection Systems events for a list of Sites.

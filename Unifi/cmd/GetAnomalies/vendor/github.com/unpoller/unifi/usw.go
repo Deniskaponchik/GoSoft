@@ -118,9 +118,9 @@ type SwitchCaps struct {
 
 // MacTable is a newer feature on some switched ports.
 type MacTable struct {
-	Age           int64    `json:"age"`
-	Authorized    FlexBool `json:"authorized"`
-	Hostname      string   `json:"hostname"`
+	Age        int64    `json:"age"`
+	Authorized FlexBool `json:"authorized"`
+	Hostname   string   `json:"hostname"`
 	IP            string   `json:"ip"`
 	LastReachable int64    `json:"lastReachable"`
 	Mac           string   `json:"mac"`

@@ -151,29 +151,29 @@ type UAP struct {
 	Upgradable                    FlexBool        `json:"upgradable"`
 	UpgradeState                  FlexInt         `json:"upgrade_state"`
 	Uplink                        struct {
-		FullDuplex       FlexBool `json:"full_duplex"`
-		IP               string   `json:"ip"`
-		Mac              string   `json:"mac"`
-		MaxVlan          int      `json:"max_vlan"`
-		Name             string   `json:"name"`
-		Netmask          string   `json:"netmask"`
-		NumPort          int      `json:"num_port"`
-		RxBytes          FlexInt  `json:"rx_bytes"`
-		RxDropped        FlexInt  `json:"rx_dropped"`
-		RxErrors         FlexInt  `json:"rx_errors"`
-		RxMulticast      FlexInt  `json:"rx_multicast"`
-		RxPackets        FlexInt  `json:"rx_packets"`
-		Speed            FlexInt  `json:"speed"`
-		TxBytes          FlexInt  `json:"tx_bytes"`
-		TxDropped        FlexInt  `json:"tx_dropped"`
-		TxErrors         FlexInt  `json:"tx_errors"`
-		TxPackets        FlexInt  `json:"tx_packets"`
-		Up               FlexBool `json:"up"`
-		MaxSpeed         FlexInt  `json:"max_speed"`
-		Type             string   `json:"type"`
-		TxBytesR         FlexInt  `json:"tx_bytes-r"`
-		RxBytesR         FlexInt  `json:"rx_bytes-r"`
-		UplinkMac        string   `json:"uplink_mac"`
+		FullDuplex  FlexBool `json:"full_duplex"`
+		IP          string   `json:"ip"`
+		Mac         string   `json:"mac"`
+		MaxVlan     int      `json:"max_vlan"`
+		Name        string   `json:"name"`
+		Netmask     string   `json:"netmask"`
+		NumPort     int      `json:"num_port"`
+		RxBytes     FlexInt  `json:"rx_bytes"`
+		RxDropped   FlexInt  `json:"rx_dropped"`
+		RxErrors    FlexInt  `json:"rx_errors"`
+		RxMulticast FlexInt  `json:"rx_multicast"`
+		RxPackets   FlexInt  `json:"rx_packets"`
+		Speed       FlexInt  `json:"speed"`
+		TxBytes     FlexInt  `json:"tx_bytes"`
+		TxDropped   FlexInt  `json:"tx_dropped"`
+		TxErrors    FlexInt  `json:"tx_errors"`
+		TxPackets   FlexInt  `json:"tx_packets"`
+		Up          FlexBool `json:"up"`
+		MaxSpeed    FlexInt  `json:"max_speed"`
+		Type        string   `json:"type"`
+		TxBytesR    FlexInt  `json:"tx_bytes-r"`
+		RxBytesR    FlexInt  `json:"rx_bytes-r"`
+		UplinkMac   string   `json:"uplink_mac"`
 		UplinkRemotePort int      `json:"uplink_remote_port"`
 	} `json:"uplink"`
 	UplinkTable    []interface{} `json:"uplink_table"`
@@ -553,52 +553,52 @@ type VapTable []struct {
 		Total      FlexInt `json:"total"`
 		TotalCount FlexInt `json:"total_count"`
 	} `json:"wifi_tx_latency_mov"`
-	ApMac               string      `json:"ap_mac"`
-	AvgClientSignal     FlexInt     `json:"avg_client_signal"`
-	Bssid               string      `json:"bssid"`
-	Ccq                 int         `json:"ccq"`
-	Channel             FlexInt     `json:"channel"`
-	DNSAvgLatency       FlexInt     `json:"dns_avg_latency"`
-	Essid               string      `json:"essid"`
+	ApMac               string   `json:"ap_mac"`
+	AvgClientSignal     FlexInt  `json:"avg_client_signal"`
+	Bssid               string   `json:"bssid"`
+	Ccq                 int      `json:"ccq"`
+	Channel             FlexInt  `json:"channel"`
+	DNSAvgLatency       FlexInt  `json:"dns_avg_latency"`
+	Essid               string   `json:"essid"`
 	Extchannel          int         `json:"extchannel"`
-	ID                  string      `json:"id"`
-	IsGuest             FlexBool    `json:"is_guest"`
-	IsWep               FlexBool    `json:"is_wep"`
-	MacFilterRejections int         `json:"mac_filter_rejections"`
+	ID                  string   `json:"id"`
+	IsGuest             FlexBool `json:"is_guest"`
+	IsWep               FlexBool `json:"is_wep"`
+	MacFilterRejections int      `json:"mac_filter_rejections"`
 	MapID               interface{} `json:"map_id"`
-	Name                string      `json:"name"`
-	NumSatisfactionSta  FlexInt     `json:"num_satisfaction_sta"`
-	NumSta              int         `json:"num_sta"`
+	Name                string   `json:"name"`
+	NumSatisfactionSta  FlexInt  `json:"num_satisfaction_sta"`
+	NumSta              int      `json:"num_sta"`
 	Radio               string      `json:"radio"`
-	RadioName           string      `json:"radio_name"`
-	RxBytes             FlexInt     `json:"rx_bytes"`
-	RxCrypts            FlexInt     `json:"rx_crypts"`
-	RxDropped           FlexInt     `json:"rx_dropped"`
-	RxErrors            FlexInt     `json:"rx_errors"`
-	RxFrags             FlexInt     `json:"rx_frags"`
-	RxNwids             FlexInt     `json:"rx_nwids"`
-	RxPackets           FlexInt     `json:"rx_packets"`
-	Satisfaction        FlexInt     `json:"satisfaction"`
-	SatisfactionNow     FlexInt     `json:"satisfaction_now"`
-	SiteID              string      `json:"site_id"`
+	RadioName           string   `json:"radio_name"`
+	RxBytes             FlexInt  `json:"rx_bytes"`
+	RxCrypts            FlexInt  `json:"rx_crypts"`
+	RxDropped           FlexInt  `json:"rx_dropped"`
+	RxErrors            FlexInt  `json:"rx_errors"`
+	RxFrags             FlexInt  `json:"rx_frags"`
+	RxNwids             FlexInt  `json:"rx_nwids"`
+	RxPackets           FlexInt  `json:"rx_packets"`
+	Satisfaction        FlexInt  `json:"satisfaction"`
+	SatisfactionNow     FlexInt  `json:"satisfaction_now"`
+	SiteID              string   `json:"site_id"`
 	State               string      `json:"state"`
-	T                   string      `json:"t"`
-	TxBytes             FlexInt     `json:"tx_bytes"`
-	TxCombinedRetries   FlexInt     `json:"tx_combined_retries"`
-	TxDataMpduBytes     FlexInt     `json:"tx_data_mpdu_bytes"`
-	TxDropped           FlexInt     `json:"tx_dropped"`
-	TxErrors            FlexInt     `json:"tx_errors"`
-	TxPackets           FlexInt     `json:"tx_packets"`
-	TxPower             FlexInt     `json:"tx_power"`
-	TxRetries           FlexInt     `json:"tx_retries"`
-	TxRtsRetries        FlexInt     `json:"tx_rts_retries"`
-	TxSuccess           FlexInt     `json:"tx_success"`
-	TxTotal             FlexInt     `json:"tx_total"`
-	Up                  FlexBool    `json:"up"`
-	Usage               string      `json:"usage"`
-	WifiTxAttempts      FlexInt     `json:"wifi_tx_attempts"`
-	WifiTxDropped       FlexInt     `json:"wifi_tx_dropped"`
-	WlanconfID          string      `json:"wlanconf_id"`
+	T                   string   `json:"t"`
+	TxBytes             FlexInt  `json:"tx_bytes"`
+	TxCombinedRetries   FlexInt  `json:"tx_combined_retries"`
+	TxDataMpduBytes     FlexInt  `json:"tx_data_mpdu_bytes"`
+	TxDropped           FlexInt  `json:"tx_dropped"`
+	TxErrors            FlexInt  `json:"tx_errors"`
+	TxPackets           FlexInt  `json:"tx_packets"`
+	TxPower             FlexInt  `json:"tx_power"`
+	TxRetries           FlexInt  `json:"tx_retries"`
+	TxRtsRetries        FlexInt  `json:"tx_rts_retries"`
+	TxSuccess           FlexInt  `json:"tx_success"`
+	TxTotal             FlexInt  `json:"tx_total"`
+	Up                  FlexBool `json:"up"`
+	Usage               string   `json:"usage"`
+	WifiTxAttempts      FlexInt  `json:"wifi_tx_attempts"`
+	WifiTxDropped       FlexInt  `json:"wifi_tx_dropped"`
+	WlanconfID          string   `json:"wlanconf_id"`
 }
 
 // RogueAP are your neighbors access points.

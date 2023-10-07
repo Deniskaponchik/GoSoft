@@ -41,17 +41,17 @@ type Config struct {
 	DBName               string            // Database name
 	Params               map[string]string // Connection parameters
 	ConnectionAttributes string            // Connection Attributes, comma-delimited string of user-defined "key:value" pairs
-	Collation            string            // Connection collation
-	Loc                  *time.Location    // Location for time.Time values
-	MaxAllowedPacket     int               // Max packet size allowed
-	ServerPubKey         string            // Server public key name
-	pubKey               *rsa.PublicKey    // Server public key
-	TLSConfig            string            // TLS configuration name
-	TLS                  *tls.Config       // TLS configuration, its priority is higher than TLSConfig
-	Timeout              time.Duration     // Dial timeout
-	ReadTimeout          time.Duration     // I/O read timeout
-	WriteTimeout         time.Duration     // I/O write timeout
-	Logger               Logger            // Logger
+	Collation        string                // Connection collation
+	Loc              *time.Location        // Location for time.Time values
+	MaxAllowedPacket int                   // Max packet size allowed
+	ServerPubKey     string                // Server public key name
+	pubKey           *rsa.PublicKey        // Server public key
+	TLSConfig        string                // TLS configuration name
+	TLS              *tls.Config           // TLS configuration, its priority is higher than TLSConfig
+	Timeout          time.Duration         // Dial timeout
+	ReadTimeout      time.Duration         // I/O read timeout
+	WriteTimeout     time.Duration         // I/O write timeout
+	Logger           Logger                // Logger
 
 	AllowAllFiles            bool // Allow all files to be used with LOAD DATA LOCAL INFILE
 	AllowCleartextPasswords  bool // Allows the cleartext client side plugin

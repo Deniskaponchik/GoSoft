@@ -7,8 +7,8 @@ import (
 )
 
 type Alarm struct {
-	Archived              FlexBool  `json:"archived"`
-	DestPort              int       `json:"dest_port"`
+	Archived     FlexBool `json:"archived"`
+	DestPort     int      `json:"dest_port"`
 	SrcPort               int       `json:"src_port"`
 	FlowID                int64     `json:"flow_id"`
 	InnerAlertGID         int64     `json:"inner_alert_gid"`
@@ -47,11 +47,11 @@ type Alarm struct {
 	UniqueAlertID         string    `json:"unique_alertid"`
 	USGIP                 string    `json:"usgip"`
 	USGIPASN              string    `json:"usgipASN"`
-	USGIPCountry          string    `json:"usgipCountry"`
-	TxID                  FlexInt   `json:"tx_id,omitempty"`
-	DestIPGeo             IPGeo     `json:"dstipGeo"`
-	SourceIPGeo           IPGeo     `json:"usgipGeo"`
-	USGIPGeo              IPGeo     `json:"srcipGeo,omitempty"`
+	USGIPCountry string   `json:"usgipCountry"`
+	TxID         FlexInt  `json:"tx_id,omitempty"`
+	DestIPGeo    IPGeo    `json:"dstipGeo"`
+	SourceIPGeo  IPGeo    `json:"usgipGeo"`
+	USGIPGeo     IPGeo    `json:"srcipGeo,omitempty"`
 }
 
 // GetAlarms returns Alarms for a list of Sites.

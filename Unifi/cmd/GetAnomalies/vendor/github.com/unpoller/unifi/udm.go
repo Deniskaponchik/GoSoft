@@ -230,10 +230,10 @@ type NetworkTable []struct {
 // Storage is hard drive into for a device with storage.
 type Storage struct {
 	MountPoint string  `json:"mount_point"`
-	Name       string  `json:"name"`
-	Size       FlexInt `json:"size"`
-	Type       string  `json:"type"`
-	Used       FlexInt `json:"used"`
+	Name string  `json:"name"`
+	Size FlexInt `json:"size"`
+	Type string  `json:"type"`
+	Used FlexInt `json:"used"`
 }
 
 type Temperature struct {

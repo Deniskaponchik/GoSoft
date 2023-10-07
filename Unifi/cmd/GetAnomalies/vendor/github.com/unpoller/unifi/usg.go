@@ -173,10 +173,10 @@ type SpeedtestStatus struct {
 type SpeedtestServer struct {
 	Cc          string  `json:"cc"`
 	City        string  `json:"city"`
-	Country     string  `json:"country"`
-	Lat         FlexInt `json:"lat"`
-	Lon         FlexInt `json:"lon"`
-	Provider    string  `json:"provider"`
+	Country  string  `json:"country"`
+	Lat      FlexInt `json:"lat"`
+	Lon      FlexInt `json:"lon"`
+	Provider string  `json:"provider"`
 	ProviderURL string  `json:"provider_url"`
 }
 

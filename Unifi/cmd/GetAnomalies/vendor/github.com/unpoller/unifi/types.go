@@ -95,10 +95,10 @@ type Config struct {
 	User      string
 	Pass      string
 	URL       string
-	SSLCert   [][]byte
-	ErrorLog  Logger
-	DebugLog  Logger
-	Timeout   time.Duration // how long to wait for replies, default: forever.
+	SSLCert  [][]byte
+	ErrorLog Logger
+	DebugLog Logger
+	Timeout  time.Duration // how long to wait for replies, default: forever.
 	VerifySSL bool
 }
 
