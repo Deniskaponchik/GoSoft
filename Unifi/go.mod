@@ -2,7 +2,10 @@ module github.com/deniskaponchik/GoSoft/Unifi
 
 go 1.20
 
-require github.com/unpoller/unifi v0.3.15
+require (
+	github.com/go-sql-driver/mysql v1.7.1
+	github.com/unpoller/unifi v0.3.15
+)
 
 require (
 	github.com/brianvoe/gofakeit/v6 v6.23.0 // indirect

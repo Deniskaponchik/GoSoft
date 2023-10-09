@@ -1,11 +1,19 @@
 package main
 
 import (
-	//b "Unifi/config"
-	// "./config"
-	//"../GoSoft/Unifi/config"
+	//"../config"
+	//"../internal/app"
+	"github.com/deniskaponchik/GoSoft/Unifi/config"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/app"
 	"log"
 )
+
+/*
+"../config"
+"../internal/app"
+"github.com/deniskaponchik/GoSoft/Unifi/config"
+"github.com/deniskaponchik/GoSoft/Unifi/internal/app"
+*/
 
 func main() {
 	//cfg, err := config.NewConfig()
@@ -14,6 +22,6 @@ func main() {
 		log.Fatalf("Config error: %s", err)
 	}
 
-	// Run
-	app.Run(cfg)
+	// app.Run(cfg)
+	app.PolyRun(cfg)
 }

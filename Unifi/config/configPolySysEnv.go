@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"log"
@@ -24,7 +24,7 @@ type PolyConfig struct {
 	GlpiConnectStringGlpi      string
 }
 
-func NewPolyConfig() *PolyConfig {
+func NewPolyConfig() (*PolyConfig, error) {
 	return &PolyConfig{
 		//OneDrive: getEnv("OneDrive", ""),
 		PolyUsername:               getEnv("POLY_USERNAME", ""),
@@ -35,7 +35,7 @@ func NewPolyConfig() *PolyConfig {
 		SoapTest:                   getEnv("SOAP_TEST", ""),
 		GlpiConnectStringITsupport: getEnv("GLPI_CONNECT_STR_ITSUP", ""),
 		GlpiConnectStringGlpi:      getEnv("GLPI_CONNECT_STR_GLPI", ""),
-	}
+	}, nil
 }
 
 type PolyConfigExt struct {

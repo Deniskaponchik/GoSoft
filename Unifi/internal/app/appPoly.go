@@ -1,16 +1,24 @@
-package main
+package app
 
 import (
 	"fmt"
+	"github.com/deniskaponchik/GoSoft/Unifi/config"
+	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/infrastructure/http"
+	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/infrastructure/ping"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/infrastructure/repo"
+	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/infrastructure/webapi"
 	"strconv"
 	"strings"
 	"time"
 	//"github.com/go-ping/ping"
+	//"../config"
+	//"../internal/infrastructure/repo"
 )
 
-func main() {
+func PolyRun(cfg *config.PolyConfig) {
 	fmt.Println("")
-	polyConf := NewPolyConfig()
+	//polyConf := NewPolyConfig()
+	polyConf := cfg
 
 	/*
 		every20Code := map[int]bool{
@@ -55,10 +63,10 @@ func main() {
 	reboot := 0
 
 	srStatusCodesForNewTicket := map[string]bool{
-		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-		"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+		"Отменено":                  true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
+		"Решено":                    true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
+		"Закрыто":                   true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
+		"На уточнении":              true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 		"Тикет введён не корректно": true,
 		//"": true,
 	}
@@ -70,7 +78,8 @@ func main() {
 
 	//Download MAPs from DB
 	polyMap := map[string]PolyStruct{} //просто создаю пустую
-	polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
+	//polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
+	polyMap = repo.DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
 
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
