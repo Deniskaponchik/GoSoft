@@ -23,7 +23,7 @@ func main() {
 	}
 
 	// if everything went well res.ID should have its
-	// value set with the one returned by the service.
+	// value set with the one returned by the webapi.
 	fmt.Println(res.ID)
 }
 */

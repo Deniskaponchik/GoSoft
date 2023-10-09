@@ -33,7 +33,7 @@ func CreateSmacWiFiTicket(
 		*/
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+				"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
 				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
@@ -157,7 +157,7 @@ func CreateApTicket(
 	incidentType := "Недоступна точка доступа"
 	strBefore :=
 		"<soapenv:Envelope " +
-			"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+			"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
 			"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 			"<soapenv:Header/>" +
 			"<soapenv:Body>" +
@@ -271,7 +271,7 @@ func CreateAnomalyTicket(
 	//region := "Москва ЦФ"
 	strBefore :=
 		"<soapenv:Envelope " +
-			"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+			"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
 			"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 			"<soapenv:Header/>" +
 			"<soapenv:Body>" +
@@ -375,7 +375,7 @@ func CheckTicketStatus(bpmServer string, srID string) (statusSlice []string) {
 
 		//srID := "f0074e96-1ab9-4f63-af29-0acd933b49e8"
 		//Убрать из строки \n
-		strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+		strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
 		replacer := strings.NewReplacer("SRid", srID)
 		strAfter := replacer.Replace(strBefore)
 		payload := []byte(strAfter)
@@ -451,7 +451,7 @@ func ChangeStatus(soapServer string, srID string, NewStatus string) (srNewStatus
 	//NewStatus := "Отменено"
 
 	//Убрать из строки \n
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/http/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("SRid", srID, "NewStatus", NewStatus, "UserLogin", UserLogin)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)
@@ -527,7 +527,7 @@ func AddComment(bpmServer string, srID string, myComment string, bpmUrl string) 
 
 	//Убрать из строки \n
 	//strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/http/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("srID", srID, "myComment", myComment, "userLogin", userLogin)
 	strAfter := replacer.Replace(strBefore)
 	//fmt.Println(strAfter)

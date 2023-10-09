@@ -1,0 +1,10 @@
+github.com/brianvoe/gofakeit/v6 v6.23.0 h1:pgVhyWpYq4e0GEVCh2gdZnS/nBX+8SnyTBliHg5xjks=
+github.com/brianvoe/gofakeit/v6 v6.23.0/go.mod h1:Ow6qC71xtwm79anlwKRlWZW6zVq9D2XHE4QSSMP/rU8=
+github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
+github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
+github.com/unpoller/unifi v0.3.15 h1:UsN1VhU1Ufy4VLGxQgE5Aq2GUhXgqzPLy2lgvKAEeyU=
+github.com/unpoller/unifi v0.3.15/go.mod h1:aubNKie2j5AcqW3G9m/th4G8SSULVgeDEr6gj4SVJzo=
+golang.org/x/net v0.12.0 h1:cfawfvKITfUsFCeJIHJrbSxpeu/E81khclypR0GVT50=
+golang.org/x/net v0.12.0/go.mod h1:zEVYFnQC7m/vmpQFELhcD1EWkZlX69l4oqgmer6hfKA=
+gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=

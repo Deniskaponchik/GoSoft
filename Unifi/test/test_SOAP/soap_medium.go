@@ -78,7 +78,7 @@ func main() {
 func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewStatus string) {
 	UserLogin := "denis.tirskikh"
 	//Убрать из строки \n
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/http/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("SRid", srID, "NewStatus", NewStatus, "UserLogin", UserLogin)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)
@@ -184,7 +184,7 @@ func mainCHANGE(soapServer string, srID string, NewStatus string) (srNewStatus s
 	//NewStatus := "Отменено"
 
 	//Убрать из строки \n
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/http/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("SRid", srID, "NewStatus", NewStatus, "UserLogin", UserLogin)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)
@@ -256,7 +256,7 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 	userLogin := "denis.tirskikh"
 	//Убрать из строки \n
 	//strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/http/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("srID", srID, "myComment", myComment, "userLogin", userLogin)
 	strAfter := replacer.Replace(strBefore)
 	//fmt.Println(strAfter)
@@ -363,7 +363,7 @@ func mainCOMMENT(soapServer string) {
 	myComment := "Моё первое сервисное сообщение!"
 
 	//Убрать из строки \n
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/http/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("srID", srID, "myComment", myComment, "userLogin", userLogin)
 	strAfter := replacer.Replace(strBefore)
 	//fmt.Println(strAfter)
@@ -436,7 +436,7 @@ func CheckTicketStatusErr(soapServer string, srID string) (statusSlice []string)
 	if len(srID) == 36 {
 		//url := bpmServer
 		//Убрать из строки \n
-		strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+		strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
 		replacer := strings.NewReplacer("SRid", srID)
 		strAfter := replacer.Replace(strBefore)
 		payload := []byte(strAfter)
@@ -559,7 +559,7 @@ func mainCHECK(soapServer string) {
 	url := soapServer
 	srID := "f0074e96-1ab9-4f63-af29-0acd933b49e8"
 	//Убрать из строки \n
-	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
 	replacer := strings.NewReplacer("SRid", srID)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)
@@ -628,7 +628,7 @@ func CreatePolyTicketErr(
 	if userLogin != "" {
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+				"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
 				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
@@ -795,7 +795,7 @@ func CreateWiFiTicketErr(
 	if userLogin != "" {
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+				"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
 				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
@@ -964,7 +964,7 @@ func CreateSmacWiFiTicketErr(
 		*/
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+				"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
 				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
@@ -1136,7 +1136,7 @@ func mainCreateAnomalyTicket() {
 	//strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:createRequestRequest><SystemId>5594b877-3bb7-46db-99f5-3c75b3e46556</SystemId><ServiceId>ed84a37f-4b31-4dab-85fe-ba4fe87325b1</ServiceId><Subject>Description</Subject><UserName>UserLogin</UserName><RequestType>Request</RequestType><Priority>Normal</Priority><Filds><ID>5c8dee23-e48a-45bc-a084-573e1a6cc5ca</ID><Value>Region</Value></Filds><Filds><ID>bde054e7-2b91-41c1-abba-2dcbe3a8f3f4</ID><Value>incidentType</Value></Filds></bpm:createRequestRequest></soapenv:Body></soapenv:Envelope>"
 	strBefore :=
 		"<soapenv:Envelope " +
-			"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+			"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
 			"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 			"<soapenv:Header/>" +
 			"<soapenv:Body>" +
@@ -1385,7 +1385,7 @@ func mainCreateZabbixTicket() {
 
 	url := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType" //PROD
 	//url := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
-	userlogin := "service.monbpget"
+	userlogin := "webapi.monbpget"
 	/*
 		aps := []string{
 			"NOV-FL2-CONFROOM-01",
@@ -1403,7 +1403,7 @@ func mainCreateZabbixTicket() {
 	description := "Problem on host: " + controller + "\n" + "Problem is [Северо-Запад] UAP " + apName + " is disconnected > 30 min: PROBLEM" + "\n" + ""
 	region := "Северо-Запад"
 
-	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:createRequestRequest><SystemId>5594b877-3bb7-46db-99f5-3c75b3e46556</SystemId><ServiceId>ed84a37f-4b31-4dab-85fe-ba4fe87325b1</ServiceId><Subject>Description</Subject><UserName>UserLogin</UserName><RequestType>Request</RequestType><Priority>Normal</Priority><Filds><ID>5c8dee23-e48a-45bc-a084-573e1a6cc5ca</ID><Value>Region</Value></Filds></bpm:createRequestRequest></soapenv:Body></soapenv:Envelope>"
+	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:createRequestRequest><SystemId>5594b877-3bb7-46db-99f5-3c75b3e46556</SystemId><ServiceId>ed84a37f-4b31-4dab-85fe-ba4fe87325b1</ServiceId><Subject>Description</Subject><UserName>UserLogin</UserName><RequestType>Request</RequestType><Priority>Normal</Priority><Filds><ID>5c8dee23-e48a-45bc-a084-573e1a6cc5ca</ID><Value>Region</Value></Filds></bpm:createRequestRequest></soapenv:Body></soapenv:Envelope>"
 	//replacer := strings.NewReplacer("Description", "My des", "UserLogin", "denis.tirskikh", "Region", "Москва ЦФ")
 	replacer := strings.NewReplacer("Description", description, "UserLogin", userlogin, "Region", region)
 	strAfter := replacer.Replace(strBefore)

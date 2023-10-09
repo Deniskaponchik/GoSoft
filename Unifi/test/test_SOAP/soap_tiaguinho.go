@@ -44,8 +44,8 @@ func main4353454353443() {
 		"xmlns:bpm": "http://www.bercut.com/specs/aoi/tele2/bpm",
 	})
 
-	//soap, err := gosoap.SoapClient("http://wsgeoip.lavasoft.com/ipservice.asmx?WSDL", httpClient)
-	soap, err := gosoap.SoapClient("http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType?wsdl", httpClient)
+	//http, err := gosoap.SoapClient("http://wsgeoip.lavasoft.com/ipservice.asmx?WSDL", httpClient)
+	http, err := gosoap.SoapClient("http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType?wsdl", httpClient)
 	if err != nil {
 		log.Fatalf("SoapClient error: %s", err)
 	}
@@ -56,8 +56,8 @@ func main4353454353443() {
 		"Filter": "WebTutor",
 	}
 
-	//res, err := soap.Call("GetIpLocation", params)
-	res, err := soap.Call("ReadSystems", params)
+	//res, err := http.Call("GetIpLocation", params)
+	res, err := http.Call("ReadSystems", params)
 	if err != nil {
 		log.Fatalf("Call error: %s", err)
 	}

@@ -1,6 +1,6 @@
 package main
 
-//"github.com/globusdigital/soap"
+//"github.com/globusdigital/http"
 import (
 	"encoding/xml"
 )
@@ -17,8 +17,8 @@ type FooRequest struct {
 
 /*
 func main() {
-	//client := soap.NewClient("http://127.0.0.1:8080/", nil)
-	client := soap.NewClient("http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType", nil)
+	//client := http.NewClient("http://127.0.0.1:8080/", nil)
+	client := http.NewClient("http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType", nil)
 
 	response := &FooResponse{}
 	//httpResponse, err := client.Call( "operationFoo", &FooRequest{Foo: "hello i am foo"}, response)
