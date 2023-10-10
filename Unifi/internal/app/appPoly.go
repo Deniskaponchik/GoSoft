@@ -3,16 +3,13 @@ package app
 import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/config"
-	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/infrastructure/http"
-	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/infrastructure/ping"
-	"github.com/deniskaponchik/GoSoft/Unifi/internal/infrastructure/repo"
-	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/infrastructure/webapi"
+	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
+	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/http"
+	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/ping"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/webapi"
 	"strconv"
 	"strings"
 	"time"
-	//"github.com/go-ping/ping"
-	//"../config"
-	//"../internal/infrastructure/repo"
 )
 
 func PolyRun(cfg *config.PolyConfig) {
@@ -63,10 +60,10 @@ func PolyRun(cfg *config.PolyConfig) {
 	reboot := 0
 
 	srStatusCodesForNewTicket := map[string]bool{
-		"Отменено":                  true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-		"Решено":                    true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-		"Закрыто":                   true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-		"На уточнении":              true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
+		"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
+		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
+		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 		"Тикет введён не корректно": true,
 		//"": true,
 	}
@@ -79,7 +76,7 @@ func PolyRun(cfg *config.PolyConfig) {
 	//Download MAPs from DB
 	polyMap := map[string]PolyStruct{} //просто создаю пустую
 	//polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
-	polyMap = repo.DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
+	polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
 
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
@@ -142,7 +139,7 @@ func PolyRun(cfg *config.PolyConfig) {
 					if v.PolyType == 1 {
 						vcsType = "Codec"
 						//commentUnreach = "Codec не отвечает на API-запросы"
-						statusReach = apiLineInfo(ip, polyConf.PolyUsername, polyConf.PolyPassword)
+						statusReach = webapi.apiLineInfo(ip, polyConf.PolyUsername, polyConf.PolyPassword)
 					} else {
 						vcsType = "Visual"
 						//commentUnreach = "Visual не доступен по http"
@@ -413,30 +410,3 @@ func PolyRun(cfg *config.PolyConfig) {
 	} // while TRUE
 
 } //main func
-
-type PolyStruct struct {
-	IP        string
-	Region    string
-	RoomName  string
-	Login     string
-	SrID      string
-	PolyType  int
-	Comment   int
-	Exception int
-}
-
-/*
-type ForPolyTicket struct {
-	site          string
-	countIncident int
-	apsMacName    map[string]string
-}*/
-
-func cointains(slice []string, compareString string) bool {
-	for _, v := range slice {
-		if v == compareString {
-			return true
-		}
-	}
-	return false
-}

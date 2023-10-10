@@ -4,13 +4,13 @@ package repo
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/go-sql-driver/mysql"
+	//"github.com/go-sql-driver/mysql"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"time"
 )
 
 func UpdateMapsToDBerr(datasource string, queries []string) {
-	//datasource := ""
-
 	myError := 1
 	for myError != 0 {
 		if db, errSqlOpen := sql.Open("mysql", datasource); errSqlOpen == nil {
@@ -133,7 +133,7 @@ func DownloadMapFromDBvcsErr(datasource string) map[string]PolyStruct {
 		Exception int    `json:"exception"`
 	}
 
-	m := make(map[string]PolyStruct)
+	m := make(map[string]entity.PolyStruct)
 	//datasource := ""
 
 	myError := 1
@@ -153,7 +153,7 @@ func DownloadMapFromDBvcsErr(datasource string) map[string]PolyStruct {
 							errScan := results.Scan(&tag.Mac, &tag.IP, &tag.Region, &tag.RoomName, &tag.Login, &tag.SrID, &tag.PolyType, &tag.Comment, &tag.Exception)
 							if errScan == nil {
 								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
-								m[tag.Mac] = PolyStruct{
+								m[tag.Mac] = entity.PolyStruct{
 									tag.IP,
 									tag.Region,
 									tag.RoomName,
