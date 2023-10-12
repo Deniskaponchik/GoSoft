@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/tatsushid/go-fastping"
 	"net"
 	"os"
 	"time"
@@ -18,7 +17,7 @@ func fastPing(ipString string) {
 
 	p := fastping.NewPinger()
 
-	//ra, err := net.ResolveIPAddr("ip4:icmp", os.Args[1])
+	//ra, err := netdial.ResolveIPAddr("ip4:icmp", os.Args[1])
 	ra, err := net.ResolveIPAddr("ip4:icmp", ipString)
 	if err != nil {
 		fmt.Println(err)

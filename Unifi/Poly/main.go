@@ -136,7 +136,7 @@ func main() {
 						statusReach = apiLineInfo(ip, polyConf.PolyUsername, polyConf.PolyPassword)
 					} else {
 						vcsType = "Visual"
-						//commentUnreach = "Visual не доступен по http"
+						//commentUnreach = "Visual не доступен по netdial"
 						statusReach = netDialTmtErr(ip)
 					}
 
@@ -301,7 +301,7 @@ func main() {
 					if vcs.PolyType == 1 {
 						vcsInfo = append(vcsInfo, "Codec не отвечает на API-запросы")
 					} else {
-						vcsInfo = append(vcsInfo, "Visual недоступен по http")
+						vcsInfo = append(vcsInfo, "Visual недоступен по netdial")
 					}
 					vcsInfo = append(vcsInfo, "")
 					usrLogin = vcs.Login

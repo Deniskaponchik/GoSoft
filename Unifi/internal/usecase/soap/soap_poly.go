@@ -1,18 +1,18 @@
-package main
+package soap
 
-//test_SOAP/soap_medium
-import (
-	"encoding/xml"
-	"fmt"
-	"io"
-	"strings"
-	"time"
-)
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/xml"
+	"fmt"
+	"io"
 	"net/http"
+	"strings"
+	"time"
 )
+
+type PolySoap struct {
+}
 
 func CreatePolyTicketErr(
 	soapServer string, bpmUrl string, userLogin string, description string, reason string, region string, monitoring string, incidentType string) (

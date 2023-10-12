@@ -67,7 +67,7 @@ func NOT32423442main() {
 	}
 
 	url := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType"
-	//req, err := http.NewRequest("POST", url, bytes.NewBuffer(xmlBytes))
+	//req, err := netdial.NewRequest("POST", url, bytes.NewBuffer(xmlBytes))
 	req, err := http.NewRequest("GET", url, bytes.NewBuffer(xmlBytes))
 	if err != nil {
 		log.Fatal(err)

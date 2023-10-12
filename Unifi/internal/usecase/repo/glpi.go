@@ -4,11 +4,20 @@ package repo
 import (
 	"database/sql"
 	"fmt"
-	//_ "github.com/go-sql-driver/mysql"
 	//"github.com/go-sql-driver/mysql"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"time"
 )
+
+type PolyRepo struct {
+	*sql.???
+}
+
+//реализуем Инъекцию зависимостей DI. Используется в app
+func New(){
+
+}
+
 
 func UpdateMapsToDBerr(datasource string, queries []string) {
 	myError := 1

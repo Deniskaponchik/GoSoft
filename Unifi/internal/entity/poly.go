@@ -3,12 +3,13 @@
 package entity
 
 type PolyStruct struct {
+	Mac       string `json:"mac"        example:"a0-b1-c2-d3-e4-f5"`
 	IP        string `json:"ip"         example:"10.68.24.157"`
 	Region    string `json:"region"     example:"Волгоград"`
-	RoomName  string `json:"roomName"   example:"Ахтуба"`
+	RoomName  string `json:"room_name"  example:"Ахтуба"`
 	Login     string `json:"login"      example:"vasya.pupkin"`
-	SrID      string `json:"srID"       example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
-	PolyType  int    `json:"polyType"   example:"1"`
+	SrID      string `json:"srid"       example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
+	PolyType  int    `json:"type"       example:"1"`
 	Comment   int    `json:"comment"    example:"1"`
 	Exception int    `json:"exception"  example:"1"`
 }

@@ -3,19 +3,36 @@ package app
 import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/config"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
 	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
-	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/http"
+	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/netdial"
 	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/ping"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
+	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/webapi"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func PolyRun(cfg *config.PolyConfig) {
+// Run creates objects via constructors.
+func PolyRun(cfg *config.Config) {
 	fmt.Println("")
+
 	//polyConf := NewPolyConfig()
-	polyConf := cfg
+	//polyConf := cfg
+	cfg
+
+	polyGLPI, err := polyMySQL.New(polyConf.GlpiConnectStringITsupport)
+	if err != nil {
+		//
+	}
+	polyUseCase := usecase.New(
+		repo.New(),
+		webapi.New(cfg.PolyUsername, cfg.PolyPassword),
+		http.New(),
+		soap.New(),
+	)
 
 	/*
 		every20Code := map[int]bool{
@@ -142,7 +159,7 @@ func PolyRun(cfg *config.PolyConfig) {
 						statusReach = webapi.apiLineInfo(ip, polyConf.PolyUsername, polyConf.PolyPassword)
 					} else {
 						vcsType = "Visual"
-						//commentUnreach = "Visual не доступен по http"
+						//commentUnreach = "Visual не доступен по netdial"
 						statusReach = netDialTmtErr(ip)
 					}
 
@@ -307,7 +324,7 @@ func PolyRun(cfg *config.PolyConfig) {
 					if vcs.PolyType == 1 {
 						vcsInfo = append(vcsInfo, "Codec не отвечает на API-запросы")
 					} else {
-						vcsInfo = append(vcsInfo, "Visual недоступен по http")
+						vcsInfo = append(vcsInfo, "Visual недоступен по netdial")
 					}
 					vcsInfo = append(vcsInfo, "")
 					usrLogin = vcs.Login

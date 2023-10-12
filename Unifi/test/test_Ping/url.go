@@ -16,11 +16,11 @@ func netDialTmt(ipString string) {
 
 	url := ipString + ":" + "80"
 
-	//	Dial("tcp", "golang.org:http")
-	//	Dial("tcp", "192.0.2.1:http")
+	//	Dial("tcp", "golang.org:netdial")
+	//	Dial("tcp", "192.0.2.1:netdial")
 	//	Dial("tcp", "198.51.100.1:80")
-	//conn, err := net.DialTimeout("tcp","mysyte:myport", timeout)
-	//conn, err := net.DialTimeout("tcp", url, timeout)
+	//conn, err := netdial.DialTimeout("tcp","mysyte:myport", timeout)
+	//conn, err := netdial.DialTimeout("tcp", url, timeout)
 	_, err := net.DialTimeout("tcp", url, timeout)
 	if err != nil {
 		log.Println("Site unreachable, error: ", err)

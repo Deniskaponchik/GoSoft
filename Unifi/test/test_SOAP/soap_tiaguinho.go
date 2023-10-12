@@ -5,7 +5,7 @@ import (
 	"encoding/xml"
 	"github.com/tiaguinho/gosoap"
 	"log"
-	"net/http"
+	"netdial/netdial"
 	"time"
 )
 
@@ -35,7 +35,7 @@ var (
 )
 
 func main4353454353443() {
-	httpClient := &http.Client{
+	httpClient := &netdial.Client{
 		Timeout: 1500 * time.Millisecond,
 	}
 	gosoap.SetCustomEnvelope("soapenv", map[string]string{
@@ -44,8 +44,8 @@ func main4353454353443() {
 		"xmlns:bpm": "http://www.bercut.com/specs/aoi/tele2/bpm",
 	})
 
-	//http, err := gosoap.SoapClient("http://wsgeoip.lavasoft.com/ipservice.asmx?WSDL", httpClient)
-	http, err := gosoap.SoapClient("http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType?wsdl", httpClient)
+	//netdial, err := gosoap.SoapClient("http://wsgeoip.lavasoft.com/ipservice.asmx?WSDL", httpClient)
+	netdial, err := gosoap.SoapClient("http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType?wsdl", httpClient)
 	if err != nil {
 		log.Fatalf("SoapClient error: %s", err)
 	}
@@ -56,8 +56,8 @@ func main4353454353443() {
 		"Filter": "WebTutor",
 	}
 
-	//res, err := http.Call("GetIpLocation", params)
-	res, err := http.Call("ReadSystems", params)
+	//res, err := netdial.Call("GetIpLocation", params)
+	res, err := netdial.Call("ReadSystems", params)
 	if err != nil {
 		log.Fatalf("Call error: %s", err)
 	}

@@ -27,7 +27,7 @@ type Handler interface {
 	ServeHTTP(ResponseWriter, *Request)
 }
 
-ServeHTTP(res http.ResponseWriter, req *http.Request)
+ServeHTTP(res netdial.ResponseWriter, req *netdial.Request)
 
 type ResponseWriter interface {
 	Header() Header

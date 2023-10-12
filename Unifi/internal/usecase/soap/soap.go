@@ -1,4 +1,4 @@
-package main
+package soap
 
 //test_SOAP/soap_medium
 import (

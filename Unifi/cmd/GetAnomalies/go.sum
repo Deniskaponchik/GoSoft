@@ -1,6 +1,0 @@
-github.com/go-sql-driver/mysql v1.7.1 h1:lUIinVbN1DY0xBg0eMOzmmtGoHwWBbvnWubQUrtU8EI=
-github.com/go-sql-driver/mysql v1.7.1/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
-github.com/unpoller/unifi v0.3.3 h1:bnysdsk1qsKK1ZrQuHTwJvfxWhY/8p0rnonGkJ6UNjM=
-github.com/unpoller/unifi v0.3.3/go.mod h1:DvHu7qM7idlZeORTh7dyQqxtWsuCMrZb1mtYUchJl7s=
-golang.org/x/net v0.11.0 h1:Gi2tvZIJyBtO9SDr1q9h5hEQCp/4L2RQ+ar0qjx2oNU=
-golang.org/x/net v0.11.0/go.mod h1:2L/ixqYpgIVXmeoSA/4Lu7BzTG4KIyPIryS4IsOd1oQ=

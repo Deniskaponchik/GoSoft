@@ -22,8 +22,8 @@ func CreateWiFiTicketErr(
 	if userLogin != "" {
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
-				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
+				"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
 				"<bpm:createRequestRequest>" +
@@ -82,7 +82,7 @@ func CreateWiFiTicketErr(
 
 		myError := 1
 		for myError != 0 {
-			//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+			//req, err :=	netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
 			req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 			if errHttpReq == nil {
 				client := &http.Client{
@@ -189,8 +189,8 @@ func CreateSmacWiFiTicketErr(
 	if userLogin != "" {
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
-				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
+				"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
 				"<bpm:createRequestRequest>" +
@@ -239,7 +239,7 @@ func CreateSmacWiFiTicketErr(
 
 		myError := 1
 		for myError != 0 {
-			//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+			//req, err :=	netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
 			req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 			if errHttpReq == nil {
 				client := &http.Client{
@@ -350,8 +350,8 @@ func CreateSmacWiFiTicket(
 		*/
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
-				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
+				"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
 				"<bpm:createRequestRequest>" +
@@ -461,8 +461,8 @@ func CreateApTicketErr(
 	if userLogin != "" {
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
-				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
+				"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
 				"<bpm:createRequestRequest>" +
@@ -511,7 +511,7 @@ func CreateApTicketErr(
 
 		myError := 1
 		for myError != 0 {
-			//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+			//req, err :=	netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
 			req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 			if errHttpReq == nil {
 				client := &http.Client{
@@ -623,8 +623,8 @@ func CreateApTicket(
 	incidentType := "Недоступна точка доступа"
 	strBefore :=
 		"<soapenv:Envelope " +
-			"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
-			"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
+			"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
+			"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
 			"<soapenv:Header/>" +
 			"<soapenv:Body>" +
 			"<bpm:createRequestRequest>" +
@@ -719,8 +719,8 @@ func CreateAnomalyTicketErr(
 	if userLogin != "" {
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
-				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
+				"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
 				"<bpm:createRequestRequest>" +
@@ -779,7 +779,7 @@ func CreateAnomalyTicketErr(
 
 		myError := 1
 		for myError != 0 {
-			//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+			//req, err :=	netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
 			req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 			if errHttpReq == nil {
 				client := &http.Client{
@@ -896,8 +896,8 @@ func CreateAnomalyTicket(
 	//region := "Москва ЦФ"
 	strBefore :=
 		"<soapenv:Envelope " +
-			"xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" " +
-			"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
+			"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
+			"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
 			"<soapenv:Header/>" +
 			"<soapenv:Body>" +
 			"<bpm:createRequestRequest>" +
@@ -996,7 +996,7 @@ func CreateAnomalyTicket(
 func CheckTicketStatusErr(soapServer string, srID string) (status string) {
 	//if len(srID) == 36 {
 	//Убрать из строки \n
-	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+	strBefore := "<soapenv:Envelope xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
 	replacer := strings.NewReplacer("SRid", srID)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)
@@ -1021,7 +1021,7 @@ func CheckTicketStatusErr(soapServer string, srID string) (status string) {
 
 	myError := 1
 	for myError != 0 {
-		//req, errHttpReq := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		//req, errHttpReq := netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 		if errHttpReq == nil {
 			client := &http.Client{
@@ -1126,7 +1126,7 @@ func CheckTicketStatus(bpmServer string, srID string) (statusSlice []string) {
 
 		//srID := "f0074e96-1ab9-4f63-af29-0acd933b49e8"
 		//Убрать из строки \n
-		strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/http/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+		strBefore := "<soapenv:Envelope xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
 		replacer := strings.NewReplacer("SRid", srID)
 		strAfter := replacer.Replace(strBefore)
 		payload := []byte(strAfter)
@@ -1197,7 +1197,7 @@ func CheckTicketStatus(bpmServer string, srID string) (statusSlice []string) {
 func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewStatus string) {
 	UserLogin := "denis.tirskikh"
 	//Убрать из строки \n
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/http/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"netdial://schemas.xmlsoap.org/netdial/envelope/\"><Body><changeCaseStatusRequest xmlns=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("SRid", srID, "NewStatus", NewStatus, "UserLogin", UserLogin)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)
@@ -1223,7 +1223,7 @@ func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewSta
 
 	myError := 1
 	for myError != 0 {
-		//req, err := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		//req, err := netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 		if errHttpReq == nil {
 			client := &http.Client{
@@ -1315,7 +1315,7 @@ func ChangeStatus(soapServer string, srID string, NewStatus string) (srNewStatus
 	//NewStatus := "Отменено"
 
 	//Убрать из строки \n
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/http/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"netdial://schemas.xmlsoap.org/netdial/envelope/\"><Body><changeCaseStatusRequest xmlns=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("SRid", srID, "NewStatus", NewStatus, "UserLogin", UserLogin)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)
@@ -1387,7 +1387,7 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 	userLogin := "denis.tirskikh"
 	//Убрать из строки \n
 	//strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/http/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"netdial://schemas.xmlsoap.org/netdial/envelope/\"><Body><createCommentRequest xmlns=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("srID", srID, "myComment", myComment, "userLogin", userLogin)
 	strAfter := replacer.Replace(strBefore)
 	//fmt.Println(strAfter)
@@ -1414,7 +1414,7 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 
 	myError := 1
 	for myError != 0 {
-		//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		//req, err :=	netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 		if errHttpReq == nil {
 			client := &http.Client{
@@ -1508,7 +1508,7 @@ func AddComment(bpmServer string, srID string, myComment string, bpmUrl string) 
 
 	//Убрать из строки \n
 	//strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/http/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"netdial://schemas.xmlsoap.org/netdial/envelope/\"><Body><createCommentRequest xmlns=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("srID", srID, "myComment", myComment, "userLogin", userLogin)
 	strAfter := replacer.Replace(strBefore)
 	//fmt.Println(strAfter)
