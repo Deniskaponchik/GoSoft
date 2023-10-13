@@ -5,10 +5,12 @@ import (
 	"github.com/deniskaponchik/GoSoft/Unifi/config"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
 	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/netdial"
 	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/netdial"
 	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/ping"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
 	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/soap"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/webapi"
 	"strconv"
 	"strings"
@@ -28,73 +30,15 @@ func PolyRun(cfg *config.Config) {
 		//
 	}
 	polyUseCase := usecase.New(
-		repo.New(),
+		repo.New(cfg.GlpiConnectStrITsupport),
 		webapi.New(cfg.PolyUsername, cfg.PolyPassword),
-		http.New(),
-		soap.New(),
+		netdial.New(),
+		soap.New(cfg.SoapUrl, cfg.BpmUrl),
 	)
-
-	/*
-		every20Code := map[int]bool{
-			6:  true,
-			12: true,
-			18: true,
-			24: true,
-			30: true,
-			36: true,
-			42: true,
-			48: true,
-			54: true,
-			59: true,
-		}
-		every20Code := map[int]bool{ //6 minutes
-			3:  true,
-			9:  true,
-			15: true,
-			21: true,
-			33: true,
-			39: true,
-			45: true,
-			51: true,
-			57: true,
-		}*/
-	every20Code := map[int]bool{
-		5:  true,
-		25: true,
-		45: true,
-	}
-
-	var soapServer string
-	soapServerProd := polyConf.SoapProd
-	//soapServerTest := polyConf.SoapTest
-	var bpmUrl string
-	bpmUrlProd := polyConf.BpmProd
-	//bpmUrlTest := polyConf.BpmTest
-
-	count20minute := 0
-	countHourFromDB := 0
-	countHourToDB := 0
-	reboot := 0
-
-	srStatusCodesForNewTicket := map[string]bool{
-		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-		"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
-		"Тикет введён не корректно": true,
-		//"": true,
-	}
-	srStatusCodesForCancelTicket := map[string]bool{
-		"Визирование":  true,
-		"Назначено":    true,
-		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
-	}
 
 	//Download MAPs from DB
 	polyMap := map[string]PolyStruct{} //просто создаю пустую
-	//polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
 	polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
-
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
 		for k, v := range siteApCutNameLogin {

@@ -6,19 +6,20 @@ import (
 
 type (
 	PolyInterface interface {
+		Survey(map[string]entity.PolyStruct) error
+		Ticketing
 	}
 
 	PolyRepo interface {
-		UpdateMapsToDBerr(string, []string)
-		UploadMapsToDBerr(map[string]entity.PolyStruct) error
-		DownloadMapFromDBvcsErr(string) (map[string]entity.PolyStruct, error)
+		UpdateMapsToDBerr(map[string]entity.PolyStruct) error
+		DownloadMapFromDBvcsErr(int) (map[string]entity.PolyStruct, error)
 	}
 
 	PolySoap interface {
-		CreatePolyTicketErr(entity.PolyStruct) ([]string, error)
-		CheckTicketStatusErr(entity.PolyStruct) (string, error)
-		ChangeStatusErr(entity.PolyStruct) (string, error)
-		AddCommentErr(entity.PolyStruct) (string, error)
+		CreatePolyTicketErr(entity.PolyTicket) (entity.PolyTicket, error) //[]string, error)
+		CheckTicketStatusErr(entity.PolyTicket) (entity.PolyTicket, error)
+		ChangeStatusErr(entity.PolyTicket) (entity.PolyTicket, error)
+		AddCommentErr(entity.PolyTicket) error
 	}
 
 	PolyWebApi interface {

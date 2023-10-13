@@ -7,34 +7,53 @@ import (
 )
 
 type PolyUseCase struct {
-	repo   PolyRepo    //interface
-	webAPI PolyWebApi  //interface
-	http   PolyNetDial //interface
-	soap   PolySoap    //interface
+	repo    PolyRepo    //interface
+	webAPI  PolyWebApi  //interface
+	netDial PolyNetDial //interface
+	soap    PolySoap    //interface
 }
 
 // реализуем Инъекцию зависимостей DI. Используется в app
-func New(r PolyRepo, a PolyWebApi, h PolyNetDial, s PolySoap) *PolyUseCase {
+func New(r PolyRepo, a PolyWebApi, n PolyNetDial, s PolySoap) *PolyUseCase {
 	return &PolyUseCase{
-		repo:   r,
-		webAPI: a,
-		http:   h,
-		soap:   s,
+		repo:    r,
+		webAPI:  a,
+		netDial: n,
+		soap:    s,
 	}
 }
 
-//Создать метод Survey
+// Получение списка устройств
+func (puc *PolyUseCase) GetEntityMap() (map[string]entity.PolyStruct, error) {
 
-func (psuc *PolyUseCase) GetPolyStructMapFromDB() (map[string]entity.PolyStruct, error) {
-	polyMap := map[string]entity.PolyStruct{}
+}
+
+// Опрос устройств
+func (puc *PolyUseCase) Survey(polyMap map[string]entity.PolyStruct) error {
+
+	srStatusCodesForNewTicket := map[string]bool{
+		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
+		"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
+		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
+		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+		"Тикет введён не корректно": true,
+		//"": true,
+	}
+	srStatusCodesForCancelTicket := map[string]bool{
+		"Визирование":  true,
+		"Назначено":    true,
+		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+	}
+
 	//Make calls to the outer layer through the interface (!).
 	polyMap, err := uc.repo.DownloadMapFromDBvcsErr
 	if err != nil {
 		return nil, fmt.Errorf("TranslationUseCase - History - s.repo.GetHistory: %w", err)
 	}
-	return polyMap, nil
+	return nil
 }
 
-// Создать метод опроса Codec
+// Создание заявок
+func (puc *PolyUseCase) Ticketing() (polyTicket entity.PolyTicket, err error)
 
-//Создать метод опроса Visual
+//Перезагрузка устройств
