@@ -13,7 +13,7 @@ type PolyStruct struct {
 	Comment   int    `json:"comment"    example:"1"`
 	Exception int    `json:"exception"  example:"1"`
 
-	Status string `example:"ok"`
+	Status string `example:"Registered"`
 }
 
 type PolyTicket struct {

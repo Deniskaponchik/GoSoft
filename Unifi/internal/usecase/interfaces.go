@@ -6,8 +6,9 @@ import (
 
 type (
 	PolyInterface interface {
-		Survey(map[string]entity.PolyStruct) error
-		Ticketing
+		GetEntityMap(int) (map[string]entity.PolyStruct, error)
+		Survey(map[string]entity.PolyStruct) (map[string][]entity.PolyStruct, error)
+		TicketsCreating
 	}
 
 	PolyRepo interface {
@@ -23,11 +24,11 @@ type (
 	}
 
 	PolyWebApi interface {
-		ApiLineInfo(entity.PolyStruct) (string, error)
+		ApiLineInfoErr(entity.PolyStruct) (entity.PolyStruct, error) //string, error)
 		ApiSafeRestart2(entity.PolyStruct) (string, error)
 	}
 
 	PolyNetDial interface {
-		NetDialTmtErr(entity.PolyStruct) (string, error)
+		NetDialTmtErr(entity.PolyStruct) (entity.PolyStruct, error)
 	}
 )

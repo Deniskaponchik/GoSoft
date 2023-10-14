@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/config"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
-	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/netdial"
-	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/netdial"
 	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/ping"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
-	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/soap"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/webapi"
+	"github.com/deniskaponchik/GoSoft/Unifi/pkg/logger"
 	"strconv"
 	"strings"
 	"time"
@@ -20,25 +18,28 @@ import (
 // Run creates objects via constructors.
 func PolyRun(cfg *config.Config) {
 	fmt.Println("")
+	l := logger.New(cfg.Log.Level)
 
-	//polyConf := NewPolyConfig()
-	//polyConf := cfg
-	cfg
-
-	polyGLPI, err := polyMySQL.New(polyConf.GlpiConnectStringITsupport)
+	/* Repository
+	pg, err := postgres.New(cfg.PG.URL, postgres.MaxPoolSize(cfg.PG.PoolMax))
 	if err != nil {
-		//
+		l.Fatal(fmt.Errorf("app - Run - postgres.New: %w", err))
 	}
+	defer pg.Close()
+	*/
 	polyUseCase := usecase.New(
-		repo.New(cfg.GlpiConnectStrITsupport),
+		repo.New(cfg.GLPI.GlpiConnectStrITsupport),
 		webapi.New(cfg.PolyUsername, cfg.PolyPassword),
 		netdial.New(),
 		soap.New(cfg.SoapUrl, cfg.BpmUrl),
 	)
 
 	//Download MAPs from DB
-	polyMap := map[string]PolyStruct{} //просто создаю пустую
-	polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
+	//polyMap := DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
+	polyMap, errGetEntityMap := polyUseCase.GetEntityMap(0) //Запрос к БД может делать только UseCase.  Не напрямую из какого-либо пакета
+	if errGetEntityMap != nil {
+		l.Fatal(fmt.Errorf("app - Run - Download polyMap from DB: %w", errGetEntityMap))
+	}
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
 		for k, v := range siteApCutNameLogin {
@@ -48,208 +49,31 @@ func PolyRun(cfg *config.Config) {
 		os.Exit(0)
 	*/
 
-	fmt.Println("")
-
-	//log.SetOutput(io.Discard) //Отключить вывод лога
 	//
+	fmt.Println("")
+	//log.SetOutput(io.Discard) //Отключить вывод лога
 
 	for true { //зацикливаем навечно
 		timeNow := time.Now()
 
 		//
-		//
-		if timeNow.Minute() != 0 && every20Code[timeNow.Minute()] && timeNow.Minute() != count20minute {
-			count20minute = timeNow.Minute()
+		if timeNow.Minute() != 0 && cfg.EveryCode[timeNow.Minute()] && timeNow.Minute() != cfg.Count20minute {
+			//if timeNow.Minute() != 0 && every20Code[timeNow.Minute()] && timeNow.Minute() != count20minute {
+			cfg.Count20minute = timeNow.Minute()
 			fmt.Println(timeNow.Format("02 January, 15:04:05"))
 
-			//Опрос каждые 20 минут
-			//soapServer = soapServerTest
-			soapServer = soapServerProd
+			//soapServer = soapServerTest	//soapServer = soapServerProd
 			fmt.Println("SOAP")
-			fmt.Println(soapServer)
-			//bpmUrl = bpmUrlTest
-			bpmUrl = bpmUrlProd
+			fmt.Println(cfg.Soap.SoapUrl)
+			//bpmUrl = bpmUrlTest    		//bpmUrl = bpmUrlProd
 			fmt.Println("BPM")
-			fmt.Println(bpmUrl)
+			fmt.Println(cfg.Bpm.BpmUrl)
 			fmt.Println("")
-
-			//siteapNameForTickets := map[string]ForPolyTicket{}
-			regionVcsSlice := map[string][]PolyStruct{}
-
-			//fmt.Println("Обработка codec устройств")
-			//fmt.Println("")
-			for k, v := range polyMap {
-				if v.Exception == 0 {
-					ip := v.IP
-					region := v.Region
-					roomName := v.RoomName
-					login := v.Login
-					srID := v.SrID
-
-					/*
-						fmt.Println(ip)
-						fmt.Println(region)
-						fmt.Println(roomName)
-						fmt.Println(v.PolyType)
-						fmt.Println(srID)
-					*/
-					//var commentUnreach string
-					var statusReach string
-					var vcsType string
-
-					if v.PolyType == 1 {
-						vcsType = "Codec"
-						//commentUnreach = "Codec не отвечает на API-запросы"
-						statusReach = webapi.apiLineInfo(ip, polyConf.PolyUsername, polyConf.PolyPassword)
-					} else {
-						vcsType = "Visual"
-						//commentUnreach = "Visual не доступен по netdial"
-						statusReach = netDialTmtErr(ip)
-					}
-
-					//ВКС доступно. Заявки нет.
-					if statusReach != "" && srID == "" {
-						//Идём дальше
-
-						//ВКС доступно. Заявка есть
-					} else if statusReach != "" && srID != "" {
-						fmt.Println(region)
-						fmt.Println(roomName)
-						fmt.Println(vcsType)
-						fmt.Println("ВКС доступно. Заявка есть")
-						//Оставляем коммент, ПЫТАЕМСЯ закрыть тикет, если на визировании, Очищаем запись в мапе,
-
-						commentForUpdate := v.Comment
-						comment := vcsType + " появился в сети: " + roomName
-						if v.Comment < 1 {
-							if AddCommentErr(soapServer, srID, comment, bpmUrl) != "" {
-								commentForUpdate = 1
-							}
-						}
-
-						//проверить, не последняя ли это запись в мапе в массиве
-						countOfIncident := 0
-						for _, va := range polyMap {
-							if va.SrID == srID {
-								countOfIncident++
-								//BREAK здесь НЕ нужен. Пробежаться нужно по всем
-							}
-						}
-
-						if countOfIncident == 1 {
-							//если последняя запись, пробуем закрыть тикет
-							statusTicket := CheckTicketStatusErr(soapServer, srID)
-							fmt.Println(statusTicket)
-
-							if srStatusCodesForCancelTicket[statusTicket] {
-								//Если статус заявки на Уточнении, Визирование, Назначено
-								if v.Comment < 2 {
-									comment = "Будет предпринята попытка по отмене обращения, т.к. все устройства из него появились в сети"
-									if AddCommentErr(soapServer, srID, comment, bpmUrl) != "" {
-										commentForUpdate = 2
-									}
-								}
-
-								fmt.Println("Попытка изменить статус в На уточнении")
-								ChangeStatusErr(soapServer, srID, "На уточнении")
-								//if error не делаю, т.к. лишним не будет при любом раскладе попытаться вернуть на уточнение
-
-								fmt.Println("Попытка изменить статус в Отменено")
-								if ChangeStatusErr(soapServer, srID, "Отменено") != "" {
-									//Если отмена заявки прошла успешно, удалить запись из мапы, заодно и имя обновим
-									//valueAp.Name = apName
-									v.SrID = ""
-									v.Comment = 0 //также обнулить параметр COMMENT
-									polyMap[k] = v
-								} else {
-									//Если НЕ удалось отменить заявку
-									//valueAp.Name = apName
-									//valueAp.SrID не зануляем, т.к. будет второй заход через 12 минут
-									v.Comment = commentForUpdate
-									polyMap[k] = v
-								}
-							} else if statusTicket == "" {
-								// если Не удалось получить статус
-								v.Comment = commentForUpdate
-								polyMap[k] = v
-							} else {
-								//Если статус заявки В работе, на 3 линии, Решено, Закрыто
-								v.SrID = ""
-								v.Comment = 0
-								polyMap[k] = v
-							}
-						} else {
-							//Если запись НЕ последняя, только удалить из мапы sr и comment, заодно и имя обновим
-							//valueAp.Name = apName
-							v.SrID = ""
-							v.Comment = 0
-							polyMap[k] = v
-						}
-
-						fmt.Println("")
-
-						//ВКС недоступна
-					} else if statusReach == "" {
-						fmt.Println(region)
-						fmt.Println(roomName)
-						fmt.Println(vcsType)
-						fmt.Println("ВКС Недоступно")
-
-						//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
-						var statusTicket string
-						if srID != "" {
-							statusTicket = CheckTicketStatusErr(soapServer, srID)
-						}
-
-						if srStatusCodesForNewTicket[statusTicket] || srID == "" {
-							fmt.Println(bpmUrl + srID)
-							fmt.Println("Статус: " + statusTicket) //checkSlice[1])
-							fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ её нет вовсе")
-
-							//удаляем заявку
-							//valueAp.Name = apName
-							v.SrID = ""
-							polyMap[k] = v
-
-							//Заполняем переменные, которые понадобятся дальше
-							fmt.Println(k)
-							fmt.Println(login)
-
-							//Проверяем и вносим во временную мапу. Заявка на данном этапе никакая ещё НЕ создаётся
-							//_, exisSiteName := siteapNameForTickets[siteApCutName] //проверяем, есть ли в мапе ДЛЯтикетов
-							_, exisRegion := regionVcsSlice[region] //проверяем, есть ли в мапе ДЛЯтикетов
-
-							//если в мапе дляТикета сайта ещё НЕТ
-							if !exisRegion {
-								fmt.Println("в мапе для Тикета записи ещё НЕТ")
-								newPolySlice := []PolyStruct{}
-								newPolySlice = append(newPolySlice, v)
-								regionVcsSlice[region] = newPolySlice
-
-								//если в мапе дляТикета сайт уже есть, добавляем в массив точку
-							} else {
-								fmt.Println("в мапе для Тикета запись ЕСТЬ")
-								//в мапе нельзя просто изменить значение.
-								for ke, va := range regionVcsSlice {
-									if ke == region {
-										//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
-										//2.Reassigning the modified struct.
-										va = append(va, v)
-										regionVcsSlice[ke] = va
-										break
-									}
-								}
-							}
-						} else {
-							fmt.Println("Созданное обращение:")
-							fmt.Println(bpmUrl + srID)
-							fmt.Println(statusTicket) //checkSlice[1])
-						}
-						fmt.Println("")
-					}
-				}
-				//fmt.Println("")
-			} //for
+			//Опрос устройств
+			regionVcsSlice, errSurvey := polyUseCase.Survey(polyMap)
+			if errSurvey != nil {
+				l.Info(fmt.Errorf("app - Run - Download polyMap from DB: %w", errSurvey))
+			}
 
 			//
 			//

@@ -13,9 +13,12 @@ require (
 	github.com/brianvoe/gofakeit/v6 v6.23.0 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/rs/zerolog v1.31.0 // indirect
 	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect
 )
