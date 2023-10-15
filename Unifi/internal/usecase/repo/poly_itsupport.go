@@ -17,10 +17,27 @@ type PolyRepo struct {
 }
 
 // реализуем Инъекцию зависимостей DI. Используется в app
-func New(d string) *PolyRepo {
-	return &PolyRepo{
+func New(d string) (*PolyRepo, error) {
+	pr := &PolyRepo{
 		dataSource: d,
 	}
+
+	if db, errSqlOpen := sql.Open("mysql", pr.dataSource); errSqlOpen == nil {
+		errDBping := db.Ping()
+		if errDBping == nil {
+
+		} else {
+			fmt.Println("db.Ping failed:", errDBping)
+			fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+			return nil, errDBping
+		}
+	} else {
+		fmt.Println("Error creating DB:", errSqlOpen)
+		fmt.Println("To verify, db is:", db)
+		fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+		return nil, errSqlOpen
+	}
+	return pr, nil
 }
 
 func (pr *PolyRepo) UpdateMapsToDBerr(polyMap map[string]entity.PolyStruct) (err error) {

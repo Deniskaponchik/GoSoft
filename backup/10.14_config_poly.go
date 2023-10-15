@@ -1,11 +1,11 @@
-package config
+package main
 
 import (
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
-func NewConfig(mode string) (*Config, error) {
+func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
 	err := cleanenv.ReadConfig("./config/config.yml", cfg)
@@ -18,21 +18,53 @@ func NewConfig(mode string) (*Config, error) {
 		return nil, err
 	}
 
-	if mode == "TEST" {
-		cfg.BpmUrl = cfg.BpmTest
-		cfg.SoapUrl = cfg.SoapTest
-		cfg.GlpiITsupport = cfg.GlpiITsupportTest
-	} else {
-		cfg.BpmUrl = cfg.BpmProd
-		cfg.SoapUrl = cfg.SoapProd
-		cfg.GlpiITsupport = cfg.GlpiITsupportProd
+	/*
+		every66Code := map[int]bool{
+			6:  true,
+			12: true,
+			18: true,
+			24: true,
+			30: true,
+			36: true,
+			42: true,
+			48: true,
+			54: true,
+			59: true,
+		}
+		every63Code := map[int]bool{ //6 minutes
+			3:  true,
+			9:  true,
+			15: true,
+			21: true,
+			33: true,
+			39: true,
+			45: true,
+			51: true,
+			57: true,
+		}
+	*/
+	every20Code := map[int]bool{
+		5:  true,
+		25: true,
+		45: true,
 	}
+
+	cfg.BpmUrl = cfg.BpmTest
+	cfg.SoapUrl = cfg.SoapTest
+
+	cfg.EveryCode = every20Code
+	cfg.Count20minute = 0
+	cfg.CountHourFromDB = 0
+	cfg.CountHourToDB = 0
+	cfg.Reboot = 0
 
 	return cfg, nil
 }
 
 type (
 	Config struct {
+		TempVars
+
 		Polycom
 		Ubiquiti
 		Bpm
@@ -45,7 +77,13 @@ type (
 		PG   `yaml:"postgres"`
 		RMQ  `yaml:"rabbitmq"`
 	}
-	Mode struct {
+
+	TempVars struct {
+		EveryCode       map[int]bool `env-required:"false"`
+		Count20minute   int          `env-default:"true"`
+		CountHourFromDB int          `env-default:"true"`
+		CountHourToDB   int          `env-default:"true"`
+		Reboot          int          `env-default:"true"`
 	}
 
 	Polycom struct {
@@ -69,10 +107,8 @@ type (
 		SoapTest string `env-required:"true" env:"SOAP_TEST"`
 	}
 	GLPI struct {
-		GlpiConnectStrGLPI string `env-required:"true"   env:"GLPI_CONNECT_STR_GLPI"`
-		GlpiITsupportProd  string `env-required:"true"   env:"GLPI_CONNECT_STR_ITSUP"`
-		GlpiITsupportTest  string `env-required:"true"   env:"GLPI_ITSUP_TEST"`
-		GlpiITsupport      string `env-required:"false"`
+		GlpiConnectStrITsupport string `env-required:"true"   env:"GLPI_CONNECT_STR_ITSUP"`
+		GlpiConnectStrGLPI      string `env-required:"true"   env:"GLPI_CONNECT_STR_GLPI"`
 	}
 
 	App struct {

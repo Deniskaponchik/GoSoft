@@ -8,18 +8,18 @@ type (
 	PolyInterface interface {
 		GetEntityMap(int) (map[string]entity.PolyStruct, error)
 		Survey(map[string]entity.PolyStruct) (map[string][]entity.PolyStruct, error)
-		TicketsCreating
+		TicketsCreating(map[string][]entity.PolyStruct) (map[string]entity.PolyStruct, error)
 	}
 
 	PolyRepo interface {
-		UpdateMapsToDBerr(map[string]entity.PolyStruct) error
 		DownloadMapFromDBvcsErr(int) (map[string]entity.PolyStruct, error)
+		UpdateMapsToDBerr(map[string]entity.PolyStruct) error
 	}
 
 	PolySoap interface {
 		CreatePolyTicketErr(entity.PolyTicket) (entity.PolyTicket, error) //[]string, error)
 		CheckTicketStatusErr(entity.PolyTicket) (entity.PolyTicket, error)
-		ChangeStatusErr(entity.PolyTicket) (entity.PolyTicket, error)
+		ChangeStatusErr(entity.PolyTicket) error
 		AddCommentErr(entity.PolyTicket) error
 	}
 

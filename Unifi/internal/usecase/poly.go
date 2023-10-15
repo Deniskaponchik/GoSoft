@@ -25,14 +25,61 @@ func New(r PolyRepo, a PolyWebApi, n PolyNetDial, s PolySoap) *PolyUseCase {
 	}
 }
 
+func (puc *PolyUseCase) InfinityPolyProcessing(bpmUrl string, soapUrl string) error {
+
+	/*
+		every66Code := map[int]bool{
+			6:  true,
+			12: true,
+			18: true,
+			24: true,
+			30: true,
+			36: true,
+			42: true,
+			48: true,
+			54: true,
+			59: true,
+		}
+		every63Code := map[int]bool{ //6 minutes
+			3:  true,
+			9:  true,
+			15: true,
+			21: true,
+			33: true,
+			39: true,
+			45: true,
+			51: true,
+			57: true,
+		}
+	*/
+	every20Code := map[int]bool{
+		5:  true,
+		25: true,
+		45: true,
+	}
+
+	everyCode = every20Code
+	count20minute = 0
+	countHourFromDB = 0
+	countHourToDB = 0
+	reboot = 0
+
+	polyMap, errDownMapFromDB := puc.repo.DownloadMapFromDBvcsErr(0)
+	if errDownMapFromDB != nil {
+		return errDownMapFromDB
+	}
+
+	return nil
+}
+
 // Получение списка устройств
 func (puc *PolyUseCase) GetEntityMap(int) (map[string]entity.PolyStruct, error) {
 	return puc.repo.DownloadMapFromDBvcsErr(0)
 }
 
 // Опрос устройств
-func (puc *PolyUseCase) Survey(polyMap map[string]entity.PolyStruct) (
-	regionVcsSlice map[string][]entity.PolyStruct, err error) {
+func (puc *PolyUseCase) Survey(polyMap map[string]entity.PolyStruct, bpmUrl string) (
+	region_VcsSlice map[string][]entity.PolyStruct, err error) {
 
 	srStatusCodesForNewTicket := map[string]bool{
 		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
@@ -62,9 +109,9 @@ func (puc *PolyUseCase) Survey(polyMap map[string]entity.PolyStruct) (
 			login := v.Login
 			srID := v.SrID
 			*/
-			polyTicket := &entity.PolyTicket{
-				UserLogin: v.Login,
+			polyTicket := entity.PolyTicket{
 				ID:        v.SrID,
+				UserLogin: v.Login,
 				Region:    v.Region,
 			}
 			//statusReach := v.Status  //нигде не использую пока убираю
@@ -77,10 +124,10 @@ func (puc *PolyUseCase) Survey(polyMap map[string]entity.PolyStruct) (
 				fmt.Println(srID)
 			*/
 			//var commentUnreach string
-			var vcsType string
+
 			//var statusReach string   //нигде не использую пока убираю
 			var errGetStatus error
-
+			var vcsType string
 			if v.PolyType == 1 {
 				vcsType = "Codec"
 				//commentUnreach = "Codec не отвечает на API-запросы"
@@ -115,7 +162,7 @@ func (puc *PolyUseCase) Survey(polyMap map[string]entity.PolyStruct) (
 					polyTicket.Comment = vcsType + " появился в сети: " + v.RoomName
 					if v.Comment < 1 {
 						//если по данному устройству коммент раньше НЕ оставлялся
-						errAddComment := puc.soap.AddCommentErr(*polyTicket)
+						errAddComment := puc.soap.AddCommentErr(polyTicket)
 						if errAddComment == nil {
 							//if AddCommentErr(soapServer, srID, comment, bpmUrl) != "" {
 							commentForUpdate = 1
@@ -133,44 +180,58 @@ func (puc *PolyUseCase) Survey(polyMap map[string]entity.PolyStruct) (
 
 					if countOfIncident == 1 {
 						//если последняя запись, пробуем закрыть тикет
-						statusTicket := CheckTicketStatusErr(soapServer, srID)
-						fmt.Println(statusTicket)
+						var errCheckStatus error
+						//statusTicket := CheckTicketStatusErr(soapServer, srID)
+						polyTicket, errCheckStatus = puc.soap.CheckTicketStatusErr(polyTicket)
+						fmt.Println(polyTicket.Status) //statusTicket)
 
-						if srStatusCodesForCancelTicket[statusTicket] {
+						//Статус заявки удалось получить
+						if errCheckStatus == nil {
 							//Если статус заявки на Уточнении, Визирование, Назначено
-							if v.Comment < 2 {
-								comment = "Будет предпринята попытка по отмене обращения, т.к. все устройства из него появились в сети"
-								if AddCommentErr(soapServer, srID, comment, bpmUrl) != "" {
-									commentForUpdate = 2
+							if srStatusCodesForCancelTicket[polyTicket.Status] { //statusTicket] {
+								if v.Comment < 2 {
+									polyTicket.Comment = "Будет предпринята попытка по отмене обращения, т.к. все устройства из него появились в сети"
+									//var errAddComment error
+									//если добавление коммента прошло без ошибок
+									if puc.soap.AddCommentErr(polyTicket) == nil {
+										//if AddCommentErr(soapServer, srID, comment, bpmUrl) != "" {
+										commentForUpdate = 2
+									}
 								}
-							}
 
-							fmt.Println("Попытка изменить статус в На уточнении")
-							ChangeStatusErr(soapServer, srID, "На уточнении")
-							//if error не делаю, т.к. лишним не будет при любом раскладе попытаться вернуть на уточнение
+								//var errChangeStatus error
+								fmt.Println("Попытка изменить статус в На уточнении")
+								polyTicket.Status = "На уточнении"
+								errChangeStatus := puc.soap.ChangeStatusErr(polyTicket)
+								//ChangeStatusErr(soapServer, srID, "На уточнении")
+								//if error не делаю, т.к. лишним не будет при любом раскладе попытаться вернуть на уточнение
 
-							fmt.Println("Попытка изменить статус в Отменено")
-							if ChangeStatusErr(soapServer, srID, "Отменено") != "" {
+								fmt.Println("Попытка изменить статус в Отменено")
+								polyTicket.Status = "Отменено"
+								errChangeStatus = puc.soap.ChangeStatusErr(polyTicket)
 								//Если отмена заявки прошла успешно, удалить запись из мапы, заодно и имя обновим
-								//valueAp.Name = apName
-								v.SrID = ""
-								v.Comment = 0 //также обнулить параметр COMMENT
-								polyMap[k] = v
+								if errChangeStatus == nil {
+									//if ChangeStatusErr(soapServer, srID, "Отменено") != "" {
+									//valueAp.Name = apName
+									v.SrID = ""
+									v.Comment = 0 //также обнулить параметр COMMENT
+									polyMap[k] = v
+								} else {
+									//Если НЕ удалось отменить заявку
+									//valueAp.Name = apName
+									//valueAp.SrID не зануляем, т.к. будет второй заход через 12 минут
+									v.Comment = commentForUpdate
+									polyMap[k] = v
+								}
 							} else {
-								//Если НЕ удалось отменить заявку
-								//valueAp.Name = apName
-								//valueAp.SrID не зануляем, т.к. будет второй заход через 12 минут
-								v.Comment = commentForUpdate
+								//Если статус заявки В работе, на 3 линии, Решено, Закрыто
+								v.SrID = ""
+								v.Comment = 0
 								polyMap[k] = v
 							}
-						} else if statusTicket == "" {
-							// если Не удалось получить статус
-							v.Comment = commentForUpdate
-							polyMap[k] = v
 						} else {
-							//Если статус заявки В работе, на 3 линии, Решено, Закрыто
-							v.SrID = ""
-							v.Comment = 0
+							//Получение статуса обращения завершилось ошибкой
+							v.Comment = commentForUpdate
 							polyMap[k] = v
 						}
 					} else {
@@ -186,20 +247,22 @@ func (puc *PolyUseCase) Survey(polyMap map[string]entity.PolyStruct) (
 
 			} else {
 				//ВКС недоступна			//} else if statusReach == "" {
-				fmt.Println(region)
-				fmt.Println(roomName)
+				fmt.Println(v.Region)
+				fmt.Println(v.RoomName)
 				fmt.Println(vcsType)
 				fmt.Println("ВКС Недоступно")
 
 				//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
-				var statusTicket string
-				if srID != "" {
-					statusTicket = CheckTicketStatusErr(soapServer, srID)
+				var errCheckStatus error
+				if polyTicket.ID != "" { //srID != "" {
+					//statusTicket = CheckTicketStatusErr(soapServer, srID)
+					polyTicket, errCheckStatus = puc.soap.CheckTicketStatusErr(polyTicket)
 				}
 
-				if srStatusCodesForNewTicket[statusTicket] || srID == "" {
-					fmt.Println(bpmUrl + srID)
-					fmt.Println("Статус: " + statusTicket) //checkSlice[1])
+				if srStatusCodesForNewTicket[polyTicket.Status] || polyTicket.ID == "" || errCheckStatus != nil {
+					//if srStatusCodesForNewTicket[statusTicket] || srID == "" {
+					fmt.Println(bpmUrl + polyTicket.ID)         //srID)
+					fmt.Println("Статус: " + polyTicket.Status) //statusTicket)
 					fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ её нет вовсе")
 
 					//удаляем заявку
@@ -209,47 +272,50 @@ func (puc *PolyUseCase) Survey(polyMap map[string]entity.PolyStruct) (
 
 					//Заполняем переменные, которые понадобятся дальше
 					fmt.Println(k)
-					fmt.Println(login)
+					fmt.Println(v.Login) //login)
 
 					//Проверяем и вносим во временную мапу. Заявка на данном этапе никакая ещё НЕ создаётся
 					//_, exisSiteName := siteapNameForTickets[siteApCutName] //проверяем, есть ли в мапе ДЛЯтикетов
-					_, exisRegion := regionVcsSlice[region] //проверяем, есть ли в мапе ДЛЯтикетов
+					_, exisRegion := region_VcsSlice[v.Region] //проверяем, есть ли в мапе ДЛЯтикетов
 
 					//если в мапе дляТикета сайта ещё НЕТ
 					if !exisRegion {
 						fmt.Println("в мапе для Тикета записи ещё НЕТ")
-						newPolySlice := []PolyStruct{}
+						newPolySlice := []entity.PolyStruct{}
 						newPolySlice = append(newPolySlice, v)
-						regionVcsSlice[region] = newPolySlice
+						region_VcsSlice[v.Region] = newPolySlice
 
 						//если в мапе дляТикета сайт уже есть, добавляем в массив точку
 					} else {
 						fmt.Println("в мапе для Тикета запись ЕСТЬ")
 						//в мапе нельзя просто изменить значение.
-						for ke, va := range regionVcsSlice {
-							if ke == region {
+						for ke, va := range region_VcsSlice {
+							if ke == v.Region {
 								//https://stackoverflow.com/questions/42716852/how-to-update-map-values-in-go
 								//2.Reassigning the modified struct.
 								va = append(va, v)
-								regionVcsSlice[ke] = va
+								region_VcsSlice[ke] = va
 								break
 							}
 						}
 					}
 				} else {
+					//Если ticketID не пустое ИЛИ Не было ошибок при получении статуса ИЛИ статуса нет в мапе ДляНовогоСтатуса
 					fmt.Println("Созданное обращение:")
-					fmt.Println(bpmUrl + srID)
-					fmt.Println(statusTicket) //checkSlice[1])
+					fmt.Println(bpmUrl + polyTicket.ID) //srID)
+					fmt.Println(polyTicket.Status)      //statusTicket)
 				}
 				fmt.Println("")
 			}
 		}
 		//fmt.Println("")
 	} //for
-	return regionVcsSlice, nil
+	return region_VcsSlice, nil
 }
 
 // Создание заявок
-func (puc *PolyUseCase) Ticketing() (polyTicket entity.PolyTicket, err error)
+func (puc *PolyUseCase) TicketsCreating(region_VcsSlice map[string][]entity.PolyStruct) (polyTicket entity.PolyTicket, err error) {
+
+}
 
 //Перезагрузка устройств

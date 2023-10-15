@@ -4,7 +4,9 @@ go 1.20
 
 require (
 	github.com/go-ping/ping v1.1.0
+	github.com/go-sql-driver/mysql v1.7.1
 	github.com/ilyakaznacheev/cleanenv v1.5.0
+	github.com/rs/zerolog v1.31.0
 	github.com/unpoller/unifi v0.3.15
 )
 
@@ -15,7 +17,6 @@ require (
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/rs/zerolog v1.31.0 // indirect
 	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.12.0 // indirect

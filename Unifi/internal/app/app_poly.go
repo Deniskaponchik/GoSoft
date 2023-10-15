@@ -27,13 +27,28 @@ func PolyRun(cfg *config.Config) {
 	}
 	defer pg.Close()
 	*/
+	polyRepo, errNewRepo := repo.New(cfg.GLPI.GlpiITsupport)
+	if errNewRepo != nil {
+		l.Fatal(fmt.Errorf("app - Run - glpi.New: %w", errNewRepo))
+	}
+
 	polyUseCase := usecase.New(
-		repo.New(cfg.GLPI.GlpiConnectStrITsupport),
+		//repo.New(cfg.GLPI.GlpiConnectStrITsupport),
+		polyRepo,
 		webapi.New(cfg.PolyUsername, cfg.PolyPassword),
 		netdial.New(),
-		soap.New(cfg.SoapUrl, cfg.BpmUrl),
+		soap.New(cfg.SoapTest, cfg.BpmTest), //cfg.SoapUrl, cfg.BpmUrl),
 	)
 
+	errInfPolyProcess := polyUseCase.InfinityPolyProcessing(cfg.BpmUrl, cfg.SoapUrl)
+	if errInfPolyProcess != nil {
+		l.Fatal(fmt.Errorf("app - Run - InfinityPolyProcessing: %w", errInfPolyProcess))
+	}
+	//ОКОНЧАНИЕ НОВОЙ ЛОГИКИ
+	//
+
+	//
+	//ДАЛЬШЕ УДАЛИТЬ
 	//Download MAPs from DB
 	//polyMap := DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
 	polyMap, errGetEntityMap := polyUseCase.GetEntityMap(0) //Запрос к БД может делать только UseCase.  Не напрямую из какого-либо пакета
@@ -49,9 +64,8 @@ func PolyRun(cfg *config.Config) {
 		os.Exit(0)
 	*/
 
-	//
 	fmt.Println("")
-	//log.SetOutput(io.Discard) //Отключить вывод лога
+	//log.SetOutput(io.Discard) //Отключить вывод лога. Not for Zerolog
 
 	for true { //зацикливаем навечно
 		timeNow := time.Now()
@@ -69,15 +83,15 @@ func PolyRun(cfg *config.Config) {
 			fmt.Println("BPM")
 			fmt.Println(cfg.Bpm.BpmUrl)
 			fmt.Println("")
+
 			//Опрос устройств
-			regionVcsSlice, errSurvey := polyUseCase.Survey(polyMap)
+			regionVcsSlice, errSurvey := polyUseCase.Survey(polyMap, cfg.BpmUrl)
 			if errSurvey != nil {
-				l.Info(fmt.Errorf("app - Run - Download polyMap from DB: %w", errSurvey))
+				//l.Info(fmt.Errorf("app - Run - Download polyMap from DB: %w", errSurvey))
+				fmt.Errorf("app - Run - Error in Survey: %w", errSurvey)
 			}
 
-			//
-			//
-			//Пробежались по всем vcs. Заводим заявки
+			//Пробежались по всем vcs. Теперь Заводим заявки
 			fmt.Println("")
 			fmt.Println("Создание заявок по ВКС:")
 			for k, v := range regionVcsSlice {

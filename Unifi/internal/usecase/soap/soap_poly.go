@@ -254,6 +254,7 @@ func (ps *PolySoap) CheckTicketStatusErr(ticket entity.PolyTicket) (entity.PolyT
 				if errIOread == nil {
 					errXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 					if errXmlUnmarshal == nil {
+						//if envelope.Body.GetStatusResponse.Code == 0 || envelope.Body.GetStatusResponse.StatisId != "" { //не решился пока что поменять if и else местами
 						if envelope.Body.GetStatusResponse.Code != 0 || envelope.Body.GetStatusResponse.StatisId == "" {
 							fmt.Println(envelope.Body.GetStatusResponse.Description)
 							fmt.Println("Попытка получения Статуса обращения оборвалась на ПОСЛЕДНЕМ этапе")
@@ -314,7 +315,6 @@ func (ps *PolySoap) CheckTicketStatusErr(ticket entity.PolyTicket) (entity.PolyT
 			return ticket, err
 		}
 	}
-
 	/* }else {
 		//если передаётся пустая строка, не зная, существует ли заявка
 		statusSlice = append(statusSlice, "0")
@@ -323,7 +323,7 @@ func (ps *PolySoap) CheckTicketStatusErr(ticket entity.PolyTicket) (entity.PolyT
 	return ticket, nil
 }
 
-func (ps *PolySoap) ChangeStatusErr(ticket entity.PolyTicket) (entity.PolyTicket, error) {
+func (ps *PolySoap) ChangeStatusErr(ticket entity.PolyTicket) error {
 	UserLogin := "denis.tirskikh"
 	//Убрать из строки \n
 	strBefore := "<Envelope xmlns=\"netdial://schemas.xmlsoap.org/netdial/envelope/\"><Body><changeCaseStatusRequest xmlns=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
@@ -396,7 +396,7 @@ func (ps *PolySoap) ChangeStatusErr(ticket entity.PolyTicket) (entity.PolyTicket
 							ticket.Status = envelope.Body.ChangeCaseStatusResponse.NewStatusId
 							fmt.Println("Статус обращения изменён на " + ticket.Status + " в: " + srDateChange)
 							myError = 0
-							return ticket, nil
+							return nil
 						}
 					} else {
 						fmt.Println("Ошибка перекодировки ответа в xml")
@@ -434,10 +434,10 @@ func (ps *PolySoap) ChangeStatusErr(ticket entity.PolyTicket) (entity.PolyTicket
 			myError = 0
 			fmt.Println("После 6 неудачных попыток идём дальше. Статус заявки НЕ был изменён")
 			//srNewStatus = ""
-			return ticket, err
+			return err
 		}
 	}
-	return ticket, nil
+	return nil
 }
 
 func (ps *PolySoap) AddCommentErr(ticket entity.PolyTicket) (err error) {

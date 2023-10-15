@@ -16,7 +16,7 @@ import (
 */
 
 func main() {
-	cfg, err := config.NewConfig()
+	cfg, err := config.NewConfig("TEST")
 	//cfg, err := config.NewPolyConfig()
 	if err != nil {
 		log.Fatalf("Config error: %s", err)
