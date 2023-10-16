@@ -22,8 +22,8 @@ func CreateWiFiTicketErr(
 	if userLogin != "" {
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
-				"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
 				"<bpm:createRequestRequest>" +
@@ -82,7 +82,7 @@ func CreateWiFiTicketErr(
 
 		myError := 1
 		for myError != 0 {
-			//req, err :=	netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
+			//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 			req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 			if errHttpReq == nil {
 				client := &http.Client{
@@ -189,8 +189,8 @@ func CreateSmacWiFiTicketErr(
 	if userLogin != "" {
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
-				"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
 				"<bpm:createRequestRequest>" +
@@ -239,7 +239,7 @@ func CreateSmacWiFiTicketErr(
 
 		myError := 1
 		for myError != 0 {
-			//req, err :=	netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
+			//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 			req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 			if errHttpReq == nil {
 				client := &http.Client{
@@ -350,8 +350,8 @@ func CreateSmacWiFiTicket(
 		*/
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
-				"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
 				"<bpm:createRequestRequest>" +
@@ -461,8 +461,8 @@ func CreateApTicketErr(
 	if userLogin != "" {
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
-				"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
 				"<bpm:createRequestRequest>" +
@@ -511,7 +511,7 @@ func CreateApTicketErr(
 
 		myError := 1
 		for myError != 0 {
-			//req, err :=	netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
+			//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 			req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 			if errHttpReq == nil {
 				client := &http.Client{
@@ -623,8 +623,8 @@ func CreateApTicket(
 	incidentType := "Недоступна точка доступа"
 	strBefore :=
 		"<soapenv:Envelope " +
-			"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
-			"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
+			"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+			"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 			"<soapenv:Header/>" +
 			"<soapenv:Body>" +
 			"<bpm:createRequestRequest>" +
@@ -719,8 +719,8 @@ func CreateAnomalyTicketErr(
 	if userLogin != "" {
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
-				"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
 				"<bpm:createRequestRequest>" +
@@ -779,7 +779,7 @@ func CreateAnomalyTicketErr(
 
 		myError := 1
 		for myError != 0 {
-			//req, err :=	netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
+			//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 			req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 			if errHttpReq == nil {
 				client := &http.Client{
@@ -896,8 +896,8 @@ func CreateAnomalyTicket(
 	//region := "Москва ЦФ"
 	strBefore :=
 		"<soapenv:Envelope " +
-			"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
-			"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
+			"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+			"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 			"<soapenv:Header/>" +
 			"<soapenv:Body>" +
 			"<bpm:createRequestRequest>" +
@@ -996,7 +996,7 @@ func CreateAnomalyTicket(
 func CheckTicketStatusErr(soapServer string, srID string) (status string) {
 	//if len(srID) == 36 {
 	//Убрать из строки \n
-	strBefore := "<soapenv:Envelope xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
 	replacer := strings.NewReplacer("SRid", srID)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)
@@ -1021,7 +1021,7 @@ func CheckTicketStatusErr(soapServer string, srID string) (status string) {
 
 	myError := 1
 	for myError != 0 {
-		//req, errHttpReq := netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		//req, errHttpReq := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 		if errHttpReq == nil {
 			client := &http.Client{

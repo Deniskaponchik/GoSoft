@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"github.com/tiaguinho/gosoap"
 	"log"
-	"netdial/netdial"
 	"time"
 )
 
@@ -35,7 +34,7 @@ var (
 )
 
 func main4353454353443() {
-	httpClient := &netdial.Client{
+	httpClient := &http.Client{
 		Timeout: 1500 * time.Millisecond,
 	}
 	gosoap.SetCustomEnvelope("soapenv", map[string]string{

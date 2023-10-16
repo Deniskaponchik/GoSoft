@@ -37,8 +37,8 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket entity.PolyTicket) (entity.PolyTi
 	if ticket.UserLogin != "" {
 		strBefore :=
 			"<soapenv:Envelope " +
-				"xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" " +
-				"xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\">" +
+				"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+				"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
 				"<soapenv:Header/>" +
 				"<soapenv:Body>" +
 				"<bpm:createRequestRequest>" +
@@ -72,9 +72,9 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket entity.PolyTicket) (entity.PolyTi
 		replacer := strings.NewReplacer("Description", ticket.Description, "UserLogin", ticket.UserLogin, "Reason", ticket.Reason,
 			"Region", ticket.Region, "Monitoring", ticket.Monitoring, "incidentType", ticket.IncidentType)
 		strAfter := replacer.Replace(strBefore)
+		//fmt.Println(strAfter)
 		payload := []byte(strAfter)
 		//os.Exit(0)
-		httpMethod := "POST"
 
 		//Вбиваем результат запроса из постмана сюда: https://tool.hiofd.com/en/xml-to-go/
 		type Envelope struct {
@@ -98,8 +98,8 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket entity.PolyTicket) (entity.PolyTi
 		var err error
 		myError := 1
 		for myError != 0 {
-			//req, err :=	netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
-			req, errHttpReq := http.NewRequest(httpMethod, ps.soapUrl, bytes.NewReader(payload))
+			//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+			req, errHttpReq := http.NewRequest("POST", ps.soapUrl, bytes.NewReader(payload))
 			if errHttpReq == nil {
 				client := &http.Client{
 					Transport: &http.Transport{
@@ -128,6 +128,8 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket entity.PolyTicket) (entity.PolyTi
 						if errXmlUnmarshal == nil {
 							if envelope.Body.CreateRequestResponse.Code != 0 || envelope.Body.CreateRequestResponse.ID == "" {
 								fmt.Println(envelope.Body.CreateRequestResponse.Description)
+								//fmt.Println(envelope.Body.CreateRequestResponse.Code)
+								//fmt.Println(envelope.Body.CreateRequestResponse.Text)
 								fmt.Println("Заявка НЕ создалась на ФИНАЛЬНОМ этапе")
 								fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
 								fmt.Println("SOAP-сервер: " + ps.soapUrl)
@@ -207,7 +209,7 @@ func (ps *PolySoap) CheckTicketStatusErr(ticket entity.PolyTicket) (entity.PolyT
 
 	//if len(srID) == 36 {
 	//Убрать из строки \n
-	strBefore := "<soapenv:Envelope xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
 	replacer := strings.NewReplacer("SRid", ticket.ID)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)
@@ -233,7 +235,7 @@ func (ps *PolySoap) CheckTicketStatusErr(ticket entity.PolyTicket) (entity.PolyT
 	var err error
 	myError := 1
 	for myError != 0 {
-		//req, errHttpReq := netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		//req, errHttpReq := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, ps.soapUrl, bytes.NewReader(payload))
 		if errHttpReq == nil {
 			client := &http.Client{
@@ -331,7 +333,7 @@ func (ps *PolySoap) CheckTicketStatusErr(ticket entity.PolyTicket) (entity.PolyT
 func (ps *PolySoap) ChangeStatusErr(ticket entity.PolyTicket) error {
 	UserLogin := "denis.tirskikh"
 	//Убрать из строки \n
-	strBefore := "<Envelope xmlns=\"netdial://schemas.xmlsoap.org/netdial/envelope/\"><Body><changeCaseStatusRequest xmlns=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("SRid", ticket.ID, "NewStatus", ticket.Status, "UserLogin", UserLogin)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)
@@ -358,7 +360,7 @@ func (ps *PolySoap) ChangeStatusErr(ticket entity.PolyTicket) error {
 	var err error
 	myError := 1
 	for myError != 0 {
-		//req, err := netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		//req, err := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, ps.soapUrl, bytes.NewReader(payload))
 		if errHttpReq == nil {
 			client := &http.Client{
@@ -449,7 +451,7 @@ func (ps *PolySoap) AddCommentErr(ticket entity.PolyTicket) (err error) {
 	userLogin := "denis.tirskikh"
 	//Убрать из строки \n
 	//strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
-	strBefore := "<Envelope xmlns=\"netdial://schemas.xmlsoap.org/netdial/envelope/\"><Body><createCommentRequest xmlns=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("srID", ticket.ID, "myComment", ticket.Comment, "userLogin", userLogin)
 	strAfter := replacer.Replace(strBefore)
 	//fmt.Println(strAfter)
@@ -476,7 +478,7 @@ func (ps *PolySoap) AddCommentErr(ticket entity.PolyTicket) (err error) {
 
 	myError := 1
 	for myError != 0 {
-		//req, err :=	netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, ps.soapUrl, bytes.NewReader(payload))
 		if errHttpReq == nil {
 			client := &http.Client{
