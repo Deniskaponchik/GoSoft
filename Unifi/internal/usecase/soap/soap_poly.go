@@ -32,6 +32,8 @@ func New(s string, b string) *PolySoap {
 
 func (ps *PolySoap) CreatePolyTicketErr(ticket entity.PolyTicket) (entity.PolyTicket, error) { //srSlice []string, err error) {
 
+	ticket.BpmServer = ps.bpmUrl //оставь в таком виде. не нужно при успешном выполнении формировать полную ссылку.
+
 	if ticket.UserLogin != "" {
 		strBefore :=
 			"<soapenv:Envelope " +
@@ -67,8 +69,8 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket entity.PolyTicket) (entity.PolyTi
 				"</soapenv:Envelope>"
 		//replacer := strings.NewReplacer("Description", "My des", "UserLogin", "denis.tirskikh", "Region", "Москва ЦФ")
 		//replacer := strings.NewReplacer("Description", description, "UserLogin", userLogin, "incidentType", incidentType, "Region", region)
-		replacer := strings.NewReplacer("Description", ticket.Description, "UserLogin", ticket.UserLogin, "Reason", ticket.Reason, "Region", ticket.Region,
-			"Monitoring", ticket.Monitoring, "incidentType", ticket.IncidentType)
+		replacer := strings.NewReplacer("Description", ticket.Description, "UserLogin", ticket.UserLogin, "Reason", ticket.Reason,
+			"Region", ticket.Region, "Monitoring", ticket.Monitoring, "incidentType", ticket.IncidentType)
 		strAfter := replacer.Replace(strBefore)
 		payload := []byte(strAfter)
 		//os.Exit(0)
@@ -200,6 +202,9 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket entity.PolyTicket) (entity.PolyTi
 }
 
 func (ps *PolySoap) CheckTicketStatusErr(ticket entity.PolyTicket) (entity.PolyTicket, error) {
+
+	ticket.BpmServer = ps.bpmUrl
+
 	//if len(srID) == 36 {
 	//Убрать из строки \n
 	strBefore := "<soapenv:Envelope xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"

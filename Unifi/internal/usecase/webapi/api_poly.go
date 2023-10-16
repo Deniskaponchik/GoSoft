@@ -85,7 +85,7 @@ func (pwa *PolyWebAPI) ApiLineInfoErr(polyStruct entity.PolyStruct) (entity.Poly
 							return polyStruct, nil
 						} else {
 							fmt.Println("Получен ответ 2000 от устройства, но тело ответа пустое")
-							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							fmt.Println("Будет предпринята новая попытка отправки запроса через 30 сек.")
 							time.Sleep(30 * time.Second)
 							myError++
 							err = errors.New("получен ответ 2000, но тело ответа пустое")
@@ -94,7 +94,7 @@ func (pwa *PolyWebAPI) ApiLineInfoErr(polyStruct entity.PolyStruct) (entity.Poly
 						//fmt.Println(status)
 						fmt.Println(polyStruct.Status)
 						fmt.Println("От устройства получен Статус НЕ 2000")
-						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+						fmt.Println("Будет предпринята новая попытка отправки запроса через 30 сек.")
 						time.Sleep(30 * time.Second)
 						myError++
 						err = errors.New("от устройства получен статус не 2000")
@@ -103,7 +103,7 @@ func (pwa *PolyWebAPI) ApiLineInfoErr(polyStruct entity.PolyStruct) (entity.Poly
 					fmt.Println(errDecode.Error())
 					fmt.Println("Ошибка перекодировки ответа")
 					fmt.Println("Скорее всего, API недоступен")
-					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+					fmt.Println("Будет предпринята новая попытка отправки запроса через 30 сек.")
 					time.Sleep(30 * time.Second)
 					myError++
 					err = errDecode
@@ -111,7 +111,7 @@ func (pwa *PolyWebAPI) ApiLineInfoErr(polyStruct entity.PolyStruct) (entity.Poly
 			} else {
 				fmt.Println(errClientDo.Error())
 				fmt.Println("Ошибка отправки запроса")
-				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+				fmt.Println("Будет предпринята новая попытка отправки запроса через 30 сек.")
 				time.Sleep(30 * time.Second)
 				myError++
 				err = errClientDo
@@ -119,7 +119,7 @@ func (pwa *PolyWebAPI) ApiLineInfoErr(polyStruct entity.PolyStruct) (entity.Poly
 		} else {
 			fmt.Println(errNewRequest.Error())
 			fmt.Println("Ошибка создания ОБЪЕКТА запроса")
-			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+			fmt.Println("Будет предпринята новая попытка отправки запроса через 30 сек.")
 			time.Sleep(30 * time.Second)
 			myError++
 			err = errNewRequest
@@ -240,7 +240,7 @@ func (pwa *PolyWebAPI) ApiLineInfo(polyStruct entity.PolyStruct) (status string,
 	return status, nil
 }
 
-func (pwa *PolyWebAPI) ApiSafeRestart2(polyStruct entity.PolyStruct) (status string, err error) {
+func (pwa *PolyWebAPI) ApiSafeRestart(polyStruct entity.PolyStruct) (err error) {
 
 	type Envelope struct {
 		//status string `json:"Status"`
@@ -274,14 +274,15 @@ func (pwa *PolyWebAPI) ApiSafeRestart2(polyStruct entity.PolyStruct) (status str
 					//log.Fatal("ooopsss! an error occurred, please try again")
 					//statusPoly = envelope.status
 					//statuses[1] = envelope.status
-					status = envelope.Status
+					status := envelope.Status
 					if status == "2000" {
 						fmt.Println("Запрос на перезагрузку прошёл успешно. Устройство перезагрузится в течение 5 минут")
 						myError = 0
+						return nil
 					} else {
 						fmt.Println(status)
 						fmt.Println("От устройства получен Статус НЕ 2000")
-						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+						fmt.Println("Будет предпринята новая попытка отправки запроса через 30 сек.")
 						time.Sleep(30 * time.Second)
 						myError++
 						err = errors.New("от устройства получен статус не 2000")
@@ -290,7 +291,7 @@ func (pwa *PolyWebAPI) ApiSafeRestart2(polyStruct entity.PolyStruct) (status str
 					fmt.Println(errDecode.Error())
 					fmt.Println("Ошибка перекодировки ответа")
 					fmt.Println("Скорее всего, API недоступен")
-					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+					fmt.Println("Будет предпринята новая попытка отправки запроса через 30 сек.")
 					time.Sleep(30 * time.Second)
 					myError++
 					err = errDecode
@@ -298,7 +299,7 @@ func (pwa *PolyWebAPI) ApiSafeRestart2(polyStruct entity.PolyStruct) (status str
 			} else {
 				fmt.Println(errClientDo.Error())
 				fmt.Println("Ошибка отправки запроса")
-				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+				fmt.Println("Будет предпринята новая попытка отправки запроса через 30 сек.")
 				time.Sleep(30 * time.Second)
 				myError++
 				err = errClientDo
@@ -306,7 +307,7 @@ func (pwa *PolyWebAPI) ApiSafeRestart2(polyStruct entity.PolyStruct) (status str
 		} else {
 			fmt.Println(errNewRequest.Error())
 			fmt.Println("Ошибка создания ОБЪЕКТА запроса")
-			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+			fmt.Println("Будет предпринята новая попытка отправки запроса через 30 сек.")
 			time.Sleep(30 * time.Second)
 			myError++
 			err = errNewRequest
@@ -315,10 +316,10 @@ func (pwa *PolyWebAPI) ApiSafeRestart2(polyStruct entity.PolyStruct) (status str
 			myError = 0
 			fmt.Println("После 3 неудачных попыток идём дальше. Перезагрузка не была осуществлена")
 			//status = ""
-			return "", err
+			return err
 		}
 	}
 	//fmt.Printf("Status: %d\n", res.StatusCode)
 	//fmt.Printf("Body: %s\n", string(resBody))
-	return status, err
+	return err
 }

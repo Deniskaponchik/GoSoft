@@ -41,8 +41,8 @@ func (pnd *PolyNetDial) NetDialTmtErr(polyStruct entity.PolyStruct) (entity.Poly
 			return polyStruct, nil
 		} else {
 			//log.Println("Site unreachable, error: ", err)
-			fmt.Println("Visual не доступен по netdial")
-			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+			fmt.Println("Visual не доступен по http")
+			fmt.Println("Будет предпринята новая попытка отправки запроса через 30 сек.")
 			time.Sleep(30 * time.Second)
 			myError++
 			err = errNetDial

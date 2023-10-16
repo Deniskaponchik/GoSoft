@@ -10,9 +10,6 @@ import (
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/soap"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/webapi"
 	"github.com/deniskaponchik/GoSoft/Unifi/pkg/logger"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // Run creates objects via constructors.
@@ -27,185 +24,25 @@ func PolyRun(cfg *config.Config) {
 	}
 	defer pg.Close()
 	*/
-	polyRepo, errNewRepo := repo.New(cfg.GLPI.GlpiITsupport)
-	if errNewRepo != nil {
-		l.Fatal(fmt.Errorf("app - Run - glpi.New: %w", errNewRepo))
+	polyRepo, err := repo.New(cfg.GLPI.GlpiITsupport)
+	if err != nil {
+		//если БД недоступна - останавливаем тут же
+		l.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))
+	} else {
+		fmt.Println("Проверка подключения к БД прошла успешно")
 	}
 
-	polyUseCase := usecase.New(
+	polyUseCase := usecase.NewPoly(
 		//repo.New(cfg.GLPI.GlpiConnectStrITsupport),
 		polyRepo,
 		webapi.New(cfg.PolyUsername, cfg.PolyPassword),
 		netdial.New(),
-		soap.New(cfg.SoapTest, cfg.BpmTest), //cfg.SoapUrl, cfg.BpmUrl),
+		soap.New(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
 	)
 
-	errInfPolyProcess := polyUseCase.InfinityPolyProcessing(cfg.BpmUrl, cfg.SoapUrl)
-	if errInfPolyProcess != nil {
-		l.Fatal(fmt.Errorf("app - Run - InfinityPolyProcessing: %w", errInfPolyProcess))
+	err = polyUseCase.InfinityPolyProcessing() //cfg.BpmUrl, cfg.SoapUrl)
+	if err != nil {
+		l.Fatal(fmt.Errorf("app - Run - InfinityPolyProcessing: %w", err))
 	}
-	//ОКОНЧАНИЕ НОВОЙ ЛОГИКИ
-	//
 
-	//
-	//ДАЛЬШЕ УДАЛИТЬ
-	//Download MAPs from DB
-	//polyMap := DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
-	polyMap, errGetEntityMap := polyUseCase.GetEntityMap(0) //Запрос к БД может делать только UseCase.  Не напрямую из какого-либо пакета
-	if errGetEntityMap != nil {
-		l.Fatal(fmt.Errorf("app - Run - Download polyMap from DB: %w", errGetEntityMap))
-	}
-	//fmt.Println("Вывод мапы СНАРУЖИ функции")
-	/*
-		for k, v := range siteApCutNameLogin {
-			//fmt.Printf("key: %d, value: %t\n", k, v)
-			fmt.Println("newMap "+k, v)
-		}
-		os.Exit(0)
-	*/
-
-	fmt.Println("")
-	//log.SetOutput(io.Discard) //Отключить вывод лога. Not for Zerolog
-
-	for true { //зацикливаем навечно
-		timeNow := time.Now()
-
-		//
-		if timeNow.Minute() != 0 && cfg.EveryCode[timeNow.Minute()] && timeNow.Minute() != cfg.Count20minute {
-			//if timeNow.Minute() != 0 && every20Code[timeNow.Minute()] && timeNow.Minute() != count20minute {
-			cfg.Count20minute = timeNow.Minute()
-			fmt.Println(timeNow.Format("02 January, 15:04:05"))
-
-			//soapServer = soapServerTest	//soapServer = soapServerProd
-			fmt.Println("SOAP")
-			fmt.Println(cfg.Soap.SoapUrl)
-			//bpmUrl = bpmUrlTest    		//bpmUrl = bpmUrlProd
-			fmt.Println("BPM")
-			fmt.Println(cfg.Bpm.BpmUrl)
-			fmt.Println("")
-
-			//Опрос устройств
-			regionVcsSlice, errSurvey := polyUseCase.Survey(polyMap, cfg.BpmUrl)
-			if errSurvey != nil {
-				//l.Info(fmt.Errorf("app - Run - Download polyMap from DB: %w", errSurvey))
-				fmt.Errorf("app - Run - Error in Survey: %w", errSurvey)
-			}
-
-			//Пробежались по всем vcs. Теперь Заводим заявки
-			fmt.Println("")
-			fmt.Println("Создание заявок по ВКС:")
-			for k, v := range regionVcsSlice {
-				fmt.Println(k)
-
-				var vcsInfo []string
-				var usrLogin string
-
-				for _, vcs := range v {
-					vcsInfo = append(vcsInfo, vcs.RoomName)
-					vcsInfo = append(vcsInfo, vcs.IP)
-					if vcs.PolyType == 1 {
-						vcsInfo = append(vcsInfo, "Codec не отвечает на API-запросы")
-					} else {
-						vcsInfo = append(vcsInfo, "Visual недоступен по netdial")
-					}
-					vcsInfo = append(vcsInfo, "")
-					usrLogin = vcs.Login
-
-					fmt.Println(vcs.RoomName)
-					fmt.Println(vcs.IP)
-					fmt.Println(vcs.PolyType)
-				}
-
-				if usrLogin == "" {
-					usrLogin = "denis.tirskikh"
-				}
-				fmt.Println(usrLogin)
-
-				//desAps := strings.Join(apsNames, "\n")
-				desVcs := strings.Join(vcsInfo, "\n")
-				description := "Зафиксированы сбои в работе устройств ВидеоКонференцСвязи Poly Trio 8800:" + "\n" +
-					desVcs + "\n" +
-					"" + "\n" +
-					"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
-					"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
-					"" + "\n" +
-					"!!! Не нужно решать/отменять/отклонять/возвращать/закрывать заявку, пока работа всех ВКС устройств не будет восстановлена - автоматически создастся новый тикет !!!" + "\n" +
-					""
-				incidentType := "Устройство недоступно"
-				//monitoring := "https://monitoring.tele2.ru/zabbix1/zabbix.php?show=1&application=&name=&inventory%5B0%5D%5Bfield%5D=type&inventory%5B0%5D%5Bvalue%5D=&evaltype=0&tags%5B0%5D%5Btag%5D=&tags%5B0%5D%5Boperator%5D=0&tags%5B0%5D%5Bvalue%5D=&show_tags=3&tag_name_format=0&tag_priority=&show_opdata=0&show_timeline=1&filter_name=&filter_show_counter=0&filter_custom_time=0&sort=clock&sortorder=DESC&age_state=0&show_suppressed=0&unacknowledged=0&compact_view=0&details=0&highlight_row=0&action=problem.view&groupids%5B%5D=163&hostids%5B%5D=11224&hostids%5B%5D=11381"
-				monitoring := "https://r.tele2.ru/aV4MBGZ"
-
-				fmt.Println("Попытка создания заявки")
-				srTicketSlice := CreatePolyTicketErr(soapServer, bpmUrl, usrLogin, description, "", k, monitoring, incidentType)
-				if srTicketSlice[0] != "" {
-					fmt.Println(srTicketSlice[2])
-					//delete(regionVcsSlice, k)  //думаю, что удалять не стоит, т.к. будет каждый раз новая мапа создаваться
-
-					//обновляем в мапе srid
-					for _, va := range v {
-						for key, val := range polyMap {
-							if va.IP == val.IP {
-								val.SrID = srTicketSlice[0]
-								polyMap[key] = val
-								break
-							}
-						}
-					}
-				}
-				fmt.Println("")
-			}
-			fmt.Println("")
-			//
-			//
-
-			//
-			//
-			//Обновление БД. Запустится, если в этот ЧАС он ещё НЕ выполнялся
-			if timeNow.Hour() != countHourToDB {
-				countHourToDB = timeNow.Hour()
-
-				var queries []string
-				for k, v := range polyMap {
-					queries = append(queries, "UPDATE it_support_db.poly SET srid = '"+v.SrID+"', comment = "+strconv.Itoa(int(v.Comment))+" WHERE mac = '"+k+"';")
-				}
-				UpdateMapsToDBerr(polyConf.GlpiConnectStringITsupport, queries)
-				fmt.Println("")
-			}
-			//
-			//
-			//Обновление мап раз в час. для контроля корректности ip-адресов
-			if timeNow.Hour() != countHourFromDB {
-				countHourFromDB = timeNow.Hour()
-
-				//polyMap = make(map[string]PolyStruct{})
-				//polyMap = map[string]PolyStruct{}
-				//clear(polyMyMap)
-				polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
-				fmt.Println("")
-			}
-
-			//
-			//
-			//Перезагрузка
-			if timeNow.Hour() == 7 && reboot == 0 {
-				for _, v := range polyMap {
-					if v.PolyType == 1 {
-						fmt.Println(v.RoomName)
-						apiSafeRestart2(v.IP, polyConf.PolyUsername, polyConf.PolyPassword)
-					}
-				}
-				reboot = 1
-				time.Sleep(2400 * time.Second) //40 minutes
-			}
-			if timeNow.Hour() == 8 {
-				reboot = 0
-			}
-
-		} //Снятие показаний раз в 20 минут
-		fmt.Println("Sleep 58s")
-		fmt.Println("")
-		time.Sleep(58 * time.Second)
-
-	} // while TRUE
-
-} //main func
+}

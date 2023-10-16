@@ -6,26 +6,29 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strconv"
-	//"github.com/go-sql-driver/mysql"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
+	_ "github.com/go-sql-driver/mysql"
+	"strconv"
+	"strings"
 	"time"
 )
 
 type PolyRepo struct {
 	dataSource string
+	database   string
 }
 
 // реализуем Инъекцию зависимостей DI. Используется в app
 func New(d string) (*PolyRepo, error) {
 	pr := &PolyRepo{
 		dataSource: d,
+		database:   strings.Split(d, "/")[1],
 	}
 
 	if db, errSqlOpen := sql.Open("mysql", pr.dataSource); errSqlOpen == nil {
 		errDBping := db.Ping()
 		if errDBping == nil {
-
+			return pr, nil
 		} else {
 			fmt.Println("db.Ping failed:", errDBping)
 			fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
@@ -37,7 +40,7 @@ func New(d string) (*PolyRepo, error) {
 		fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
 		return nil, errSqlOpen
 	}
-	return pr, nil
+	//return pr, nil
 }
 
 func (pr *PolyRepo) UpdateMapsToDBerr(polyMap map[string]entity.PolyStruct) (err error) {
@@ -45,7 +48,8 @@ func (pr *PolyRepo) UpdateMapsToDBerr(polyMap map[string]entity.PolyStruct) (err
 	//взято из app
 	var queries []string
 	for k, v := range polyMap {
-		queries = append(queries, "UPDATE it_support_db.poly SET srid = '"+v.SrID+"', comment = "+strconv.Itoa(int(v.Comment))+" WHERE mac = '"+k+"';")
+		//queries = append(queries, "UPDATE it_support_db.poly SET srid = '"+v.SrID+"', comment = "+strconv.Itoa(int(v.Comment))+" WHERE mac = '"+k+"';")
+		queries = append(queries, "UPDATE "+pr.database+".poly SET srid = '"+v.SrID+"', comment = "+strconv.Itoa(int(v.Comment))+" WHERE mac = '"+k+"';")
 	}
 
 	myError := 1
@@ -94,7 +98,7 @@ func (pr *PolyRepo) UpdateMapsToDBerr(polyMap map[string]entity.PolyStruct) (err
 	return nil
 }
 
-func (pr *PolyRepo) DownloadMapFromDBvcsErr(marker int) (polyMap map[string]entity.PolyStruct, err error) {
+func (pr *PolyRepo) DownloadMapFromDBvcsErr(marker int) (map[string]entity.PolyStruct, error) {
 	//Функция вызывается НЕ только в начале скрипта, но каждый час для корректности ip-адресов
 
 	/*
@@ -109,15 +113,17 @@ func (pr *PolyRepo) DownloadMapFromDBvcsErr(marker int) (polyMap map[string]enti
 			Comment   int    `json:"comment"`
 			Exception int    `json:"exception"`
 		} */
-	//m := make(map[string]entity.PolyStruct)
+	polyMap := make(map[string]entity.PolyStruct) //https://yourbasic.org/golang/gotcha-assignment-entry-nil-map/
+	var err error
 
 	myError := 1
 	for myError != 0 {
 		if db, errSqlOpen := sql.Open("mysql", pr.dataSource); errSqlOpen == nil {
 			errDBping := db.Ping()
 			if errDBping == nil {
-				defer db.Close()                                 // defer the close till after the main function has finished
-				queryAfter := "SELECT * FROM it_support_db.poly" // WHERE type = " + strconv.Itoa(int(polyType))
+				defer db.Close() // defer the close till after the main function has finished
+				queryAfter := "SELECT * FROM " + pr.database + ".poly"
+				//queryAfter := "SELECT * FROM it_support_db.poly" // WHERE type = " + strconv.Itoa(int(polyType))
 				//queryAfter := "SELECT * FROM it_support_db.a WHERE controller = " + strconv.Itoa(int(bdController))
 				fmt.Println(queryAfter)
 

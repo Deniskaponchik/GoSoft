@@ -25,8 +25,9 @@ type PolyTicket struct {
 	IncidentType string `example:"Устройство недоступно"`
 	Comment      string `example:"любой текст"`
 
-	ID     string `example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
-	Status string `example:"Решено"`
-	Number string `example:"SR12345678"`
-	Url    string `example:"https://bpm.com/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
+	ID        string `example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
+	Status    string `example:"Решено"`
+	Number    string `example:"SR12345678"`
+	Url       string `example:"https://bpm.com/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
+	BpmServer string `example:"https://bpm.com/"`
 }
