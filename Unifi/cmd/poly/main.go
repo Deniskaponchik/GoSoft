@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	//"../config"
 	//"../internal/app"
 	"github.com/deniskaponchik/GoSoft/Unifi/config"
@@ -16,9 +17,9 @@ import (
 */
 
 func main() {
-	mode := "TEST"
+	fmt.Println("")
 
-	cfg, err := config.NewConfig(mode)
+	cfg, err := config.NewConfig()
 	//cfg, err := config.NewPolyConfig()
 	if err != nil {
 		log.Fatalf("Config error: %s", err)

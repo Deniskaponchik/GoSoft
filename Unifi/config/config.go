@@ -1,10 +1,12 @@
 package config
 
 import (
+	"flag"
+	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
-func NewConfig(mode string) (*Config, error) {
+func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
 	//Подгрузка переменных с yaml файла. Отключаю из-за геморроя с указанием пути до него
@@ -12,28 +14,101 @@ func NewConfig(mode string) (*Config, error) {
 	//err := cleanenv.ReadConfig("./config.yml", cfg)  //для тестирования
 	//err := cleanenv.ReadConfig("../../../config.yml", cfg) // Unifi/cmd/poly/bin/Poly_v1.0
 	//if err != nil {		return nil, fmt.Errorf("read config error: %w", err)	}
-
 	err := cleanenv.ReadEnv(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	if mode == "TEST" {
+	everyCodeSlice := [4]map[int]bool{}
+	//every 20 minutes, start at 5
+	everyCodeSlice[0] = map[int]bool{
+		5:  true,
+		25: true,
+		45: true,
+	}
+	//every 6 minutes, run at 6
+	everyCodeSlice[1] = map[int]bool{
+		6:  true,
+		12: true,
+		18: true,
+		24: true,
+		30: true,
+		36: true,
+		42: true,
+		48: true,
+		54: true,
+		59: true,
+	}
+	//every 6 minutes, run at 3
+	everyCodeSlice[2] = map[int]bool{
+		3:  true,
+		9:  true,
+		15: true,
+		21: true,
+		33: true,
+		39: true,
+		45: true,
+		51: true,
+		57: true,
+	}
+	//every 3 minutes, run at 3. Without 00:00
+	everyCodeSlice[3] = map[int]bool{
+		3:  true,
+		6:  true,
+		9:  true,
+		12: true,
+		15: true,
+		18: true,
+		21: true,
+		24: true,
+		27: true,
+		30: true,
+		33: true,
+		36: true,
+		39: true,
+		42: true,
+		45: true,
+		48: true,
+		51: true,
+		54: true,
+		57: true,
+	}
+
+	//https://stackoverflow.com/questions/2707434/how-to-access-command-line-arguments-passed-to-a-go-program
+	//mode := "TEST"
+	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
+	restart := flag.Int("restart", 7, "hour when codecs restart") //чтобы отключить ежедневную перезагрузку, указать 25 и выше
+	//controller := flag.String("cntrl", "Rostov", "controller: Novosib, Rostov")
+	flag.Parse()
+
+	cfg.InnerVars.Mode = *mode
+	if cfg.InnerVars.Mode == "TEST" {
 		cfg.BpmUrl = cfg.BpmTest
 		cfg.SoapUrl = cfg.SoapTest
 		//cfg.GlpiITsupport = cfg.GlpiITsupportTest
 		cfg.GlpiITsupport = "root:t2root@tcp(10.77.252.153:3306)/it_support_test_db"
+		cfg.InnerVars.EveryCodeMap = everyCodeSlice[3] //каждые 3 минут
 	} else {
+		// "PROD"
 		cfg.BpmUrl = cfg.BpmProd
 		cfg.SoapUrl = cfg.SoapProd
 		cfg.GlpiITsupport = cfg.GlpiITsupportProd
+		cfg.InnerVars.EveryCodeMap = everyCodeSlice[0] //каждые 20 минут, старт в 5 минут
 	}
+	cfg.InnerVars.RestartHour = *restart //7 //в 7 часов по времени сервера, где запущен скрипт
+
+	fmt.Println("Mode: ", cfg.InnerVars.Mode)
+	fmt.Println("Restart hour: ", cfg.InnerVars.RestartHour)
+	fmt.Println("Every Code Map: ", cfg.InnerVars.EveryCodeMap)
+	//time.Sleep(1000 * time.Second)
 
 	return cfg, nil
 }
 
 type (
 	Config struct {
+		InnerVars
+
 		Polycom
 		Ubiquiti
 		Bpm
@@ -41,14 +116,17 @@ type (
 		GLPI
 
 		App  `yaml:"app"`
-		HTTP `yaml:"netdial"`
+		HTTP `yaml:"http"`
 		Log  `yaml:"logger"`
 		PG   `yaml:"postgres"`
 		RMQ  `yaml:"rabbitmq"`
 	}
-	Mode struct {
+	InnerVars struct {
+		Mode         string
+		EveryCodeMap map[int]bool
+		RestartHour  int
+		//EveryCodeSlice [4]map[int]bool
 	}
-
 	//env-required:"true" - ОБЯЗАТЕЛЬНО должен получить перменную либо из окружения, либо из yaml. Между true и false разницы не заметил
 
 	Polycom struct {

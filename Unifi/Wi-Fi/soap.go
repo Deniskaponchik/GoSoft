@@ -1126,7 +1126,7 @@ func CheckTicketStatus(bpmServer string, srID string) (statusSlice []string) {
 
 		//srID := "f0074e96-1ab9-4f63-af29-0acd933b49e8"
 		//Убрать из строки \n
-		strBefore := "<soapenv:Envelope xmlns:soapenv=\"netdial://schemas.xmlsoap.org/netdial/envelope/\" xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+		strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
 		replacer := strings.NewReplacer("SRid", srID)
 		strAfter := replacer.Replace(strBefore)
 		payload := []byte(strAfter)
@@ -1197,7 +1197,7 @@ func CheckTicketStatus(bpmServer string, srID string) (statusSlice []string) {
 func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewStatus string) {
 	UserLogin := "denis.tirskikh"
 	//Убрать из строки \n
-	strBefore := "<Envelope xmlns=\"netdial://schemas.xmlsoap.org/netdial/envelope/\"><Body><changeCaseStatusRequest xmlns=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("SRid", srID, "NewStatus", NewStatus, "UserLogin", UserLogin)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)

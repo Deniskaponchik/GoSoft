@@ -1,6 +1,6 @@
 package main
 
-//"github.com/globusdigital/netdial"
+//"github.com/globusdigital/soap"
 import (
 	"encoding/xml"
 )
@@ -17,8 +17,8 @@ type FooRequest struct {
 
 /*
 func main() {
-	//client := netdial.NewClient("http://127.0.0.1:8080/", nil)
-	client := netdial.NewClient("http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType", nil)
+	//client := soap.NewClient("http://127.0.0.1:8080/", nil)
+	client := soap.NewClient("http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType", nil)
 
 	response := &FooResponse{}
 	//httpResponse, err := client.Call( "operationFoo", &FooRequest{Foo: "hello i am foo"}, response)

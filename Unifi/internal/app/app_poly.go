@@ -38,6 +38,8 @@ func PolyRun(cfg *config.Config) {
 		webapi.New(cfg.PolyUsername, cfg.PolyPassword),
 		netdial.New(),
 		soap.New(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
+		cfg.InnerVars.EveryCodeMap,
+		cfg.InnerVars.RestartHour,
 	)
 
 	err = polyUseCase.InfinityPolyProcessing() //cfg.BpmUrl, cfg.SoapUrl)

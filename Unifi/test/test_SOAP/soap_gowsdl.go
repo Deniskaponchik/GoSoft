@@ -102,7 +102,7 @@ func (s *SOAPClient) Call(soapAction string, request, response interface{}) erro
 
 	log.Println(buffer.String())
 
-	req, err := netdial.NewRequest("POST", s.url, buffer)
+	req, err := http.NewRequest("POST", s.url, buffer)
 	if err != nil {
 		return err
 	}
@@ -118,14 +118,14 @@ func (s *SOAPClient) Call(soapAction string, request, response interface{}) erro
 	req.Header.Set("User-Agent", "gowsdl/0.1")
 	req.Close = true
 
-	tr := &netdial.Transport{
+	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: s.tls,
 		},
 		Dial: dialTimeout,
 	}
 
-	client := &netdial.Client{Transport: tr}
+	client := &http.Client{Transport: tr}
 	res, err := client.Do(req)
 	if err != nil {
 		return err

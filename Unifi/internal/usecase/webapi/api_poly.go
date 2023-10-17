@@ -46,13 +46,13 @@ func (pwa *PolyWebAPI) ApiLineInfoErr(polyStruct entity.PolyStruct) (entity.Poly
 			Port               string `json:"Port"`
 		} `json:"data"`
 	}
-	//client := netdial.Client{Timeout: 5 * time.Second}
+	//client := http.Client{Timeout: 5 * time.Second}
 	client := pwa.client
 
 	var err error
 	myError := 1
 	for myError != 0 {
-		//url := "netdial://" + ip + "/api/v1/mgmt/lineInfo"
+		//url := "http://" + ip + "/api/v1/mgmt/lineInfo"
 		url := "http://" + polyStruct.IP + "/api/v1/mgmt/lineInfo"
 		//fmt.Println(url)
 
@@ -154,12 +154,12 @@ func (pwa *PolyWebAPI) ApiLineInfo(polyStruct entity.PolyStruct) (status string,
 			Port               string `json:"Port"`
 		} `json:"data"`
 	}
-	//client := netdial.Client{Timeout: 5 * time.Second}
+	//client := http.Client{Timeout: 5 * time.Second}
 	client := pwa.client
 
 	myError := 1
 	for myError != 0 {
-		//url := "netdial://" + ip + "/api/v1/mgmt/lineInfo"
+		//url := "http://" + ip + "/api/v1/mgmt/lineInfo"
 		url := "http://" + polyStruct.IP + "/api/v1/mgmt/lineInfo"
 		//fmt.Println(url)
 
@@ -246,12 +246,12 @@ func (pwa *PolyWebAPI) ApiSafeRestart(polyStruct entity.PolyStruct) (err error) 
 		//status string `json:"Status"`
 		Status string `json:"Status"`
 	}
-	//client := netdial.Client{Timeout: 5 * time.Second}
+	//client := http.Client{Timeout: 5 * time.Second}
 	client := pwa.client
 
 	myError := 1
 	for myError != 0 {
-		//url := "netdial://" + ip + "/api/v1/mgmt/safeRestart"
+		//url := "http://" + ip + "/api/v1/mgmt/safeRestart"
 		url := "http://" + polyStruct.IP + "/api/v1/mgmt/lineInfo"
 
 		req, errNewRequest := http.NewRequest(http.MethodPost, url, http.NoBody)

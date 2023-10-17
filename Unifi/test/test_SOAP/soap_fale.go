@@ -12,8 +12,8 @@ import (
 )
 
 type soapRQ struct {
-	XMLName   xml.Name `xml:"netdial:Envelope"`
-	XMLNsSoap string   `xml:"xmlns:netdial,attr"`
+	XMLName   xml.Name `xml:"soap:Envelope"`
+	XMLNsSoap string   `xml:"xmlns:soap,attr"`
 	//XMLNsXSI  string   `xml:"xmlns:xsi,attr"`
 	//XMLNsXSD  string   `xml:"xmlns:xsd,attr"`
 	XMLNsBpm string `xml:"xmlns:bpm,attr"`
@@ -21,7 +21,7 @@ type soapRQ struct {
 }
 
 type soapBody struct {
-	XMLName xml.Name `xml:"netdial:Body"`
+	XMLName xml.Name `xml:"soap:Body"`
 	Payload interface{}
 }
 
