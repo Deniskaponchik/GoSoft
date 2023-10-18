@@ -248,11 +248,14 @@ func (pwa *PolyWebAPI) ApiSafeRestart(polyStruct entity.PolyStruct) (err error) 
 	}
 	//client := http.Client{Timeout: 5 * time.Second}
 	client := pwa.client
+	ip := polyStruct.IP //работает только в таком виде
 
 	myError := 1
 	for myError != 0 {
-		//url := "http://" + ip + "/api/v1/mgmt/safeRestart"
-		url := "http://" + polyStruct.IP + "/api/v1/mgmt/lineInfo"
+		//url := "http://10.21.178.78/api/v1/mgmt/safeRestart"
+		url := "http://" + ip + "/api/v1/mgmt/safeRestart" //работает только в таком виде
+		//url := "http://" + polyStruct.IP + "/api/v1/mgmt/lineInfo" //в таком виде, почему-то не работает
+		fmt.Println(url)
 
 		req, errNewRequest := http.NewRequest(http.MethodPost, url, http.NoBody)
 		if errNewRequest == nil {

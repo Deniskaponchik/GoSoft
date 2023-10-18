@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	"github.com/deniskaponchik/GoSoft/Unifi/config"
+	"github.com/deniskaponchik/GoSoft/Unifi/config/poly"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/netdial"
 	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/ping"
@@ -13,7 +13,7 @@ import (
 )
 
 // Run creates objects via constructors.
-func PolyRun(cfg *config.Config) {
+func PolyRun(cfg *poly.ConfigPoly) {
 	fmt.Println("")
 	l := logger.New(cfg.Log.Level)
 

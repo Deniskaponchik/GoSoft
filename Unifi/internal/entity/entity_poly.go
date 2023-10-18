@@ -16,6 +16,7 @@ type PolyStruct struct {
 	Status string `example:"Registered"`
 }
 
+/*
 type PolyTicket struct {
 	UserLogin    string `example:"vasya.pupkin"`
 	Description  string `example:"Зафиксированы сбои в работе системы"`
@@ -31,3 +32,4 @@ type PolyTicket struct {
 	Url       string `example:"https://bpm.com/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
 	BpmServer string `example:"https://bpm.com/"`
 }
+*/

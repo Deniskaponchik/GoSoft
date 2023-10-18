@@ -4,7 +4,7 @@ import (
 	"fmt"
 	//"../config"
 	//"../internal/app"
-	"github.com/deniskaponchik/GoSoft/Unifi/config"
+	"github.com/deniskaponchik/GoSoft/Unifi/config/poly"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/app"
 	"log"
 )
@@ -19,7 +19,8 @@ import (
 func main() {
 	fmt.Println("")
 
-	cfg, err := config.NewConfig()
+	cfg, err := poly.NewConfigPoly()
+	//cfg, err := config.NewConfigPoly()
 	//cfg, err := config.NewPolyConfig()
 	if err != nil {
 		log.Fatalf("Config error: %s", err)
