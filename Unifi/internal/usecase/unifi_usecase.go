@@ -11,7 +11,7 @@ import (
 
 type UnifiUseCase struct {
 	repo  UnifiRepo //interface
-	soap  PolySoap  //interface
+	soap  UnifiSoap //interface
 	unifi UnifiUnifi
 
 	everyCodeMap map[int]bool
@@ -19,8 +19,8 @@ type UnifiUseCase struct {
 }
 
 // реализуем Инъекцию зависимостей DI. Используется в app
-func NewUnifi(r PolyRepo, u UnifiUnifi, s PolySoap, everyCode map[int]bool, restartHour int) *PolyUseCase {
-	return &PolyUseCase{
+func NewUnifi(r UnifiRepo, u UnifiUnifi, s UnifiSoap, everyCode map[int]bool, restartHour int) *UnifiUseCase {
+	return &UnifiUseCase{
 		//Мы можем передать сюда ЛЮБОЙ репозиторий (pg, s3 и т.д.) НО КОД НЕ ПОМЕНЯЕТСЯ! В этом смысл DI
 		repo:         r,
 		unifi:        u,
@@ -31,11 +31,11 @@ func NewUnifi(r PolyRepo, u UnifiUnifi, s PolySoap, everyCode map[int]bool, rest
 }
 
 // Переменные, которые используются во всех методах ниже
-var polyMap map[string]entity.PolyStruct
-var region_VcsSlice map[string][]entity.PolyStruct
-var err error
+var aaaaaMap map[string]entity.PolyStruct
+var region_unifiSlice map[string][]entity.PolyStruct
+var erru error
 
-func (puc *PolyUseCase) InfinityUnifiProcessing() error {
+func (puc *UnifiUseCase) InfinityUnifiProcessing() error {
 
 	everyCode := puc.everyCodeMap
 	count20minute := 0
@@ -43,7 +43,7 @@ func (puc *PolyUseCase) InfinityUnifiProcessing() error {
 	countHourToDB := 0
 	reboot := 0
 
-	//polyMap = make(map[string]entity.PolyStruct)
+	//UnifiMap = make(map[string]entity.UnifiStruct)
 	polyMap, err = puc.repo.DownloadMapFromDBvcsErr(0) // 0 - при старте приложения. код не пойдёт дальше приошибках
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func (puc *PolyUseCase) InfinityUnifiProcessing() error {
 }
 
 // Опрос устройств
-func (puc *PolyUseCase) Survey() error {
+func (puc *UnifiUseCase) Survey() error {
 	//polyMap map[string]entity.PolyStruct) ( //, bpmUrl string) (
 	//map[string]entity.PolyStruct, region_VcsSlice map[string][]entity.PolyStruct, err error) {
 
@@ -357,7 +357,7 @@ func (puc *PolyUseCase) Survey() error {
 }
 
 // Создание заявок
-func (puc *PolyUseCase) TicketsCreating() error {
+func (puc *UnifiUseCase) TicketsCreating() error {
 	//region_VcsSlice map[string][]entity.PolyStruct,	polyMap map[string]entity.PolyStruct) error {
 
 	fmt.Println("")

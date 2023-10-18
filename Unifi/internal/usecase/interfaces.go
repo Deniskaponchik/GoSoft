@@ -17,10 +17,10 @@ type (
 	}
 
 	PolySoap interface {
-		CreatePolyTicketErr(entity.PolyTicket) (entity.PolyTicket, error) //[]string, error)
-		CheckTicketStatusErr(entity.PolyTicket) (entity.PolyTicket, error)
-		ChangeStatusErr(entity.PolyTicket) error
-		AddCommentErr(entity.PolyTicket) error
+		CreatePolyTicketErr(entity.Ticket) (entity.Ticket, error) //[]string, error)
+		CheckTicketStatusErr(entity.Ticket) (entity.Ticket, error)
+		ChangeStatusErr(entity.Ticket) error
+		AddCommentErr(entity.Ticket) error
 	}
 
 	PolyWebApi interface {

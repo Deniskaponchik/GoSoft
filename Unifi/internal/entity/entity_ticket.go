@@ -17,6 +17,6 @@ type Ticket struct {
 	Url       string `example:"https://bpm.com/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
 	BpmServer string `example:"https://bpm.com/"`
 
-	System  string `example:"Helpdesk IT"`
-	Service string `example:"Устранение неисправности"`
+	//System  string `example:"Helpdesk IT"`
+	//Service string `example:"Устранение неисправности"`
 }

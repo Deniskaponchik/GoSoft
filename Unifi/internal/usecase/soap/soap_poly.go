@@ -30,7 +30,7 @@ func New(s string, b string) *PolySoap {
 	}
 }
 
-func (ps *PolySoap) CreatePolyTicketErr(ticket entity.PolyTicket) (entity.PolyTicket, error) { //srSlice []string, err error) {
+func (ps *PolySoap) CreatePolyTicketErr(ticket entity.Ticket) (entity.Ticket, error) { //srSlice []string, err error) {
 
 	ticket.BpmServer = ps.bpmUrl //оставь в таком виде. не нужно при успешном выполнении формировать полную ссылку.
 
@@ -203,7 +203,7 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket entity.PolyTicket) (entity.PolyTi
 	return ticket, nil
 }
 
-func (ps *PolySoap) CheckTicketStatusErr(ticket entity.PolyTicket) (entity.PolyTicket, error) {
+func (ps *PolySoap) CheckTicketStatusErr(ticket entity.Ticket) (entity.Ticket, error) {
 
 	ticket.BpmServer = ps.bpmUrl
 
@@ -330,7 +330,7 @@ func (ps *PolySoap) CheckTicketStatusErr(ticket entity.PolyTicket) (entity.PolyT
 	return ticket, nil
 }
 
-func (ps *PolySoap) ChangeStatusErr(ticket entity.PolyTicket) error {
+func (ps *PolySoap) ChangeStatusErr(ticket entity.Ticket) error {
 	UserLogin := "denis.tirskikh"
 	//Убрать из строки \n
 	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
@@ -447,7 +447,7 @@ func (ps *PolySoap) ChangeStatusErr(ticket entity.PolyTicket) error {
 	return nil
 }
 
-func (ps *PolySoap) AddCommentErr(ticket entity.PolyTicket) (err error) {
+func (ps *PolySoap) AddCommentErr(ticket entity.Ticket) (err error) {
 	userLogin := "denis.tirskikh"
 	//Убрать из строки \n
 	//strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"

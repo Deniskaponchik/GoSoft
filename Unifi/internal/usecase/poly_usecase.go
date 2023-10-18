@@ -35,7 +35,7 @@ func NewPoly(r PolyRepo, a PolyWebApi, n PolyNetDial, s PolySoap, everyCode map[
 // Переменные, которые используются во всех методах ниже
 var polyMap map[string]entity.PolyStruct
 var region_VcsSlice map[string][]entity.PolyStruct
-var err error
+var errp error
 
 func (puc *PolyUseCase) InfinityPolyProcessing() error {
 
@@ -80,9 +80,9 @@ func (puc *PolyUseCase) InfinityPolyProcessing() error {
 	reboot := 0
 
 	//polyMap = make(map[string]entity.PolyStruct)
-	polyMap, err = puc.repo.DownloadMapFromDBvcsErr(0) // 0 - при старте приложения. код не пойдёт дальше приошибках
-	if err != nil {
-		return err
+	polyMap, errp = puc.repo.DownloadMapFromDBvcsErr(0) // 0 - при старте приложения. код не пойдёт дальше приошибках
+	if errp != nil {
+		return errp
 	}
 
 	fmt.Println("")
@@ -98,15 +98,15 @@ func (puc *PolyUseCase) InfinityPolyProcessing() error {
 			fmt.Println(timeNow.Format("02 January, 15:04:05"))
 
 			//Опрос устройств
-			err = puc.Survey() //polyMap) //, cfg.BpmUrl)  region_VcsSlice,
-			if err != nil {
+			errp = puc.Survey() //polyMap) //, cfg.BpmUrl)  region_VcsSlice,
+			if errp != nil {
 				//l.Info(fmt.Errorf("app - Run - Download polyMap from DB: %w", errSurvey))
-				fmt.Errorf("app - Run - Error in Survey: %w", err)
+				fmt.Errorf("app - Run - Error in Survey: %w", errp)
 			} else {
 				//Если опрос устройств не завершился ошибкой, то заводим заявки
-				err = puc.TicketsCreating() //(region_VcsSlice)
-				if err != nil {
-					fmt.Errorf("app - Run - Error in Ticketing: %w", err)
+				errp = puc.TicketsCreating() //(region_VcsSlice)
+				if errp != nil {
+					fmt.Errorf("app - Run - Error in Ticketing: %w", errp)
 				}
 			}
 
@@ -115,7 +115,7 @@ func (puc *PolyUseCase) InfinityPolyProcessing() error {
 				countHourToDB = timeNow.Hour()
 
 				//UpdateMapsToDBerr(polyConf.GlpiConnectStringITsupport, queries)
-				err = puc.repo.UpdateMapsToDBerr(polyMap)
+				errp = puc.repo.UpdateMapsToDBerr(polyMap)
 				fmt.Println("")
 			}
 
@@ -124,7 +124,7 @@ func (puc *PolyUseCase) InfinityPolyProcessing() error {
 				countHourFromDB = timeNow.Hour()
 
 				//polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
-				polyMap, err = puc.repo.DownloadMapFromDBvcsErr(1) //1 - код пойдёт дальше при ошибках
+				polyMap, errp = puc.repo.DownloadMapFromDBvcsErr(1) //1 - код пойдёт дальше при ошибках
 				fmt.Println("")
 			}
 
@@ -134,7 +134,7 @@ func (puc *PolyUseCase) InfinityPolyProcessing() error {
 					if v.PolyType == 1 {
 						fmt.Println(v.RoomName)
 						//apiSafeRestart2(v.IP, polyConf.PolyUsername, polyConf.PolyPassword)
-						err = puc.webAPI.ApiSafeRestart(v)
+						errp = puc.webAPI.ApiSafeRestart(v)
 					}
 				}
 				reboot = 1
@@ -155,7 +155,7 @@ func (puc *PolyUseCase) InfinityPolyProcessing() error {
 // Опрос устройств
 func (puc *PolyUseCase) Survey() error {
 	//polyMap map[string]entity.PolyStruct) ( //, bpmUrl string) (
-	//map[string]entity.PolyStruct, region_VcsSlice map[string][]entity.PolyStruct, err error) {
+	//map[string]entity.PolyStruct, region_VcsSlice map[string][]entity.PolyStruct, errp error) {
 
 	srStatusCodesForNewTicket := map[string]bool{
 		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
@@ -186,7 +186,7 @@ func (puc *PolyUseCase) Survey() error {
 			login := v.Login
 			srID := v.SrID
 			*/
-			polyTicket := entity.PolyTicket{
+			polyTicket := entity.Ticket{
 				ID:        v.SrID,
 				UserLogin: v.Login,
 				Region:    v.Region,
@@ -439,7 +439,7 @@ func (puc *PolyUseCase) TicketsCreating() error {
 		//monitoring := "https://monitoring.tele2.ru/zabbix1/zabbix.php?show=1&application=&name=&inventory%5B0%5D%5Bfield%5D=type&inventory%5B0%5D%5Bvalue%5D=&evaltype=0&tags%5B0%5D%5Btag%5D=&tags%5B0%5D%5Boperator%5D=0&tags%5B0%5D%5Bvalue%5D=&show_tags=3&tag_name_format=0&tag_priority=&show_opdata=0&show_timeline=1&filter_name=&filter_show_counter=0&filter_custom_time=0&sort=clock&sortorder=DESC&age_state=0&show_suppressed=0&unacknowledged=0&compact_view=0&details=0&highlight_row=0&action=problem.view&groupids%5B%5D=163&hostids%5B%5D=11224&hostids%5B%5D=11381"
 		monitoring := "https://r.tele2.ru/aV4MBGZ"
 
-		polyTicket := entity.PolyTicket{
+		polyTicket := entity.Ticket{
 			UserLogin:    usrLogin,
 			Description:  description,
 			Region:       k,
