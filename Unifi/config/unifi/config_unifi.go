@@ -77,7 +77,6 @@ func NewConfigUnifi() (*ConfigUi, error) {
 	//https://stackoverflow.com/questions/2707434/how-to-access-command-line-arguments-passed-to-a-go-program
 	//mode := "TEST"
 	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
-	//restart := flag.Int("restart", 7, "hour when codecs restart") //чтобы отключить ежедневную перезагрузку, указать 25 и выше
 	controller := flag.String("cntrl", "Rostov", "controller: Novosib, Rostov")
 	flag.Parse()
 
@@ -96,16 +95,18 @@ func NewConfigUnifi() (*ConfigUi, error) {
 
 	//controller = *controller //
 	if *controller == "Rostov" {
-		cfg.Ubiquiti.UiContrl = cfg.Ubiquiti.UiContrlRostov
+		cfg.Ubiquiti.UiContrlstr = cfg.Ubiquiti.UiContrlRostov
+		cfg.Ubiquiti.UiContrlint = 1
 		cfg.App.EveryCodeMap = everyCodeSlice[2] //каждые 12 минут
 	} else {
 		// "Novosib"
-		cfg.Ubiquiti.UiContrl = cfg.Ubiquiti.UiContrlNovosib
+		cfg.Ubiquiti.UiContrlstr = cfg.Ubiquiti.UiContrlNovosib
+		cfg.Ubiquiti.UiContrlint = 2
 		cfg.App.EveryCodeMap = everyCodeSlice[12] //каждые 12 минут
 	}
 
 	fmt.Println("Mode: ", *mode) //cfg.InnerVars.Mode)
-	fmt.Println("Controller: ", cfg.Ubiquiti.UiContrl)
+	fmt.Println("Controller: ", cfg.Ubiquiti.UiContrlstr)
 	fmt.Println("Every Code Map: ", cfg.App.EveryCodeMap)
 	//time.Sleep(1000 * time.Second)
 
@@ -144,7 +145,8 @@ type (
 		UiPassword      string `env-required:"true" yaml:"unifi_password"       env:"UNIFI_PASSWORD"`
 		UiContrlRostov  string `env-required:"true" yaml:"contrl_rostov"   env:"UNIFI_CONTROLLER_ROSTOV"`
 		UiContrlNovosib string `env-required:"true" yaml:"contrl_novosib"  env:"UNIFI_CONTROLLER_NOVOSIB"`
-		UiContrl        string
+		UiContrlstr     string
+		UiContrlint     int
 	}
 	Bpm struct {
 		BpmUrl  string //`env-required:"false"`

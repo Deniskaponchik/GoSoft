@@ -5,16 +5,14 @@ package entity
 import "time"
 
 type Ap struct {
-	Mac    string `json:"mac"        example:"a0-b1-c2-d3-e4-f5"`
-	IP     string `json:"ip"         example:"10.68.24.157"`
-	Region string `json:"region"     example:"Волгоград"`
-	Name   string `json:"name"       example:"XXX-OPENSPACE"`
-
-	UserLogin string `json:"login"      example:"vasya.pupkin"`
-	SrID      string `json:"srid"       example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
-	Exception int    `json:"exception"  example:"1"`
-	//Type  int    `json:"type"       example:"1"`
-	//Comment   int    `json:"comment"    example:"1"`
+	Mac        string `json:"mac"        example:"a0-b1-c2-d3-e4-f5"`
+	SiteName   string `json:"region"     example:"Волгоград"`
+	Name       string `json:"name"       example:"XXX-OPENSPACE"`
+	UserLogin  string `json:"login"      example:"vasya.pupkin"`
+	SrID       string `json:"srid"       example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
+	Exception  int    `json:"exception"  example:"1"`
+	Controller int    `json:"controller" example:"1"`
+	Comment    int    `example:"1"` // 0 - нет комментариев, 1 - комментарий, что точка появилась в сети, 2 - Попытка закрыть обращение
 	//Status    string `example:"Available"`
 }
 

@@ -19,7 +19,7 @@ type PolyRepo struct {
 }
 
 // реализуем Инъекцию зависимостей DI. Используется в app
-func New(d string) (*PolyRepo, error) {
+func NewPolyRepo(d string) (*PolyRepo, error) {
 	pr := &PolyRepo{
 		dataSource: d,
 		database:   strings.Split(d, "/")[1],
