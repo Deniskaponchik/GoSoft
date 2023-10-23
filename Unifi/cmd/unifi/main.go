@@ -4,7 +4,7 @@ import (
 	"fmt"
 	//"../config"
 	//"../internal/app"
-	"github.com/deniskaponchik/GoSoft/Unifi/config/unifi"
+	"github.com/deniskaponchik/GoSoft/Unifi/config/ui"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/app"
 	"log"
 )
@@ -19,7 +19,7 @@ import (
 func main() {
 	fmt.Println("")
 
-	cfg, err := unifi.NewConfigUnifi()
+	cfg, err := ui.NewConfigUnifi()
 	//cfg, err := config.NewConfigPoly()
 	//cfg, err := config.NewPolyConfig()
 	if err != nil {
@@ -27,5 +27,5 @@ func main() {
 	}
 
 	// app.Run(cfg)
-	app.PolyRun(cfg)
+	app.RunUnifi(cfg)
 }

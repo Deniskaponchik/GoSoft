@@ -16,7 +16,8 @@ import (
 )
 
 func CreateWiFiTicketErr(
-	soapServer string, bpmUrl string, userLogin string, description string, noutName string, region string, apName string, incidentType string) (
+	soapServer string, bpmUrl string, userLogin string, description string, noutName string, region string,
+	apName string, incidentType string) (
 	srSlice []string) {
 
 	if userLogin != "" {

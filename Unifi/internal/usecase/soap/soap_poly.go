@@ -30,7 +30,7 @@ func New(s string, b string) *PolySoap {
 	}
 }
 
-func (ps *PolySoap) CreatePolyTicketErr(ticket entity.Ticket) (entity.Ticket, error) { //srSlice []string, err error) {
+func (ps *PolySoap) CreatePolyTicketErr(ticket *entity.Ticket) (err error) { //(entity.Ticket, error) { //srSlice []string, err error) {
 
 	ticket.BpmServer = ps.bpmUrl //оставь в таком виде. не нужно при успешном выполнении формировать полную ссылку.
 
@@ -95,7 +95,7 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket entity.Ticket) (entity.Ticket, er
 			} `xml:"Body"`
 		}
 
-		var err error
+		//var err error
 		myError := 1
 		for myError != 0 {
 			//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
@@ -147,7 +147,7 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket entity.Ticket) (entity.Ticket, er
 								ticket.Number = envelope.Body.CreateRequestResponse.Number
 								ticket.Url = ps.bpmUrl + ticket.ID
 								myError = 0
-								return ticket, nil
+								return nil //ticket, nil
 							}
 						} else {
 							fmt.Println(errXmlUnmarshal.Error())
@@ -188,7 +188,7 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket entity.Ticket) (entity.Ticket, er
 				//ticket.ID = ""
 				//ticket.Number = ""
 				//ticket.Url = ""
-				return ticket, err
+				return err //ticket, err
 			}
 		}
 	} else {
@@ -198,12 +198,12 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket entity.Ticket) (entity.Ticket, er
 		ticket.ID = ""
 		ticket.Number = ""
 		ticket.Url = ""
-		return ticket, errors.New("userlogin is empty")
+		return errors.New("userlogin is empty")
 	}
-	return ticket, nil
+	return nil //ticket, nil
 }
 
-func (ps *PolySoap) CheckTicketStatusErr(ticket entity.Ticket) (entity.Ticket, error) {
+func (ps *PolySoap) CheckTicketStatusErr(ticket *entity.Ticket) (err error) {
 
 	ticket.BpmServer = ps.bpmUrl
 
@@ -232,7 +232,7 @@ func (ps *PolySoap) CheckTicketStatusErr(ticket entity.Ticket) (entity.Ticket, e
 		} `xml:"Body"`
 	}
 
-	var err error
+	//var err error
 	myError := 1
 	for myError != 0 {
 		//req, errHttpReq := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
@@ -277,7 +277,7 @@ func (ps *PolySoap) CheckTicketStatusErr(ticket entity.Ticket) (entity.Ticket, e
 							//Успешное завершение функции
 							ticket.Status = envelope.Body.GetStatusResponse.Status
 							myError = 0
-							return ticket, nil
+							return nil
 						}
 					} else {
 						fmt.Println("Ошибка перекодировки ответа в xml")
@@ -319,7 +319,7 @@ func (ps *PolySoap) CheckTicketStatusErr(ticket entity.Ticket) (entity.Ticket, e
 			myError = 0
 			fmt.Println("После 6 неудачных попыток идём дальше. Статус заявки НЕ был уточнён")
 			//ticketOut.Status = ""
-			return ticket, err
+			return err
 		}
 	}
 	/* }else {
@@ -327,10 +327,10 @@ func (ps *PolySoap) CheckTicketStatusErr(ticket entity.Ticket) (entity.Ticket, e
 		statusSlice = append(statusSlice, "0")
 		statusSlice = append(statusSlice, "Тикет введён не корректно") //МЕНЯТЬ НЕ НУЖНО!!!
 	}*/
-	return ticket, nil
+	return nil
 }
 
-func (ps *PolySoap) ChangeStatusErr(ticket entity.Ticket) error {
+func (ps *PolySoap) ChangeStatusErr(ticket *entity.Ticket) (err error) {
 	UserLogin := "denis.tirskikh"
 	//Убрать из строки \n
 	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
@@ -357,7 +357,7 @@ func (ps *PolySoap) ChangeStatusErr(ticket entity.Ticket) error {
 		} `xml:"Body"`
 	}
 
-	var err error
+	//var err error
 	myError := 1
 	for myError != 0 {
 		//req, err := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
@@ -400,7 +400,7 @@ func (ps *PolySoap) ChangeStatusErr(ticket entity.Ticket) error {
 						} else {
 							//Успешное завершение функции
 							srDateChange := envelope.Body.ChangeCaseStatusResponse.ModifyOn
-							ticket.Status = envelope.Body.ChangeCaseStatusResponse.NewStatusId
+							//ticket.Status = envelope.Body.ChangeCaseStatusResponse.NewStatusId
 							fmt.Println("Статус обращения изменён на " + ticket.Status + " в: " + srDateChange)
 							myError = 0
 							return nil
@@ -447,7 +447,7 @@ func (ps *PolySoap) ChangeStatusErr(ticket entity.Ticket) error {
 	return nil
 }
 
-func (ps *PolySoap) AddCommentErr(ticket entity.Ticket) (err error) {
+func (ps *PolySoap) AddCommentErr(ticket *entity.Ticket) (err error) {
 	userLogin := "denis.tirskikh"
 	//Убрать из строки \n
 	//strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"

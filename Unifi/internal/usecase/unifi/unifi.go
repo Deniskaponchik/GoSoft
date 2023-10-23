@@ -7,6 +7,6 @@ func New(г string, p string) *UnifiUnifi {
 	return &UnifiUnifi{}
 }
 
-func (uu *UnifiUnifi) GetApSlice() (entity.UnifiStruct, error) {
-
+func (uu *UnifiUnifi) GetApSlice() error { //(entity.Ap, error) {
+	return nil
 }

@@ -27,8 +27,7 @@ func New(u string, p string) *PolyWebAPI { //func New(cfg *config.Config) *PolyW
 	}
 }
 
-func (pwa *PolyWebAPI) ApiLineInfoErr(polyStruct entity.PolyStruct) (entity.PolyStruct, error) {
-	//Метод возвращает структуру
+func (pwa *PolyWebAPI) ApiLineInfoErr(polyStruct *entity.PolyStruct) (err error) {
 	//https://www.poly.com/content/dam/www/products/support/voice/trio/other/rest-api-ref-trio-5-9-5-en.pdf
 
 	type Envelope struct {
@@ -49,7 +48,7 @@ func (pwa *PolyWebAPI) ApiLineInfoErr(polyStruct entity.PolyStruct) (entity.Poly
 	//client := http.Client{Timeout: 5 * time.Second}
 	client := pwa.client
 
-	var err error
+	//var err error
 	myError := 1
 	for myError != 0 {
 		//url := "http://" + ip + "/api/v1/mgmt/lineInfo"
@@ -82,7 +81,7 @@ func (pwa *PolyWebAPI) ApiLineInfoErr(polyStruct entity.PolyStruct) (entity.Poly
 							//fmt.Println("Получен статус skype")
 							polyStruct.Status = envelope.Data[0].RegistrationStatus //Registered - правильный ответ
 							myError = 0
-							return polyStruct, nil
+							return nil //polyStruct, nil
 						} else {
 							fmt.Println("Получен ответ 2000 от устройства, но тело ответа пустое")
 							fmt.Println("Будет предпринята новая попытка отправки запроса через 30 сек.")
@@ -129,11 +128,11 @@ func (pwa *PolyWebAPI) ApiLineInfoErr(polyStruct entity.PolyStruct) (entity.Poly
 			fmt.Println("После 3 неудачных попыток идём дальше. Получить статус работы skype не удалось")
 			//status = ""
 			//return "", err
-			return polyStruct, err
+			return err //polyStruct, err
 		}
 	}
 	//return status, nil
-	return polyStruct, nil
+	return nil //polyStruct, nil
 }
 
 func (pwa *PolyWebAPI) ApiLineInfo(polyStruct entity.PolyStruct) (status string, err error) {
@@ -324,5 +323,5 @@ func (pwa *PolyWebAPI) ApiSafeRestart(polyStruct entity.PolyStruct) (err error) 
 	}
 	//fmt.Printf("Status: %d\n", res.StatusCode)
 	//fmt.Printf("Body: %s\n", string(resBody))
-	return err
+	return nil
 }

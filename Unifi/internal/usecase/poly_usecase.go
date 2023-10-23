@@ -39,40 +39,6 @@ var errp error
 
 func (puc *PolyUseCase) InfinityPolyProcessing() error {
 
-	/*
-		everyCodeSlice := [4]map[int]bool{}
-		//every 20 minutes, start at 5
-		everyCodeSlice[0] = map[int]bool{
-			5:  true,
-			25: true,
-			45: true,
-		}
-		//every 6 minutes, run at 6
-		everyCodeSlice[1] = map[int]bool{
-			6:  true,
-			12: true,
-			18: true,
-			24: true,
-			30: true,
-			36: true,
-			42: true,
-			48: true,
-			54: true,
-			59: true,
-		}
-		//every 6 minutes, run at 3
-		everyCodeSlice[2] = map[int]bool{
-			3:  true,
-			9:  true,
-			15: true,
-			21: true,
-			33: true,
-			39: true,
-			45: true,
-			51: true,
-			57: true,
-		}*/
-
 	everyCode := puc.everyCodeMap
 	count20minute := 0
 	countHourFromDB := 0
@@ -177,6 +143,7 @@ func (puc *PolyUseCase) Survey() error {
 
 	//fmt.Println("")
 	for k, v := range polyMap { // v == polyStruct
+		//polyStruct := &v
 		if v.Exception == 0 {
 
 			/*теперь передаю структуру в сервисы, а не текст
@@ -186,7 +153,7 @@ func (puc *PolyUseCase) Survey() error {
 			login := v.Login
 			srID := v.SrID
 			*/
-			polyTicket := entity.Ticket{
+			polyTicket := &entity.Ticket{
 				ID:        v.SrID,
 				UserLogin: v.Login,
 				Region:    v.Region,
@@ -210,12 +177,14 @@ func (puc *PolyUseCase) Survey() error {
 				//commentUnreach = "Codec не отвечает на API-запросы"
 				//statusReach = webapi.apiLineInfo(ip, polyConf.PolyUsername, polyConf.PolyPassword)
 				//statusReach, errGetStatus = puc.webAPI.ApiLineInfo(v) //возвращает строку
-				v, errGetStatus = puc.webAPI.ApiLineInfoErr(v) //возвращает структуру
+				//v, errGetStatus = puc.webAPI.ApiLineInfoErr(v) //возвращает структуру
+				errGetStatus = puc.webAPI.ApiLineInfoErr(&v) //возвращает структуру
 			} else {
 				vcsType = "Visual"
 				//commentUnreach = "Visual не доступен по netdial"
 				//statusReach = netDialTmtErr(ip)
-				v, errGetStatus = puc.netDial.NetDialTmtErr(v) //возвращает структуру
+				//v, errGetStatus = puc.netDial.NetDialTmtErr(v) //возвращает структуру
+				errGetStatus = puc.netDial.NetDialTmtErr(&v) //возвращает структуру
 			}
 
 			//ВКС доступно.
@@ -259,7 +228,8 @@ func (puc *PolyUseCase) Survey() error {
 						//если последняя запись, пробуем закрыть тикет
 						var errCheckStatus error
 						//statusTicket := CheckTicketStatusErr(soapServer, srID)
-						polyTicket, errCheckStatus = puc.soap.CheckTicketStatusErr(polyTicket)
+						//polyTicket, errCheckStatus = puc.soap.CheckTicketStatusErr(polyTicket)
+						errCheckStatus = puc.soap.CheckTicketStatusErr(polyTicket)
 						fmt.Println(polyTicket.Status) //statusTicket)
 
 						//Статус заявки удалось получить
@@ -279,8 +249,9 @@ func (puc *PolyUseCase) Survey() error {
 								//var errChangeStatus error
 								fmt.Println("Попытка изменить статус в На уточнении")
 								polyTicket.Status = "На уточнении"
-								errChangeStatus := puc.soap.ChangeStatusErr(polyTicket)
+
 								//ChangeStatusErr(soapServer, srID, "На уточнении")
+								errChangeStatus := puc.soap.ChangeStatusErr(polyTicket)
 								//if error не делаю, т.к. лишним не будет при любом раскладе попытаться вернуть на уточнение
 
 								fmt.Println("Попытка изменить статус в Отменено")
@@ -333,7 +304,8 @@ func (puc *PolyUseCase) Survey() error {
 				var errCheckStatus error
 				if polyTicket.ID != "" { //srID != "" {
 					//statusTicket = CheckTicketStatusErr(soapServer, srID)
-					polyTicket, errCheckStatus = puc.soap.CheckTicketStatusErr(polyTicket)
+					//polyTicket, errCheckStatus = puc.soap.CheckTicketStatusErr(polyTicket)
+					errCheckStatus = puc.soap.CheckTicketStatusErr(polyTicket)
 				}
 
 				if srStatusCodesForNewTicket[polyTicket.Status] || polyTicket.ID == "" || errCheckStatus != nil {
@@ -439,7 +411,7 @@ func (puc *PolyUseCase) TicketsCreating() error {
 		//monitoring := "https://monitoring.tele2.ru/zabbix1/zabbix.php?show=1&application=&name=&inventory%5B0%5D%5Bfield%5D=type&inventory%5B0%5D%5Bvalue%5D=&evaltype=0&tags%5B0%5D%5Btag%5D=&tags%5B0%5D%5Boperator%5D=0&tags%5B0%5D%5Bvalue%5D=&show_tags=3&tag_name_format=0&tag_priority=&show_opdata=0&show_timeline=1&filter_name=&filter_show_counter=0&filter_custom_time=0&sort=clock&sortorder=DESC&age_state=0&show_suppressed=0&unacknowledged=0&compact_view=0&details=0&highlight_row=0&action=problem.view&groupids%5B%5D=163&hostids%5B%5D=11224&hostids%5B%5D=11381"
 		monitoring := "https://r.tele2.ru/aV4MBGZ"
 
-		polyTicket := entity.Ticket{
+		polyTicket := &entity.Ticket{
 			UserLogin:    usrLogin,
 			Description:  description,
 			Region:       k,
@@ -450,7 +422,8 @@ func (puc *PolyUseCase) TicketsCreating() error {
 
 		fmt.Println("Попытка создания заявки")
 		//srTicketSlice := CreatePolyTicketErr(soapServer, bpmUrl, usrLogin, description, "", k, monitoring, incidentType)
-		polyTicket, errCreateTicket := puc.soap.CreatePolyTicketErr(polyTicket)
+		//polyTicket, errCreateTicket := puc.soap.CreatePolyTicketErr(polyTicket)
+		errCreateTicket := puc.soap.CreatePolyTicketErr(polyTicket)
 		if errCreateTicket == nil {
 			fmt.Println(polyTicket.BpmServer + polyTicket.ID)
 			//delete(regionVcsSlice, k)  //думаю, что удалять не стоит, т.к. будет каждый раз новая мапа создаваться
@@ -467,6 +440,7 @@ func (puc *PolyUseCase) TicketsCreating() error {
 			}
 		} else {
 			//если создание заявки прошло с ошибкой, то у меня внутри функции итак заложены уведомления
+			//в мапу ничего не обновляю. вернёмся через полчаса, если устройство по-прежнему будет недоступно
 		}
 		fmt.Println("")
 	}

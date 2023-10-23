@@ -1,4 +1,4 @@
-// Package entity defines main entities for business logic (services), data base mapping and
+// Package entity defines main entities for business logic (services), database mapping and
 // HTTP response objects if suitable. Each logic group entities in own file.
 package entity
 
@@ -26,16 +26,15 @@ type Client struct {
 
 	//Аномалии клиента за всё время
 	Anomalies []Anomaly
-
-	UserLogin  string `example:"vasya.pupkin"`
-	Region     string `example:"Москва"`
-	Monitoring string `example:"https://zabbix.com"`
+	UserLogin string `example:"vasya.pupkin"`
+	//PcName    string `json:"name" example:"XXXX-PUPKIN"`
+	//Monitoring string `example:"https://zabbix.com"`
 	//Status      string `example:"Доступен"`
 	//Comment     string `example:"любой текст"`
 	//Description string `example:"Зафиксированы сбои в работе системы"`
 }
 
-// Аномалии клиента, накопившиеся за 1 час
+// Anomaly = Аномалии клиента, накопившиеся за 1 час
 type Anomaly struct {
 	ClientMac    string    `json:"mac"        example:"a0:b1:c2:d3:e4:f5"`
 	SiteName     string    `json:"sitename"   example:"Москва"`

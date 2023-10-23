@@ -4,7 +4,6 @@ package repo
 //https://github.com/evrone/go-clean-template/blob/master/internal/usecase/repo/translation_postgres.go
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	_ "github.com/go-sql-driver/mysql"
@@ -80,6 +79,7 @@ func (pr *PolyRepo) UpdateMapsToDBerr(polyMap map[string]entity.PolyStruct) (err
 				fmt.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				myError++
+				err = errDBping
 			}
 		} else {
 			fmt.Println("Error creating DB:", errSqlOpen)
@@ -88,11 +88,12 @@ func (pr *PolyRepo) UpdateMapsToDBerr(polyMap map[string]entity.PolyStruct) (err
 			fmt.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			myError++
+			err = errSqlOpen
 		}
 		if myError == 5 {
 			myError = 0
 			fmt.Println("После 5 неудачных попыток идём дальше. Подключение к БД не удалось")
-			return errors.New("подключение к бд не удалось")
+			return err //errors.New("подключение к бд не удалось")
 		}
 	} //sql.Open
 	return nil
@@ -216,8 +217,8 @@ func (pr *PolyRepo) DownloadMapFromDBvcsErr(marker int) (map[string]entity.PolyS
 		if myError == 5 && marker == 1 {
 			//Если ночью нет доступа к БД = в ЦОДЕ коллапс. Могу подождать 5 часов при условии, что это ежечасовая актуализация ip-адресов
 			myError = 0
-			return nil, errors.New("подключение к бд не удалось")
+			return nil, err //errors.New("подключение к бд не удалось")
 		}
 	} //sql.Open
-	return polyMap, err
+	return polyMap, nil
 }

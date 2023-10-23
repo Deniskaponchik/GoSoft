@@ -17,6 +17,8 @@ type Ticket struct {
 	Url       string `example:"https://bpm.com/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
 	BpmServer string `example:"https://bpm.com/"`
 
+	//CreateWithoutUserLogin bool //использовать ли UserLogin. Если не использовать, то будут создаваться из под denis.tirskikh
+
 	//System  string `example:"Helpdesk IT"`
 	//Service string `example:"Устранение неисправности"`
 }

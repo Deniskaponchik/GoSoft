@@ -18,12 +18,12 @@ func New() *PolyNetDial {
 	}
 }
 
-func (pnd *PolyNetDial) NetDialTmtErr(polyStruct entity.PolyStruct) (entity.PolyStruct, error) { //status string, err error) {
+func (pnd *PolyNetDial) NetDialTmtErr(polyStruct *entity.PolyStruct) (err error) { //entity.PolyStruct, error) { //status string, err error) {
 	//timeout := 1 * time.Second
 	//url := ipString + ":" + "80"
 	url := polyStruct.IP + ":" + "80"
 
-	var err error
+	//var err error
 	myError := 1
 	for myError != 0 {
 		//	Dial("tcp", "golang.org:netdial")
@@ -38,7 +38,7 @@ func (pnd *PolyNetDial) NetDialTmtErr(polyStruct entity.PolyStruct) (entity.Poly
 			//status = "Registered" //такой же статус возвращает Codec
 			polyStruct.Status = "Registered" //такой же статус возвращает Codec
 			myError = 0
-			return polyStruct, nil
+			return nil //polyStruct, nil
 		} else {
 			//log.Println("Site unreachable, error: ", err)
 			fmt.Println("Visual не доступен по http")
@@ -52,9 +52,9 @@ func (pnd *PolyNetDial) NetDialTmtErr(polyStruct entity.PolyStruct) (entity.Poly
 			myError = 0
 			fmt.Println("После 3 неудачных попыток идём дальше. Получить статус работы skype не удалось")
 			//return "", err
-			return polyStruct, err
+			return err //polyStruct, err
 		}
 	}
 	//return status, nil
-	return polyStruct, nil
+	return nil //polyStruct, nil
 }

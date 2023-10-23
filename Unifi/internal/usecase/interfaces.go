@@ -17,19 +17,19 @@ type (
 	}
 
 	PolySoap interface {
-		CreatePolyTicketErr(entity.Ticket) (entity.Ticket, error) //[]string, error)
-		CheckTicketStatusErr(entity.Ticket) (entity.Ticket, error)
-		ChangeStatusErr(entity.Ticket) error
-		AddCommentErr(entity.Ticket) error
+		CreatePolyTicketErr(*entity.Ticket) error  //[]string, error)
+		CheckTicketStatusErr(*entity.Ticket) error //(entity.Ticket, error)
+		ChangeStatusErr(*entity.Ticket) error
+		AddCommentErr(*entity.Ticket) error
 	}
 
 	PolyWebApi interface {
-		ApiLineInfoErr(entity.PolyStruct) (entity.PolyStruct, error) //string, error)
+		ApiLineInfoErr(*entity.PolyStruct) error //(entity.PolyStruct, error) //string, error)
 		ApiSafeRestart(entity.PolyStruct) error
 	}
 
 	PolyNetDial interface {
-		NetDialTmtErr(entity.PolyStruct) (entity.PolyStruct, error)
+		NetDialTmtErr(*entity.PolyStruct) error //entity.PolyStruct, error)
 	}
 )
 
