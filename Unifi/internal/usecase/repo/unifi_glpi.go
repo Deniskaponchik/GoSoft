@@ -118,7 +118,7 @@ func (ur *UnifiRepo) DownloadMapFromDBanomaliesErr(beforeDays string) (map[strin
 			if errDBping == nil {
 				defer db.Close() // defer the close till after the main function has finished
 				//queryAfter := "SELECT * FROM it_support_db.anomalies WHERE controller = " + strconv.Itoa(int(bdController))
-				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".anomalies WHERE date_hour >= '" + beforeDays + "' AND controller = " + strconv.Itoa(int(bdController))
+				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".anomalies WHERE date_hour >= '" + beforeDays + "' AND controller = " + strconv.Itoa(int(ur.controller))
 				fmt.Println(queryAfter)
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)

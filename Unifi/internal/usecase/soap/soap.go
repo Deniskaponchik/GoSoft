@@ -23,8 +23,8 @@ type Soap struct {
 	//srStatusCodesForCancelTicket map[string]bool
 }
 
-func NewSoap(s string, b string) *PolySoap {
-	return &PolySoap{
+func NewSoap(s string, b string) *Soap {
+	return &Soap{
 		soapUrl: s,
 		bpmUrl:  b,
 	}

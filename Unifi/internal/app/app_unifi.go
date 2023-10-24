@@ -6,7 +6,7 @@ import (
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/soap"
-	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/unifi"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/ubiq"
 	"github.com/deniskaponchik/GoSoft/Unifi/pkg/logger"
 )
 
@@ -30,11 +30,24 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		fmt.Println("Проверка подключения к БД прошла успешно")
 	}
 
-	unifiUseCase := usecase.NewUnifi(
+	//unpoller := unpoller.NewUnpoller(cfg.UiUsername, cfg.UiPassword, cfg.UiContrlstr)
+	/*
+		uc := unifi.Config{
+			//c := *unifi.Config{  //ORIGINAL
+			User: cfg.UiUsername,  //wifiConf.UnifiUsername,
+			Pass: cfg.UiPassword,  //wifiConf.UnifiPassword,
+			URL:  cfg.UiContrlstr, //urlController,
+			// Log with log.Printf or make your own interface that accepts (msg, test_SOAP)
+			ErrorLog: log.Printf,
+			DebugLog: log.Printf,
+		}*/
+
+	unifiUseCase := usecase.NewUnifiUC(
 		//repo.New(cfg.GLPI.GlpiConnectStrITsupport),
 		unifiRepo,
-		soap.New(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
-		unifi.New(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword),
+		soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
+		//ubiq.NewUbiq(unpoller),                //cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword),
+		ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlstr),
 		cfg.App.EveryCodeMap,
 	)
 

@@ -42,10 +42,20 @@ type (
 		ClientTicketCreating() error
 	}
 	UnifiRepo interface {
-		//DownloadMapFromDB
+		UploadMapsToDBerr(string) error
+		DownloadMapFromDBanomaliesErr(string) (map[string]entity.Anomaly, error)
+		DownloadMapFromDBmachinesErr() (map[string]entity.Client, error)
+		DownloadMapFromDBapsErr() (map[string]entity.Ap, error)
+		DownloadMapFromDBerr() (map[string]string, error)
+		GetLoginPCerr(*entity.Client) (err error)
 	}
 	UnifiSoap interface {
+		CreateTicketSmacWifi(ticket *entity.Ticket) (err error)
+		CreateTicketSmacVcs(ticket *entity.Ticket) (err error)
+		CheckTicketStatusErr(ticket *entity.Ticket) (err error)
+		ChangeStatusErr(ticket *entity.Ticket) (err error)
+		AddCommentErr(ticket *entity.Ticket) (err error)
 	}
-	UnifiUnifi interface {
+	Ui interface {
 	}
 )
