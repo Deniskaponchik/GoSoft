@@ -110,10 +110,10 @@ func main() {
 	countDay := time.Now().Day()
 
 	srStatusCodesForNewTicket := map[string]bool{
-		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-		"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+		"Отменено":                  true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
+		"Решено":                    true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
+		"Закрыто":                   true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
+		"На уточнении":              true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 		"Тикет введён не корректно": true,
 		//"": true,
 	}
@@ -524,6 +524,7 @@ func main() {
 								apName = client.ApName //НИЧЕГО не выводит и не содержит. Имя точки берётся ниже на основании сравнения мапой точек
 								clientMac = client.Mac
 								clientName = client.Name
+
 								//clientIP = client.IP
 								//siteName = client.SiteName
 

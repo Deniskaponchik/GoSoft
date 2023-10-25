@@ -13,7 +13,7 @@ type Ap struct {
 	Exception  int    `json:"exception"  example:"1"`
 	Controller int    `json:"controller" example:"1"`
 	Comment    int    `example:"1"` // 0 - нет комментариев, 1 - комментарий, что точка появилась в сети, 2 - Попытка закрыть обращение
-	//Status    string `example:"Available"`
+	StateInt   int    `example:"0"` // 0 - available
 }
 
 type Client struct {

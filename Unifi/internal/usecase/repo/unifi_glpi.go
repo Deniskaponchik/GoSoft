@@ -321,9 +321,9 @@ func (ur *UnifiRepo) DownloadMapFromDBmachinesErr() (map[string]entity.Client, e
 	return machineMap, err
 }
 
-func (ur *UnifiRepo) DownloadMapFromDBapsErr() (map[string]entity.Ap, error) {
+func (ur *UnifiRepo) DownloadMapFromDBapsErr() (map[string]*entity.Ap, error) {
 
-	apMap := make(map[string]entity.Ap) //https://yourbasic.org/golang/gotcha-assignment-entry-nil-map/
+	apMap := make(map[string]*entity.Ap) //https://yourbasic.org/golang/gotcha-assignment-entry-nil-map/
 	var err error
 	myError := 1
 	for myError != 0 {
@@ -347,7 +347,7 @@ func (ur *UnifiRepo) DownloadMapFromDBapsErr() (map[string]entity.Ap, error) {
 							if errScan == nil {
 								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
 								//m[tag.Mac] = ApMyStruct{
-								apMap[tag.Mac] = tag
+								apMap[tag.Mac] = &tag
 								/*
 									apMap[tag.Mac] = entity.Ap{
 										tag.Mac,

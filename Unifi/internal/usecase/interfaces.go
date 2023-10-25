@@ -43,9 +43,9 @@ type (
 	}
 	UnifiRepo interface {
 		UploadMapsToDBerr(string) error
-		DownloadMapFromDBanomaliesErr(string) (map[string]entity.Anomaly, error)
-		DownloadMapFromDBmachinesErr() (map[string]entity.Client, error)
-		DownloadMapFromDBapsErr() (map[string]entity.Ap, error)
+		DownloadMapFromDBanomaliesErr(string) (map[string]*entity.Anomaly, error)
+		DownloadMapFromDBmachinesErr() (map[string]*entity.Client, error)
+		DownloadMapFromDBapsErr() (map[string]*entity.Ap, error)
 		DownloadMapFromDBerr() (map[string]string, error)
 		GetLoginPCerr(*entity.Client) (err error)
 	}
@@ -57,5 +57,10 @@ type (
 		AddCommentErr(ticket *entity.Ticket) (err error)
 	}
 	Ui interface {
+		//GetUni(*map[string]entity.Ap, *map[string]entity.Client, *map[string]entity.Anomaly) error
+		GetSites() error
+		AddAps(map[string]*entity.Ap) error
+		AddClients(map[string]*entity.Client) error
+		AddAnomalies(map[string]*entity.Anomaly) error
 	}
 )
