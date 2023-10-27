@@ -10,19 +10,21 @@ import (
 
 func main() {
 	fmt.Println("")
+	polyConf := NewPolyConfig()
 
-	every20Code := map[int]bool{
-		6:  true,
-		12: true,
-		18: true,
-		24: true,
-		30: true,
-		36: true,
-		42: true,
-		48: true,
-		54: true,
-		59: true,
-	} /*
+	/*
+		every20Code := map[int]bool{
+			6:  true,
+			12: true,
+			18: true,
+			24: true,
+			30: true,
+			36: true,
+			42: true,
+			48: true,
+			54: true,
+			59: true,
+		}
 		every20Code := map[int]bool{ //6 minutes
 			3:  true,
 			9:  true,
@@ -33,24 +35,24 @@ func main() {
 			45: true,
 			51: true,
 			57: true,
-		}
-		every20Code := map[int]bool{
-			3:  true,
-			23: true,
-			43: true,
 		}*/
+	every20Code := map[int]bool{
+		5:  true,
+		25: true,
+		45: true,
+	}
 
 	var soapServer string
-	//soapServerProd := "http://10.12.15.148/specs/aoi/tele2/bpm/bpmPortType"      //PROD
-	soapServerTest := "http://10.246.37.15:8060/specs/aoi/tele2/bpm/bpmPortType" //TEST
+	soapServerProd := polyConf.SoapProd
+	//soapServerTest := polyConf.SoapTest
 	var bpmUrl string
-	//bpmUrlProd := "https://bpm.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
-	bpmUrlTest := "https://t2ru-tr-tst-01.corp.tele2.ru/0/Nui/ViewModule.aspx#CardModuleV2/CasePage/edit/"
+	bpmUrlProd := polyConf.BpmProd
+	//bpmUrlTest := polyConf.BpmTest
 
 	count20minute := 0
 	countHourFromDB := 0
 	countHourToDB := 0
-	//countDay := time.Now().Day()
+	reboot := 0
 
 	srStatusCodesForNewTicket := map[string]bool{
 		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
@@ -58,7 +60,7 @@ func main() {
 		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
 		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 		"Тикет введён не корректно": true,
-		"": true,
+		//"": true,
 	}
 	srStatusCodesForCancelTicket := map[string]bool{
 		"Визирование":  true,
@@ -68,7 +70,7 @@ func main() {
 
 	//Download MAPs from DB
 	polyMap := map[string]PolyStruct{} //просто создаю пустую
-	//polyMap := DownloadMapFromDBvcsErr()
+	polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
 
 	//fmt.Println("Вывод мапы СНАРУЖИ функции")
 	/*
@@ -89,26 +91,17 @@ func main() {
 
 		//
 		//
-		//Обновление мап раз в час. для контроля корректности ip-адресов
-		if timeNow.Hour() != countHourFromDB {
-			countHourFromDB = timeNow.Hour()
-
-			//polyMap = make(map[string]PolyStruct{})
-			polyMap = map[string]PolyStruct{}
-			//clear(polyMyMap)
-
-			polyMap = DownloadMapFromDBvcsErr()
-		}
-
 		if timeNow.Minute() != 0 && every20Code[timeNow.Minute()] && timeNow.Minute() != count20minute {
 			count20minute = timeNow.Minute()
 			fmt.Println(timeNow.Format("02 January, 15:04:05"))
 
 			//Опрос каждые 20 минут
-			soapServer = soapServerTest
+			//soapServer = soapServerTest
+			soapServer = soapServerProd
 			fmt.Println("SOAP")
 			fmt.Println(soapServer)
-			bpmUrl = bpmUrlTest
+			//bpmUrl = bpmUrlTest
+			bpmUrl = bpmUrlProd
 			fmt.Println("BPM")
 			fmt.Println(bpmUrl)
 			fmt.Println("")
@@ -126,12 +119,13 @@ func main() {
 					login := v.Login
 					srID := v.SrID
 
-					fmt.Println(ip)
-					fmt.Println(region)
-					fmt.Println(roomName)
-					fmt.Println(v.PolyType)
-					fmt.Println(srID)
-
+					/*
+						fmt.Println(ip)
+						fmt.Println(region)
+						fmt.Println(roomName)
+						fmt.Println(v.PolyType)
+						fmt.Println(srID)
+					*/
 					//var commentUnreach string
 					var statusReach string
 					var vcsType string
@@ -139,11 +133,11 @@ func main() {
 					if v.PolyType == 1 {
 						vcsType = "Codec"
 						//commentUnreach = "Codec не отвечает на API-запросы"
-						statusReach = apiLineInfo(ip)
+						statusReach = apiLineInfo(ip, polyConf.PolyUsername, polyConf.PolyPassword)
 					} else {
 						vcsType = "Visual"
 						//commentUnreach = "Visual не доступен по http"
-						statusReach = netDialTmt(ip)
+						statusReach = netDialTmtErr(ip)
 					}
 
 					//ВКС доступно. Заявки нет.
@@ -183,7 +177,7 @@ func main() {
 							if srStatusCodesForCancelTicket[statusTicket] {
 								//Если статус заявки на Уточнении, Визирование, Назначено
 								if v.Comment < 2 {
-									comment = "Будет предпринята попытка по отмене обращения, т.к. все точки из него появились в сети"
+									comment = "Будет предпринята попытка по отмене обращения, т.к. все устройства из него появились в сети"
 									if AddCommentErr(soapServer, srID, comment, bpmUrl) != "" {
 										commentForUpdate = 2
 									}
@@ -207,9 +201,12 @@ func main() {
 									v.Comment = commentForUpdate
 									polyMap[k] = v
 								}
+							} else if statusTicket == "" {
+								// если Не удалось получить статус
+								v.Comment = commentForUpdate
+								polyMap[k] = v
 							} else {
-								//Если статус заявки В работе, Решено, Закрыто и т.д.
-								//valueAp.Name = apName
+								//Если статус заявки В работе, на 3 линии, Решено, Закрыто
 								v.SrID = ""
 								v.Comment = 0
 								polyMap[k] = v
@@ -229,7 +226,7 @@ func main() {
 						fmt.Println(region)
 						fmt.Println(roomName)
 						fmt.Println(vcsType)
-						fmt.Println("ВКС НЕ доступно")
+						fmt.Println("ВКС Недоступно")
 
 						//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
 						var statusTicket string
@@ -240,7 +237,7 @@ func main() {
 						if srStatusCodesForNewTicket[statusTicket] || srID == "" {
 							fmt.Println(bpmUrl + srID)
 							fmt.Println("Статус: " + statusTicket) //checkSlice[1])
-							fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ заявки нет вовсе")
+							fmt.Println("Заявка Закрыта, Отменена, Отклонена ИЛИ её нет вовсе")
 
 							//удаляем заявку
 							//valueAp.Name = apName
@@ -258,12 +255,6 @@ func main() {
 							//если в мапе дляТикета сайта ещё НЕТ
 							if !exisRegion {
 								fmt.Println("в мапе для Тикета записи ещё НЕТ")
-								/*
-									siteapNameForTickets[siteApCutName] = ForApsTicket{
-										siteName,
-										0,
-										map[string]string{apMac: apName},
-									}*/
 								newPolySlice := []PolyStruct{}
 								newPolySlice = append(newPolySlice, v)
 								regionVcsSlice[region] = newPolySlice
@@ -279,14 +270,6 @@ func main() {
 										va = append(va, v)
 										regionVcsSlice[ke] = va
 										break
-										/*
-											_, exisApsMacName := v.apsMacName[apMac]
-											if !exisApsMacName {
-												v.apsMacName[apMac] = apName
-												siteapNameForTickets[k] = v
-
-												break // ЗДЕСЬ break НЕ НУЖЕН! да вроде, нужен
-											}*/
 									}
 								}
 							}
@@ -298,7 +281,7 @@ func main() {
 						fmt.Println("")
 					}
 				}
-				fmt.Println("")
+				//fmt.Println("")
 			} //for
 
 			//
@@ -313,13 +296,12 @@ func main() {
 				var usrLogin string
 
 				for _, vcs := range v {
-					//apsNames = append(apsNames, name)
 					vcsInfo = append(vcsInfo, vcs.RoomName)
 					vcsInfo = append(vcsInfo, vcs.IP)
 					if vcs.PolyType == 1 {
 						vcsInfo = append(vcsInfo, "Codec не отвечает на API-запросы")
 					} else {
-						vcsInfo = append(vcsInfo, "Visual не доступен по http")
+						vcsInfo = append(vcsInfo, "Visual недоступен по http")
 					}
 					vcsInfo = append(vcsInfo, "")
 					usrLogin = vcs.Login
@@ -336,7 +318,7 @@ func main() {
 
 				//desAps := strings.Join(apsNames, "\n")
 				desVcs := strings.Join(vcsInfo, "\n")
-				description := "Зафиксировано отключение устройств ВКС Poly:" + "\n" +
+				description := "Зафиксированы сбои в работе устройств ВидеоКонференцСвязи Poly Trio 8800:" + "\n" +
 					desVcs + "\n" +
 					"" + "\n" +
 					"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
@@ -353,6 +335,17 @@ func main() {
 				if srTicketSlice[0] != "" {
 					fmt.Println(srTicketSlice[2])
 					//delete(regionVcsSlice, k)  //думаю, что удалять не стоит, т.к. будет каждый раз новая мапа создаваться
+
+					//обновляем в мапе srid
+					for _, va := range v {
+						for key, val := range polyMap {
+							if va.IP == val.IP {
+								val.SrID = srTicketSlice[0]
+								polyMap[key] = val
+								break
+							}
+						}
+					}
 				}
 				fmt.Println("")
 			}
@@ -368,14 +361,41 @@ func main() {
 
 				var queries []string
 				for k, v := range polyMap {
-					queries = append(queries, "UPDATE it_support_db.poly SET srid = "+v.SrID+", comment = "+strconv.Itoa(int(v.Comment))+" WHERE mac = '"+k+";")
+					queries = append(queries, "UPDATE it_support_db.poly SET srid = '"+v.SrID+"', comment = "+strconv.Itoa(int(v.Comment))+" WHERE mac = '"+k+"';")
 				}
-				UpdateMapsToDBerr(queries)
+				UpdateMapsToDBerr(polyConf.GlpiConnectStringITsupport, queries)
+				fmt.Println("")
+			}
+			//
+			//
+			//Обновление мап раз в час. для контроля корректности ip-адресов
+			if timeNow.Hour() != countHourFromDB {
+				countHourFromDB = timeNow.Hour()
+
+				//polyMap = make(map[string]PolyStruct{})
+				//polyMap = map[string]PolyStruct{}
+				//clear(polyMyMap)
+				polyMap = DownloadMapFromDBvcsErr(polyConf.GlpiConnectStringITsupport)
 				fmt.Println("")
 			}
 
 			//
 			//
+			//Перезагрузка
+			if timeNow.Hour() == 7 && reboot == 0 {
+				for _, v := range polyMap {
+					if v.PolyType == 1 {
+						fmt.Println(v.RoomName)
+						apiSafeRestart2(v.IP, polyConf.PolyUsername, polyConf.PolyPassword)
+					}
+				}
+				reboot = 1
+				time.Sleep(2400 * time.Second) //40 minutes
+			}
+			if timeNow.Hour() == 8 {
+				reboot = 0
+			}
+
 		} //Снятие показаний раз в 20 минут
 		fmt.Println("Sleep 58s")
 		fmt.Println("")
@@ -384,15 +404,6 @@ func main() {
 	} // while TRUE
 
 } //main func
-
-func cointains(slice []string, compareString string) bool {
-	for _, v := range slice {
-		if v == compareString {
-			return true
-		}
-	}
-	return false
-}
 
 type PolyStruct struct {
 	IP        string
@@ -411,3 +422,12 @@ type ForPolyTicket struct {
 	countIncident int
 	apsMacName    map[string]string
 }*/
+
+func cointains(slice []string, compareString string) bool {
+	for _, v := range slice {
+		if v == compareString {
+			return true
+		}
+	}
+	return false
+}

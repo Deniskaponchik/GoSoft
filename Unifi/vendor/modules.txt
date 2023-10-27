@@ -1,6 +1,0 @@
-# github.com/unpoller/unifi v0.3.3
-## explicit; go 1.19
-github.com/unpoller/unifi
-# golang.org/x/net v0.11.0
-## explicit; go 1.17
-golang.org/x/net/publicsuffix

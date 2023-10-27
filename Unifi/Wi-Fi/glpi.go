@@ -12,9 +12,7 @@ import (
 	"time"
 )
 
-func UploadMapsToDBerr(query string) {
-
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+func UploadMapsToDBerr(datasource string, query string) {
 
 	myError := 1
 	for myError != 0 {
@@ -77,7 +75,7 @@ func UploadMapsToDBerr(query string) {
 func UploadMapsToDBstring(dbName string, query string) {
 
 	var datasource string
-	datasource = "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	datasource = ""
 	db, err := sql.Open("mysql", datasource)
 	if err != nil {
 		panic(err.Error())
@@ -95,9 +93,9 @@ func UploadMapsToDBreplace(uploadMap map[string]string, dbName string, tableName
 
 	var datasource string
 	if dbName == "glpi_db" {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
+		datasource = ""
 	} else {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
+		datasource = ""
 	}
 	db, err := sql.Open("mysql", datasource)
 	if err != nil {
@@ -159,9 +157,9 @@ func UploadsMapsToDBdelete(uploadMap map[string]string, dbName string, tableName
 
 	var datasource string
 	if dbName == "glpi_db" {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
+		datasource = ""
 	} else {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
+		datasource = ""
 	}
 	db, err := sql.Open("mysql", datasource)
 	if err != nil {
@@ -201,7 +199,118 @@ func UploadsMapsToDBdelete(uploadMap map[string]string, dbName string, tableName
 	}
 }
 
-func DownloadMapFromDBmachinesErr(bdController int8) map[string]MachineMyStruct {
+func DownloadMapFromDBanomaliesErr(datasource string, bdController int8, beforeDays string) map[string]DateSiteAnom {
+	type TagAnomaly struct {
+		Mac        string `json:"mac"`
+		Datetime   string `json:"date_hour"`
+		Controller int    `json:"controller"`
+		Sitename   string `json:"sitename"`
+		Anomalies  string `json:"anomalies"`
+	}
+	m := make(map[string]DateSiteAnom)
+	//datasource := ""
+	var anomSlice []string
+	var dayMac string
+
+	myError := 1
+	for myError != 0 {
+		if db, errSqlOpen := sql.Open("mysql", datasource); errSqlOpen == nil {
+			errDBping := db.Ping()
+			if errDBping == nil {
+				defer db.Close() // defer the close till after the main function has finished
+				//queryAfter := "SELECT * FROM it_support_db.anomalies WHERE controller = " + strconv.Itoa(int(bdController))
+				queryAfter := "SELECT * FROM it_support_db.anomalies WHERE date_hour >= '" + beforeDays + "' AND controller = " + strconv.Itoa(int(bdController))
+				fmt.Println(queryAfter)
+				for myError != 0 { //зацикливание выполнения запроса
+					results, errQuery := db.Query(queryAfter)
+					if errQuery == nil {
+						var tag TagAnomaly
+						for results.Next() {
+							//errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
+							errScan := results.Scan(&tag.Datetime, &tag.Mac, &tag.Controller, &tag.Sitename, &tag.Anomalies)
+							if errScan == nil {
+								anomSlice = strings.Split(tag.Anomalies, ";")
+								if len(anomSlice) > 2 {
+									dayMac = strings.Split(tag.Datetime, " ")[0] + tag.Mac
+									m[dayMac] = DateSiteAnom{
+										tag.Mac,
+										tag.Datetime,
+										tag.Sitename,
+										anomSlice,
+									}
+								}
+							} else {
+								//panic(errScan.Error()) // proper error handling instead of panic in your app
+								fmt.Println(errScan.Error())
+								fmt.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
+								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								myError = 0
+								//break
+							}
+						}
+						if errRowsNext := results.Err(); errRowsNext != nil {
+							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							//если есть ошибка прохода по строкам, отправляем на перезапрос
+							myError = 0
+						}
+						if myError != 1 {
+							//results.Close()
+							if errRowsClose := results.Close(); errRowsClose != nil {
+								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+							}
+							//db.Close()
+							if errDBclose := db.Close(); errDBclose != nil {
+								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+							}
+							myError = 0
+							/*
+								fmt.Println("Вывод мапы ВНУТРИ функции")
+								for k, v := range m {
+									fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+								}*/
+						} else {
+							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//time.Sleep(60 * time.Second)
+							myError = 0
+						}
+					} else {
+						//panic(errQuery.Error()) // proper error handling instead of panic in your app
+						fmt.Println(errQuery.Error())
+						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						//time.Sleep(60 * time.Second)
+						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
+					}
+				} //db.Query
+			} else {
+				fmt.Println("db.Ping failed:", errDBping)
+				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				time.Sleep(60 * time.Second)
+				//myError = 1
+				myError++
+				if myError == 300 { //Если ночью сервер перезагрузился + нет доступа к БД = в ЦОДЕ коллапс. Могу подождать 5 часов
+					myError = 0
+				}
+			}
+		} else {
+			//log.Print(errSqlOpen.Error())
+			fmt.Println("Error creating DB:", errSqlOpen)
+			fmt.Println("To verify, db is:", db)
+			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			time.Sleep(60 * time.Second)
+			//myError = 1
+			myError++
+			if myError == 300 { //Если ночью сервер перезагрузился + нет доступа к БД = в ЦОДЕ коллапс. Могу подождать 5 часов
+				myError = 0
+			}
+		}
+	} //sql.Open
+	return m
+}
+
+func DownloadMapFromDBmachinesErr(datasource string, bdController int8) map[string]MachineMyStruct {
 	type TagMachine struct {
 		Mac        string `json:"mac"`
 		Name       string `json:"name"`
@@ -211,7 +320,7 @@ func DownloadMapFromDBmachinesErr(bdController int8) map[string]MachineMyStruct 
 		ApName     string `json:"apname"`
 	}
 	m := make(map[string]MachineMyStruct)
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := ""
 
 	myError := 1
 	for myError != 0 {
@@ -323,7 +432,7 @@ func DownloadMapFromDBmachines(bdController int8) map[string]MachineMyStruct {
 	//var machine MachineMyStruct
 	m := make(map[string]MachineMyStruct)
 
-	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/it_support_db")
+	db, err := sql.Open("mysql", "")
 	//db, err := sql.Open("mysql", datasource)
 	if err != nil {
 		log.Print(err.Error())
@@ -363,7 +472,7 @@ func DownloadMapFromDBmachines(bdController int8) map[string]MachineMyStruct {
 	return m
 }
 
-func DownloadMapFromDBapsErr(bdController int8) map[string]ApMyStruct {
+func DownloadMapFromDBapsErr(datasource string, bdController int8) map[string]ApMyStruct {
 	type TagAp struct {
 		Mac        string `json:"mac"`
 		Name       string `json:"name"`
@@ -372,7 +481,7 @@ func DownloadMapFromDBapsErr(bdController int8) map[string]ApMyStruct {
 		SrID       string `json:"srid"`
 	}
 	m := make(map[string]ApMyStruct)
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := ""
 
 	myError := 1
 	for myError != 0 {
@@ -482,7 +591,7 @@ func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 	//var machine MachineMyStruct
 	m := make(map[string]ApMyStruct)
 
-	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/it_support_db")
+	db, err := sql.Open("mysql", "")
 	//db, err := sql.Open("mysql", datasource)
 	if err != nil {
 		log.Print(err.Error())
@@ -523,13 +632,13 @@ func DownloadMapFromDBaps(bdController int8) map[string]ApMyStruct {
 	return m
 }
 
-func DownloadMapFromDBerr() map[string]string {
+func DownloadMapFromDBerr(datasource string) map[string]string {
 	type Tag struct {
 		KeyDB   sql.NullString `json:"keyDB""`
 		ValueDB sql.NullString `json:"valueDB"`
 	}
 	m := make(map[string]string)
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/it_support_db"
+	//datasource := ""
 
 	myError := 1
 	for myError != 0 {
@@ -634,9 +743,9 @@ func DownloadMapFromDB(dbName string, keyDB string, valueDB string, tableName st
 
 	datasource := ""
 	if dbName == "glpi_db" {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
+		datasource = ""
 	} else {
-		datasource = "root:t2root@tcp(10.77.252.153:3306)/wifi_db"
+		datasource = ""
 	}
 
 	//db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/glpi_db")
@@ -691,7 +800,7 @@ func GetLoginAP(siteApCutName string) string {
 		UserLogin string `json:"login"`
 	}
 
-	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/wifi_db")
+	db, err := sql.Open("mysql", "")
 	if err != nil {
 		log.Print(err.Error())
 	}
@@ -711,13 +820,13 @@ func GetLoginAP(siteApCutName string) string {
 	//return pc.UserName
 }
 
-func GetLoginPCerr(pcName string) string {
+func GetLoginPCerr(datasource string, pcName string) string {
 	type PC struct {
 		UserName string `json:"user_name"`
 	}
 	var pc PC
 	var result string
-	datasource := "root:t2root@tcp(10.77.252.153:3306)/glpi_db"
+	//datasource := ""
 	myError := 1
 
 	for myError != 0 {
@@ -780,7 +889,7 @@ func GetLoginPC(pcName string) string {
 		//Date_Mod string `json:"date_mod"`
 	}
 
-	db, err := sql.Open("mysql", "root:t2root@tcp(10.77.252.153:3306)/glpi_db")
+	db, err := sql.Open("mysql", "")
 	if err != nil {
 		log.Print(err.Error())
 	}

@@ -1,8 +1,0 @@
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:bpm="http://www.bercut.com/specs/aoi/tele2/bpm">
-    <soapenv:Header/>
-    <soapenv:Body>
-        <bpm:readSystemsRequest>
-            <Filter>WebTutor</Filter>
-        </bpm:readSystemsRequest>
-    </soapenv:Body>
-</soapenv:Envelope>

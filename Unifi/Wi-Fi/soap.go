@@ -16,7 +16,8 @@ import (
 )
 
 func CreateWiFiTicketErr(
-	soapServer string, bpmUrl string, userLogin string, description string, noutName string, region string, apName string, incidentType string) (
+	soapServer string, bpmUrl string, userLogin string, description string, noutName string, region string,
+	apName string, incidentType string) (
 	srSlice []string) {
 
 	if userLogin != "" {
@@ -996,7 +997,7 @@ func CreateAnomalyTicket(
 func CheckTicketStatusErr(soapServer string, srID string) (status string) {
 	//if len(srID) == 36 {
 	//Убрать из строки \n
-	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
+	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
 	replacer := strings.NewReplacer("SRid", srID)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)
@@ -1223,7 +1224,7 @@ func ChangeStatusErr(soapServer string, srID string, NewStatus string) (srNewSta
 
 	myError := 1
 	for myError != 0 {
-		//req, err := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		//req, err := netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 		if errHttpReq == nil {
 			client := &http.Client{
@@ -1315,7 +1316,7 @@ func ChangeStatus(soapServer string, srID string, NewStatus string) (srNewStatus
 	//NewStatus := "Отменено"
 
 	//Убрать из строки \n
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><changeCaseStatusRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"netdial://schemas.xmlsoap.org/netdial/envelope/\"><Body><changeCaseStatusRequest xmlns=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">SRid</CaseId><Status xmlns=\"\">NewStatus</Status><User xmlns=\"\">UserLogin</User></changeCaseStatusRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("SRid", srID, "NewStatus", NewStatus, "UserLogin", UserLogin)
 	strAfter := replacer.Replace(strBefore)
 	payload := []byte(strAfter)
@@ -1387,7 +1388,7 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 	userLogin := "denis.tirskikh"
 	//Убрать из строки \n
 	//strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"netdial://schemas.xmlsoap.org/netdial/envelope/\"><Body><createCommentRequest xmlns=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("srID", srID, "myComment", myComment, "userLogin", userLogin)
 	strAfter := replacer.Replace(strBefore)
 	//fmt.Println(strAfter)
@@ -1414,7 +1415,7 @@ func AddCommentErr(soapServer string, srID string, myComment string, bpmUrl stri
 
 	myError := 1
 	for myError != 0 {
-		//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		//req, err :=	netdial.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, soapServer, bytes.NewReader(payload))
 		if errHttpReq == nil {
 			client := &http.Client{
@@ -1508,7 +1509,7 @@ func AddComment(bpmServer string, srID string, myComment string, bpmUrl string) 
 
 	//Убрать из строки \n
 	//strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId xmlns=\"\">srID</CaseId><Message xmlns=\"\">myComment</Message><Author xmlns=\"\">userLogin</Author></createCommentRequest></Body></Envelope>"
-	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
+	strBefore := "<Envelope xmlns=\"netdial://schemas.xmlsoap.org/netdial/envelope/\"><Body><createCommentRequest xmlns=\"netdial://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("srID", srID, "myComment", myComment, "userLogin", userLogin)
 	strAfter := replacer.Replace(strBefore)
 	//fmt.Println(strAfter)

@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/go-sql-driver/mysql v1.7.1
-	github.com/unpoller/unifi v0.3.14
+	github.com/unpoller/unifi v0.3.15
 )
 
 require (
