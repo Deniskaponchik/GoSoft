@@ -5,15 +5,17 @@ package entity
 import "time"
 
 type Ap struct {
-	Mac        string `json:"mac"        example:"a0-b1-c2-d3-e4-f5"`
-	SiteName   string `json:"region"     example:"Волгоград"`
-	Name       string `json:"name"       example:"XXX-OPENSPACE"`
-	UserLogin  string `json:"login"      example:"vasya.pupkin"`
-	SrID       string `json:"srid"       example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
-	Exception  int    `json:"exception"  example:"1"`
-	Controller int    `json:"controller" example:"1"`
-	Comment    int    `example:"1"` // 0 - нет комментариев, 1 - комментарий, что точка появилась в сети, 2 - Попытка закрыть обращение
-	StateInt   int    `example:"0"` // 0 - available
+	Mac           string `json:"mac"        example:"a0-b1-c2-d3-e4-f5"`
+	SiteName      string `json:"region"     example:"Волгоград"`
+	SiteID        string `example:"5e74aaa6a1a76964e770815c"` //уточнить, нужен ли
+	Name          string `json:"name"       example:"XXX-OPENSPACE"`
+	UserLogin     string `json:"login"      example:"vasya.pupkin"`
+	SrID          string `json:"srid"       example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
+	Exception     int    `json:"exception"  example:"1"`
+	Controller    int    `json:"controller" example:"1"`
+	CommentCount  int    `example:"1"` //0 - нет комментариев, 1 - комментарий "точка появилась в сети", 2 - Попытка закрыть обращение. commentForUpdate
+	StateInt      int    `example:"0"` // 0 - available
+	CountAttempts int    `example:"0"` // Число заходов на создание заявок. на втором заходе создаём тикет. не берётся из БД
 }
 
 type Client struct {

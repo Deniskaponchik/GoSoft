@@ -359,7 +359,7 @@ func (ss *Soap) CreateTicketSmacVcs(ticket *entity.Ticket) (err error) { //(enti
 
 func (ss *Soap) CheckTicketStatusErr(ticket *entity.Ticket) (err error) {
 
-	ticket.BpmServer = ss.bpmUrl
+	ticket.BpmServer = ss.bpmUrl //не убирать. используется вне функции
 
 	//Убрать из строки \n
 	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"

@@ -110,10 +110,10 @@ func main() {
 	countDay := time.Now().Day()
 
 	srStatusCodesForNewTicket := map[string]bool{
-		"Отменено":                  true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-		"Решено":                    true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-		"Закрыто":                   true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-		"На уточнении":              true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
+		"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
+		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
+		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 		"Тикет введён не корректно": true,
 		//"": true,
 	}
@@ -125,8 +125,6 @@ func main() {
 	sitesException := map[string]bool{
 		"5f2285f3a1a7693ae6139c00": true, //Novosib. Резерв/Склад
 		"5f5b49d1a9f6167b55119c9b": true, //Ростов. Резерв/Склад
-		//"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-		//"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 	}
 
 	//Download MAPs from DB
@@ -988,7 +986,7 @@ type ApMyStruct struct {
 }
 type ForApsTicket struct {
 	site          string
-	countIncident int
+	countIncident int //Если countIncident  == 2, Создаём заявку. то есть на ВТОРОЙ заход
 	//apsMac        []string
 	apsMacName map[string]string
 	//apNames []string //сделано для массовых отключений точек при отключении света в офисе

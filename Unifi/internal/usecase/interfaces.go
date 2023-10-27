@@ -60,7 +60,7 @@ type (
 		//GetUni(*map[string]entity.Ap, *map[string]entity.Client, *map[string]entity.Anomaly) error
 		GetSites() error
 		AddAps(map[string]*entity.Ap) error
-		AddClients(map[string]*entity.Client) error
-		AddAnomalies(map[string]*entity.Anomaly) error
+		AddClients(map[string]*entity.Ap, map[string]*entity.Client) error
+		AddAnomalies(map[string]*entity.Client) (map[string]*entity.Anomaly, error)
 	}
 )

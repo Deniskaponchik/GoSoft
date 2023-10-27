@@ -101,10 +101,10 @@ func (ur *UnifiRepo) UploadMapsToDBerr(query string) (err error) {
 	return nil
 }
 
-func (ur *UnifiRepo) DownloadMapFromDBanomaliesErr(beforeDays string) (map[string]entity.Anomaly, error) {
+func (ur *UnifiRepo) DownloadMapFromDBanomaliesErr(beforeDays string) (map[string]*entity.Anomaly, error) {
 
 	//m := make(map[string]DateSiteAnom)
-	dayMac_anomaly := make(map[string]entity.Anomaly)
+	dayMac_anomaly := make(map[string]*entity.Anomaly)
 	//beforeDays = ""
 	var anomSlice []string
 	var anomStr string
@@ -137,7 +137,7 @@ func (ur *UnifiRepo) DownloadMapFromDBanomaliesErr(beforeDays string) (map[strin
 									dayMac = strings.Split(dayHourStr, " ")[0] + tag.ClientMac
 									tag.DateHour, _ = time.Parse("2006-01-02 15:04:05", dayHourStr)
 									tag.AnomalySlice = anomSlice
-									dayMac_anomaly[dayMac] = tag
+									dayMac_anomaly[dayMac] = &tag
 									/*
 										dayMac_anomaly[dayMac] = tag{ //DateSiteAnom{
 											tag.ClientMac,
@@ -215,9 +215,9 @@ func (ur *UnifiRepo) DownloadMapFromDBanomaliesErr(beforeDays string) (map[strin
 	return dayMac_anomaly, nil
 }
 
-func (ur *UnifiRepo) DownloadMapFromDBmachinesErr() (map[string]entity.Client, error) {
+func (ur *UnifiRepo) DownloadMapFromDBmachinesErr() (map[string]*entity.Client, error) {
 
-	machineMap := make(map[string]entity.Client) //https://yourbasic.org/golang/gotcha-assignment-entry-nil-map/
+	machineMap := make(map[string]*entity.Client) //https://yourbasic.org/golang/gotcha-assignment-entry-nil-map/
 	var err error
 	myError := 1
 	for myError != 0 {
@@ -233,7 +233,7 @@ func (ur *UnifiRepo) DownloadMapFromDBmachinesErr() (map[string]entity.Client, e
 					results, errQuery := db.Query(queryAfter)
 					if errQuery == nil {
 						//var tag TagPoly
-						var tag entity.Client
+						var tag *entity.Client
 
 						for results.Next() {
 							errScan := results.Scan(&tag.Mac, &tag.Hostname, &tag.Controller, &tag.Exception, &tag.SrID, &tag.ApName)
