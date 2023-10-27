@@ -2,8 +2,6 @@
 // HTTP response objects if suitable. Each logic group entities in own file.
 package entity
 
-import "time"
-
 type Ap struct {
 	Mac           string `json:"mac"        example:"a0-b1-c2-d3-e4-f5"`
 	SiteName      string `json:"region"     example:"Волгоград"`
@@ -36,13 +34,24 @@ type Client struct {
 	//Description string `example:"Зафиксированы сбои в работе системы"`
 }
 
-// Anomaly = Аномалии клиента, накопившиеся за 1 час
+// Структура должна обнуляться каждый час и при выгрузке раз в сутки
 type Anomaly struct {
-	ClientMac    string    `json:"mac"        example:"a0:b1:c2:d3:e4:f5"`
-	SiteName     string    `json:"sitename"   example:"Москва"`
-	AnomalySlice []string  `json:"anomalies"  example:"USER_HIGH_TCP_LATENCY;USER_LOW_PHY_RATE;USER_SLEEPY_CLIENT;USER_HIGH_TCP_PACKET_LOSS;USER_HIGH_WIFI_RETRIES;USER_SIGNAL_STRENGTH_FAILURES;USER_DNS_TIMEOUT;USER_HIGH_WIFI_LATENCY;USER_POOR_STREAM_EFF;USER_HIGH_DNS_LATENCY"`
-	Controller   int       `json:"controller" example:"1"`
-	Exception    int       `json:"exception"  example:"1"`
-	ApName       string    `json:"apname"     example:"XXX-OPENSPACE"`
-	DateHour     time.Time `json:"date_hour"  example:"2023-09-01 12:00:00"`
+	ClientMac  string `json:"mac_client" example:"a0:b1:c2:d3:e4:f5"`
+	SiteName   string `json:"sitename"   example:"Москва"`
+	Controller int    `json:"controller" example:"1"`
+	Exception  int    `json:"exception"  example:"1"`
+	//По хорошему для каждой аномалии должна быть указана точка, на которой она произошла
+	//но т.к. по умолчанию из коробки нам эта информация не предоставляется,
+	//а получать её энергозатратно через мапу клиентов, которая связан связана с мапой точек
+	//то буду получать эту информацию ТОЛЬКО в финале во время создания заявки
+	ApName string `json:"name_ap"     example:"XXX-OPENSPACE"`
+	ApMac  string `json:"mac_ap"      example:"68:d7:9a:1c:f2:b9"`
+
+	timeAnomalySlice map[string][]string //day - 2023-09-01, hour - 2023-09-01 12:00:00
+	//mapHour      map[string][]string
+	//mapDay       map[string][]string
+
+	//DateHour     string   `json:"date_hour"  example:"2023-09-01 12:00:00"`
+	//DateHour     time.Time `json:"date_hour"  example:"2023-09-01 12:00:00"`
+	//AnomalySlice []string `json:"anomalies"  example:"USER_HIGH_TCP_LATENCY;USER_LOW_PHY_RATE;USER_SLEEPY_CLIENT;USER_HIGH_TCP_PACKET_LOSS;USER_HIGH_WIFI_RETRIES;USER_SIGNAL_STRENGTH_FAILURES;USER_DNS_TIMEOUT;USER_HIGH_WIFI_LATENCY;USER_POOR_STREAM_EFF;USER_HIGH_DNS_LATENCY"`
 }

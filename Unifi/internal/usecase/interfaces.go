@@ -61,6 +61,6 @@ type (
 		GetSites() error
 		AddAps(map[string]*entity.Ap) error
 		AddClients(map[string]*entity.Ap, map[string]*entity.Client) error
-		AddAnomalies(map[string]*entity.Client) (map[string]*entity.Anomaly, error)
+		GetHourAnomalies(map[string]*entity.Client) (map[string]*entity.Anomaly, error)
 	}
 )

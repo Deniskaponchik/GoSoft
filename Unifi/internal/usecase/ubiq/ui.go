@@ -177,7 +177,7 @@ func (ui *Ui) AddClients(mapAp map[string]*entity.Ap, mapClient map[string]*enti
 					}
 				}
 				*/
-			} /* До будущих времён, когда буду обрабатывать Клиентов
+			} /* До будущих времён, когда буду обрабатывать Гостевых Клиентов
 			else {
 				//Если клиент Guest
 				splitIP := strings.Split(clientIP, ".")[0]
@@ -215,8 +215,9 @@ func (ui *Ui) AddClients(mapAp map[string]*entity.Ap, mapClient map[string]*enti
 	//return
 }
 
-func (ui *Ui) AddAnomalies(mapClient map[string]*entity.Client) (mapAnomaly map[string]*entity.Anomaly, err error) {
+func (ui *Ui) GetHourAnomalies(mapClient map[string]*entity.Client) (maс_Anomaly map[string]*entity.Anomaly, err error) {
 
+	var siteNameCut string
 	count := 1 //минус 1 час
 	then := time.Now().Add(time.Duration(-count) * time.Hour)
 
@@ -236,16 +237,24 @@ func (ui *Ui) AddAnomalies(mapClient map[string]*entity.Client) (mapAnomaly map[
 			noutMac = v.DeviceMAC
 			k1, exisMac1 := mapClient[noutMac]
 			if exisMac1 {
+				siteNameCut = v.SiteName[:len(v.SiteName)-11]
+				if strings.Contains(siteNameCut, "Волг") {
+					siteNameCut = "Волга"
+				} else if strings.Contains(siteNameCut, "Ура") {
+					siteNameCut = "Урал"
+				}
+
 				k2, exisMac2 := mapAnomaly[noutMac]
 				if !exisMac2 {
 					mapAnomaly[noutMac] = &entity.Anomaly{
 						ClientMac:    noutMac,
-						SiteName:     v.SiteName,
+						SiteName:     siteNameCut, //v.SiteName,
 						AnomalySlice: []string{v.Anomaly},
 						ApName:       k1.ApName,
 					}
 				} else {
 					k2.AnomalySlice = append(k2.AnomalySlice, v.Anomaly)
+					k2.SiteName = siteNameCut
 				}
 			}
 		}

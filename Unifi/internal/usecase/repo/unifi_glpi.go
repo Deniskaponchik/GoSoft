@@ -3,6 +3,7 @@ package repo
 //https://tutorialedge.net/golang/golang-mysql-tutorial/
 //https://github.com/evrone/go-clean-template/blob/master/internal/usecase/repo/translation_postgres.go
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
@@ -46,6 +47,92 @@ func NewUnifiRepo(i string, g string, c int) (*UnifiRepo, error) {
 		return nil, errSqlOpen
 	}
 	//return pr, nil
+}
+
+func (ur *UnifiRepo) UpdateDbAnomaly(mapAnomaly map[string]*entity.Anomaly) (err error) {
+	//приходит мапа типа: dayMac_Anomaly
+
+	bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
+	var anomSliceString string
+	var query string
+	var b1 bytes.Buffer
+	b1.WriteString("INSERT INTO  " + ur.databaseITsup + ".anomalies VALUES ")
+	//lenMap := len(mapAnomaly) //mac_DateSiteAnom)
+	var lenSlice int
+	var siteNameCut string
+	countB1 := 0
+
+	for _, v := range mapAnomaly { //mac_DateSiteAnom {
+		// k - dayMac
+		lenSlice = len(v.AnomalySlice) //AnomSlice)
+		if lenSlice > 1 {
+			countB1++
+			//siteNameCut = v.SiteName[:len(v.SiteName)-11]
+			if strings.Contains(siteNameCut, "Волг") {
+				siteNameCut = "Волга"
+			} else if strings.Contains(siteNameCut, "Ура") {
+				siteNameCut = "Урал"
+			}
+			anomSliceString = strings.Join(v.AnomalySlice, ";")
+			//b1.WriteString("('" + v.DateTime + "','" + k + "','" + bdCntrl + "','" + siteNameCut + "','" + anomSliceString + "'),")
+			b1.WriteString("('" + v.DateHour + "','" + v.ClientMac + "','" + bdCntrl + "','" + v.SiteName + "','" + anomSliceString + "'),")
+		}
+	}
+	query = b1.String()
+	//Возможно, не самый эффективный метод обрезать строку с конца, но рабочий
+	if last := len(query) - 1; last >= 0 && query[last] == ',' {
+		query = query[:last]
+	}
+	fmt.Println(query)
+	if countB1 != 0 {
+		//UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
+		err = ur.UploadMapsToDBerr(query)
+	} else {
+		fmt.Println("Передана пустая карта. Запрос не выполнен")
+	}
+	fmt.Println("")
+
+	return nil
+}
+
+func (ur *UnifiRepo) UpdateDbAp(mapAp map[string]*entity.Ap) (err error) {
+
+	bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
+	var lenMap int
+	var count int
+	var exception string
+	var b1 bytes.Buffer
+	var query string
+
+	//b1.WriteString("REPLACE INTO " + "it_support_db.ap" + " VALUES ")
+	b1.WriteString("REPLACE INTO " + ur.databaseITsup + ".ap" + " VALUES ")
+	//lenMap := len(uploadMap)
+	lenMap = len(mapAp)
+	count = 0
+	//for k, v := range uploadMap {
+	for k, v := range mapAp {
+		exception = strconv.Itoa(int(v.Exception))
+		count++
+		if count != lenMap {
+			// mac, name, controller, exception, srid
+			b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "'),")
+		} else {
+			b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "')")
+			//в конце НЕ ставим запятую
+		}
+	}
+	query = b1.String()
+	fmt.Println(query)
+	if count != 0 {
+		//UploadMapsToDBstring("it_support_db", query)
+		//UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
+		ur.UploadMapsToDBerr(query)
+	} else {
+		fmt.Println("Передана пустая карта. Запрос не выполнен")
+	}
+	fmt.Println("")
+
+	return nil
 }
 
 func (ur *UnifiRepo) UploadMapsToDBerr(query string) (err error) {
@@ -104,12 +191,12 @@ func (ur *UnifiRepo) UploadMapsToDBerr(query string) (err error) {
 func (ur *UnifiRepo) DownloadMapFromDBanomaliesErr(beforeDays string) (map[string]*entity.Anomaly, error) {
 
 	//m := make(map[string]DateSiteAnom)
-	dayMac_anomaly := make(map[string]*entity.Anomaly)
+	dayMac_anomaly := make(map[string]*entity.Anomaly) //dayMac = 2023-09-01_a0:b1:c2:d3:e4:f5
 	//beforeDays = ""
 	var anomSlice []string
 	var anomStr string
 	var dayMac string
-	var dayHourStr string
+	//var dayHourStr string
 
 	myError := 1
 	for myError != 0 {
@@ -127,15 +214,15 @@ func (ur *UnifiRepo) DownloadMapFromDBanomaliesErr(beforeDays string) (map[strin
 						var tag entity.Anomaly
 						for results.Next() {
 							//errScan := results.Scan(&tag.DateHour, &tag.ClientMac, &tag.Controller, &tag.SiteName, &tag.AnomalySlice)
-							errScan := results.Scan(dayHourStr, &tag.ClientMac, &tag.Controller, &tag.SiteName, anomStr)
+							errScan := results.Scan(&tag.DateHour, &tag.ClientMac, &tag.Controller, &tag.SiteName, anomStr)
 							if errScan == nil {
 								//anomSlice = strings.Split(tag.AnomalySlice, ";")
 								anomSlice = strings.Split(anomStr, ";")
 								if len(anomSlice) > 2 {
 									//Если за час более двух аномалий, то заносим
-									//dayMac = strings.Split(tag.DateHour, " ")[0] + tag.Mac
-									dayMac = strings.Split(dayHourStr, " ")[0] + tag.ClientMac
-									tag.DateHour, _ = time.Parse("2006-01-02 15:04:05", dayHourStr)
+									dayMac = strings.Split(tag.DateHour, " ")[0] + tag.ClientMac
+									//dayMac = strings.Split(dayHourStr, " ")[0] + tag.ClientMac
+									//tag.DateHour, _ = time.Parse("2006-01-02 15:04:05", dayHourStr)
 									tag.AnomalySlice = anomSlice
 									dayMac_anomaly[dayMac] = &tag
 									/*
