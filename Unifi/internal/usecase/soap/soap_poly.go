@@ -139,8 +139,9 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket *entity.Ticket) (err error) { //(
 								fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 								fmt.Println("")
 								time.Sleep(30 * time.Second)
-								myError++
+								myError = 6
 								err = errors.New("заявка не создалась на финальном этапе")
+								return err
 							} else {
 								//Успешное завершение функции
 								ticket.ID = envelope.Body.CreateRequestResponse.ID

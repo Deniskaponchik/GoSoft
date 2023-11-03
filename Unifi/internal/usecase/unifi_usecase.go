@@ -29,14 +29,15 @@ func NewUnifiUC(r UnifiRepo, s UnifiSoap, ui Ui, everyCode map[int]bool) *UnifiU
 }
 
 // Переменные, которые используются во всех методах ниже
-var mapAp map[string]*entity.Ap
+var mac_Ap map[string]*entity.Ap
 
 // var siteapName_ForTickets map[string][]ForApsTicket //НЕ должна создаваться новая раз в 12 минут
 var siteNameApCutName_Ap map[string][]*entity.Ap //По новой логике должна создаваться новая раз в 12 минут
 var siteApCutName_Login map[string]string        //мапа ответственных сотрудников по офису
 
-var mapClient map[string]*entity.Client             //string = client.mac. client = machine
-var mac_OneHourAnomalies map[string]*entity.Anomaly //string = client.mac. обнуляется каждый час
+var mac_Client map[string]*entity.Client         //string = client.mac. client = machine
+var mac_HourAnomalies map[string]*entity.Anomaly //string = client.mac. обнуляется каждый час
+var mac_DaysAnomalies map[string]*entity.Anomaly //string = client.mac. обнуляется каждый день
 
 var srStatusCodesForNewTicket map[string]bool
 var srStatusCodesForCancelTicket map[string]bool
@@ -56,10 +57,10 @@ func (puc *UnifiUseCase) InfinityProcessingUnifi() error {
 	countDay := time.Now().Day()
 
 	srStatusCodesForNewTicket = map[string]bool{
-		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-		"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+		"Отменено":                  true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
+		"Решено":                    true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
+		"Закрыто":                   true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
+		"На уточнении":              true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 		"Тикет введён не корректно": true,
 		//"": true,
 	}
@@ -98,7 +99,7 @@ func (puc *UnifiUseCase) InfinityProcessingUnifi() error {
 
 			err = puc.ui.GetSites() //в puc *UnifiUseCase подгружаются Sites
 			if err == nil {
-				err = puc.ui.AddAps(mapAp)
+				err = puc.ui.AddAps(mac_Ap)
 				if err == nil {
 					siteNameApCutName_Ap = map[string][]*entity.Ap{}
 
@@ -131,7 +132,7 @@ func (puc *UnifiUseCase) HandlingAps() error {
 	var apCutName string
 	var siteApCutName string
 
-	for _, ap := range mapAp {
+	for _, ap := range mac_Ap {
 		if ap.SiteName != "Резерв/Склад" {
 
 			apCutName = strings.Split(ap.Name, "-")[0]    //берём первые 3 буквы от имени точки
@@ -183,7 +184,7 @@ func (puc *UnifiUseCase) HandlingAps() error {
 
 					//проверить, не последняя ли это запись в мапе в массиве
 					countOfIncident := 0
-					for _, v := range mapAp {
+					for _, v := range mac_Ap {
 						if v.SrID == ap.SrID {
 							countOfIncident++
 							//BREAK здесь НЕ нужен. Пробежаться нужно по всем
@@ -357,82 +358,66 @@ func (puc *UnifiUseCase) TicketsCreatingAnomalies() error {
 	before30days := timeNow.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
 	//before30days := timeNow.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
 
-	//Загружаем из БД аномалии за последние 30 дн. в массив структур DateSiteAnom
-	//macDay_DateSiteAnom := map[string]DateSiteAnom{}
-	//macDay_DateSiteAnom := DownloadMapFromDBanomaliesErr(wifiConf.GlpiConnectStringITsupport, bdController, before30days)
-	dayMac_Anomaly, errDownAnomFromDB := puc.repo.DownloadMapFromDBanomaliesErr(before30days)
+	mac_Anomaly, errDownAnomFromDB := puc.repo.DownloadMapFromDBanomaliesErr(before30days)
 	if errDownAnomFromDB == nil {
-
-		mac_DateSiteAnomSlice := map[string][]DateSiteAnom{}
-		dateSiteAnomSlice := []DateSiteAnom{}
-
-		//Переделываем в мапу типа мак-структура DateSiteAnom за каждый день
-		for _, v := range macDay_DateSiteAnom {
-			//fmt.Println(k, v.DateTime, v.Mac)
-			_, exis := mac_DateSiteAnomSlice[v.Mac]
-			if !exis {
-				dateSiteAnomSlice = []DateSiteAnom{v}
-				mac_DateSiteAnomSlice[v.Mac] = dateSiteAnomSlice
-			} else {
-				dateSiteAnomSlice = mac_DateSiteAnomSlice[v.Mac]
-				dateSiteAnomSlice = append(dateSiteAnomSlice, v)
-				mac_DateSiteAnomSlice[v.Mac] = dateSiteAnomSlice
-			}
-		}
-
-		//Создаём заявки
-		//var countIncident int
-		var noutName string
-		var usrLogin string
-		var srID string
-		var exceptionInt int
-		//var apName string
-		var region string
-		incidentType := "Плохое качество соединения клиента"
-		//var b2 bytes.Buffer
-
-		for k, v := range mac_DateSiteAnomSlice {
-			// TODO: TEST. Change count of caught anomalies
-			if len(v) > 9 {
-				_, exis := machineMyMap[k]
-				if exis {
-					for ke, va := range machineMyMap {
-						if k == ke {
-							noutName = va.Hostname
-							fmt.Println(noutName)
-							fmt.Println(k) //mac
-							apName = va.ApName
-							fmt.Println(apName)
-							srID = va.SrID
-							//fmt.Println(srID)
-							exceptionInt = va.Exception
-
-							var statusTicket string
-							if srID != "" {
-								statusTicket = CheckTicketStatusErr(soapServer, srID)
-							}
-							if exceptionInt == 0 && (srStatusCodesForNewTicket[statusTicket] || srID == "") {
+		//Пробежаться по мапе mac_Anomaly, которая приходит от выгрузки из БД за 30 дн.(логика выгрузки сделана)
+		for _, anom := range mac_Anomaly {
+			//в каждой Аномалии проверить длину мапы TimeStr_sliceAnomStr
+			//если длина 10 и более, то заводить заявку
+			if len(anom.TimeStr_sliceAnomStr) > 9 {
+				//идём в мапу Клиентов, чтобы узнать, не заведена ли уже заявка
+				client, exisMacClient := mac_Client[anom.ClientMac]
+				if exisMacClient {
+					if client.Exception == 0 {
+						ticket := &entity.Ticket{}
+						if client.SrID != "" {
+							ticket.ID = client.SrID
+						}
+						errCheckStatus := puc.soap.CheckTicketStatusErr(ticket)
+						if errCheckStatus == nil { //&& (srStatusCodesForNewTicket[ticket.Status] || client.SrID == "") {
+							if srStatusCodesForNewTicket[ticket.Status] || client.SrID == "" {
 								//Если заявки ещё нет, либо закрыта отменена
-								usrLogin = GetLoginPCerr(wifiConf.GlpiConnectStringGlpi, va.Hostname)
-								fmt.Println(usrLogin)
-
 								var b2 bytes.Buffer
-								for _, val := range v {
-									region = val.SiteName //А если сотрудник был в разных регионах?
-									b2.WriteString(val.SiteName + "\n")
-									b2.WriteString(val.DateTime + "\n")
-									for _, valu := range val.AnomSlice {
-										b2.WriteString(valu + "\n")
+								var apMacName map[string]string //временная небольшая мапа, чтобы 10 раз не подключаться к большой мапе Точек за именем
+								var apName string
+
+								for dateTime, anomSlice := range anom.TimeStr_sliceAnomStr {
+									nameAp, exisMacAp := apMacName[client.ApMac]
+									if exisMacAp {
+										apName = nameAp
+									} else {
+										//при заведении заявки по каждому полученному маку точки подключаться к мапе точек для получения имени
+										ap, exisMacAp2 := mac_Ap[client.ApMac]
+										if exisMacAp2 {
+											apName = ap.Name
+											apMacName[client.ApMac] = apName
+										} else {
+											apName = "Имя точки получить не удалось"
+										}
+									}
+
+									b2.WriteString(apName + "\n")
+									b2.WriteString(dateTime + "\n")
+									for _, oneAnomaly := range anomSlice {
+										b2.WriteString(oneAnomaly + "\n")
 									}
 									b2.WriteString("\n")
 								}
 
-								description := "На ноутбуке:" + "\n" +
-									noutName + "\n" + "" + "\n" +
+								errGetUserLogin := puc.repo.GetLoginPCerr(client)
+								if errGetUserLogin == nil {
+									ticket.UserLogin = client.UserLogin
+								} else {
+									//в логику GetLoginPCerr уже заложено назначение client.UserLogin = "denis.tirskikh"
+									//ticket.UserLogin = "denis.tirskikh"
+								}
+
+								ticket.IncidentType = "Плохое качество соединения клиента"
+								ticket.Region = anom.SiteName
+
+								ticket.Description = "На ноутбуке:" + "\n" +
+									client.ApName + "\n" + "" + "\n" +
 									"За последние 30 дней зафиксировано более 10 дней с Аномалиями качества работы Wi-Fi сети Tele2Corp" + "\n" +
-									"" + "\n" +
-									"Предполагаемое, но не на 100% точное имя точки:" + "\n" +
-									apName + "\n" +
 									"" + "\n" +
 									"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
 									"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
@@ -441,51 +426,32 @@ func (puc *UnifiUseCase) TicketsCreatingAnomalies() error {
 									""
 
 								fmt.Println("Попытка создания заявки")
-								srTicketSlice := CreateWiFiTicketErr(soapServer, bpmUrl, usrLogin, description, noutName, region, apName, incidentType)
-
-								if srTicketSlice[0] != "" {
-									fmt.Println(srTicketSlice[2])
-
-									va.SrID = srTicketSlice[0]
-									machineMyMap[ke] = va
+								errCreateTicket := puc.soap.CreateTicketSmacWifi(ticket)
+								if errCreateTicket != nil {
+									fmt.Println("Ошибка создания обращения")
+									fmt.Println(errCreateTicket.Error())
 								}
-							} else if exceptionInt > 0 {
-								fmt.Println("Клиент добавлен в исключение")
 							} else {
-								//Либо заявка уже есть.
 								fmt.Println("Созданное обращение:")
-								fmt.Println(bpmUrl + srID)
-								fmt.Println(statusTicket)
-								//Добавить коммент с аномалиями за последние сутки
-								yesterday := timeNow.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
-								dayMac := yesterday + k
-								_, exisDayMac := macDay_DateSiteAnom[dayMac]
-								if exisDayMac {
-									fmt.Println("Есть аномалии за прошедшие сутки. Попытка добавить комментарий...")
-									anomSlice := macDay_DateSiteAnom[dayMac].AnomSlice
-									var b2 bytes.Buffer
-									for _, val := range anomSlice {
-										b2.WriteString(val + "\n")
-									}
-									comment := "За последние сутки появились новые аномалии:" + "\n" +
-										b2.String() +
-										""
-									//fmt.Println(comment)
-									AddCommentErr(soapServer, srID, comment, bpmUrl)
-								}
-
+								fmt.Println(ticket.Url)
+								fmt.Println(ticket.Status)
 							}
-							fmt.Println("")
-							break
+						} else {
+							fmt.Println("Ошибка при получении статуса обращения")
+							fmt.Println("Дальнейшее создание обращения прекращено")
 						}
+					} else {
+						fmt.Println("Клиент или точка добавлены в исключение")
 					}
 				} else {
-					fmt.Println("Не удалось найти запись по маку в мапе машин. Создать заявку невозможно")
+					fmt.Println("мак не найден в мапе mac_Client")
+					fmt.Println("Создание заявки без этих данных невозможно")
 				}
-
-			}
-		}
+			} //if len(anom.TimeStr_sliceAnomStr) > 9 {
+		} //for _, anom := range mac_Anomaly
+	} else {
+		fmt.Println("ошибка загрузки мапы аномалий за последние 30 дн. из БД")
+		fmt.Println(errDownAnomFromDB.Error())
 	}
-
 	return nil
 }

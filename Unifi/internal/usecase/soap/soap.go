@@ -142,8 +142,9 @@ func (ss *Soap) CreateTicketSmacWifi(ticket *entity.Ticket) (err error) { //(ent
 							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 							fmt.Println("")
 							time.Sleep(30 * time.Second)
-							myError++
+							myError = 6
 							err = errors.New("заявка не создалась на финальном этапе")
+							return err
 						} else {
 							//Успешное завершение функции
 							ticket.ID = envelope.Body.CreateRequestResponse.ID
@@ -306,8 +307,9 @@ func (ss *Soap) CreateTicketSmacVcs(ticket *entity.Ticket) (err error) { //(enti
 							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 							fmt.Println("")
 							time.Sleep(30 * time.Second)
-							myError++
+							myError = 6
 							err = errors.New("заявка не создалась на финальном этапе")
+							return err
 						} else {
 							//Успешное завершение функции
 							ticket.ID = envelope.Body.CreateRequestResponse.ID

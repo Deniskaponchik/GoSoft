@@ -49,7 +49,7 @@ func NewUnifiRepo(i string, g string, c int) (*UnifiRepo, error) {
 	//return pr, nil
 }
 
-func (ur *UnifiRepo) UpdateDbAnomaly(mapAnomaly map[string]*entity.Anomaly) (err error) {
+func (ur *UnifiRepo) UpdateDbAnomaly(mac_Anomaly map[string]*entity.Anomaly) (err error) {
 	//приходит мапа типа: dayMac_Anomaly
 
 	bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
@@ -59,23 +59,22 @@ func (ur *UnifiRepo) UpdateDbAnomaly(mapAnomaly map[string]*entity.Anomaly) (err
 	b1.WriteString("INSERT INTO  " + ur.databaseITsup + ".anomalies VALUES ")
 	//lenMap := len(mapAnomaly) //mac_DateSiteAnom)
 	var lenSlice int
-	var siteNameCut string
 	countB1 := 0
 
-	for _, v := range mapAnomaly { //mac_DateSiteAnom {
-		// k - dayMac
-		lenSlice = len(v.AnomalySlice) //AnomSlice)
-		if lenSlice > 1 {
-			countB1++
-			//siteNameCut = v.SiteName[:len(v.SiteName)-11]
-			if strings.Contains(siteNameCut, "Волг") {
-				siteNameCut = "Волга"
-			} else if strings.Contains(siteNameCut, "Ура") {
-				siteNameCut = "Урал"
+	for _, v := range mac_Anomaly { //mac_DateSiteAnom {
+		for ke, va := range v.TimeStr_sliceAnomStr {
+			//ke = dateHour = 2023-09-01 12:00:00
+			//пробегаемся по каждой записи мапы. но она всего одна, так сгруппировано всё за один час
+			lenSlice = len(va) //v.AnomalySlice) //AnomSlice)
+			if lenSlice > 1 {
+				//если аномалий за час накопилось 2 и более, то такие заносим в БД
+				countB1++
+				//anomSliceString = strings.Join(v.AnomalySlice, ";")
+				anomSliceString = strings.Join(va, ";")
+				//b1.WriteString("('" + v.DateTime + "','" + k + "','" + bdCntrl + "','" + siteNameCut + "','" + anomSliceString + "'),")
+				b1.WriteString("('" + ke + "','" + v.ClientMac + "','" + bdCntrl + "','" + v.SiteName + "','" + anomSliceString +
+					"','" + v.ApMac + "','" + strconv.Itoa(int(v.Exception)) + "'),")
 			}
-			anomSliceString = strings.Join(v.AnomalySlice, ";")
-			//b1.WriteString("('" + v.DateTime + "','" + k + "','" + bdCntrl + "','" + siteNameCut + "','" + anomSliceString + "'),")
-			b1.WriteString("('" + v.DateHour + "','" + v.ClientMac + "','" + bdCntrl + "','" + v.SiteName + "','" + anomSliceString + "'),")
 		}
 	}
 	query = b1.String()
@@ -188,15 +187,27 @@ func (ur *UnifiRepo) UploadMapsToDBerr(query string) (err error) {
 	return nil
 }
 
-func (ur *UnifiRepo) DownloadMapFromDBanomaliesErr(beforeDays string) (map[string]*entity.Anomaly, error) {
+func (ur *UnifiRepo) DownloadMapFromDBanomalies(beforeDays string) (mac_Anomaly map[string]*entity.Anomaly, err error) {
+
+	type Tag struct {
+		DateHour   string `json:"date_hour"`
+		MacClient  string `json:"mac_client"`
+		Controller int    `json:"controller"`
+		SiteName   string `json:"sitename"`
+		Anomalies  string `json:"anomalies"`
+		MacAp      string `json:"mac_ap"`
+		Exception  int    `json:"exception"`
+	}
 
 	//m := make(map[string]DateSiteAnom)
-	dayMac_anomaly := make(map[string]*entity.Anomaly) //dayMac = 2023-09-01_a0:b1:c2:d3:e4:f5
-	//beforeDays = ""
+	//dayMac_anomaly := make(map[string]*entity.Anomaly) //dayMac = 2023-09-01_a0:b1:c2:d3:e4:f5
+	//mac_Anomaly = make(map[string]*entity.Anomaly)
+
+	//beforeDays = "2023-09-01 12:00:00"
 	var anomSlice []string
-	var anomStr string
-	var dayMac string
-	//var dayHourStr string
+	var date string //2023-09-01
+	//var day string
+	var dateStr_sliceAnomStr map[string][]string
 
 	myError := 1
 	for myError != 0 {
@@ -205,34 +216,55 @@ func (ur *UnifiRepo) DownloadMapFromDBanomaliesErr(beforeDays string) (map[strin
 			if errDBping == nil {
 				defer db.Close() // defer the close till after the main function has finished
 				//queryAfter := "SELECT * FROM it_support_db.anomalies WHERE controller = " + strconv.Itoa(int(bdController))
-				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".anomalies WHERE date_hour >= '" + beforeDays + "' AND controller = " + strconv.Itoa(int(ur.controller))
+				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".anomaly WHERE date_hour >= `" + beforeDays + "` AND controller = " +
+					strconv.Itoa(int(ur.controller)) + " AND exception = 0"
 				fmt.Println(queryAfter)
+
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)
 					if errQuery == nil {
+
 						//var tag TagAnomaly
-						var tag entity.Anomaly
+						var tag Tag
+
 						for results.Next() {
 							//errScan := results.Scan(&tag.DateHour, &tag.ClientMac, &tag.Controller, &tag.SiteName, &tag.AnomalySlice)
-							errScan := results.Scan(&tag.DateHour, &tag.ClientMac, &tag.Controller, &tag.SiteName, anomStr)
+							//errScan := results.Scan(&tag.DateHour, &tag.ClientMac, &tag.Controller, &tag.SiteName, anomStr)
+							errScan := results.Scan(&tag.DateHour, &tag.MacClient, &tag.Controller, &tag.SiteName, &tag.Anomalies, &tag.MacAp, &tag.Exception)
+
 							if errScan == nil {
-								//anomSlice = strings.Split(tag.AnomalySlice, ";")
-								anomSlice = strings.Split(anomStr, ";")
-								if len(anomSlice) > 2 {
-									//Если за час более двух аномалий, то заносим
-									dayMac = strings.Split(tag.DateHour, " ")[0] + tag.ClientMac
-									//dayMac = strings.Split(dayHourStr, " ")[0] + tag.ClientMac
-									//tag.DateHour, _ = time.Parse("2006-01-02 15:04:05", dayHourStr)
-									tag.AnomalySlice = anomSlice
-									dayMac_anomaly[dayMac] = &tag
-									/*
-										dayMac_anomaly[dayMac] = tag{ //DateSiteAnom{
-											tag.ClientMac,
-											//tag.Datetime,
-											time.Parse("2006-01-02 15:04:05", dayHourStr),
-											tag.SiteName,
-											anomSlice,
-										}*/
+								if tag.Exception == 0 {
+									//anomSlice = strings.Split(tag.AnomalySlice, ";")
+									anomSlice = strings.Split(tag.Anomalies, ";")
+									if len(anomSlice) > 2 {
+
+										date = strings.Split(tag.DateHour, " ")[0]
+										anomaly, exis1 := mac_Anomaly[tag.MacClient]
+										if !exis1 {
+											dateStr_sliceAnomStr[date] = anomSlice
+
+											mac_Anomaly[tag.MacAp] = &entity.Anomaly{
+												ClientMac:            tag.MacClient,
+												SiteName:             tag.SiteName,
+												Controller:           tag.Controller,
+												Exception:            tag.Exception,
+												ApMac:                tag.MacAp,
+												TimeStr_sliceAnomStr: dateStr_sliceAnomStr,
+											}
+										} else {
+											_, exis2 := anomaly.TimeStr_sliceAnomStr[date]
+											if !exis2 {
+												//добавляем в мапу новую запись дня
+												anomaly.TimeStr_sliceAnomStr[date] = anomSlice
+											} else {
+												//добавляем в мапе бакет дня новые аномалии
+												for _, v := range anomSlice {
+													anomaly.TimeStr_sliceAnomStr[date] = append(anomaly.TimeStr_sliceAnomStr[date], v)
+												}
+
+											}
+										}
+									}
 								}
 							} else {
 								//panic(errScan.Error()) // proper error handling instead of panic in your app
@@ -299,8 +331,111 @@ func (ur *UnifiRepo) DownloadMapFromDBanomaliesErr(beforeDays string) (map[strin
 			myError = 0
 		}
 	} //sql.Open
+	return mac_Anomaly, nil
+}
+
+/*Старая логика
+func (ur *UnifiRepo) DownloadMapFromDBanomaliesErr(beforeDays string) (map[string]*entity.Anomaly, error) {
+
+	//m := make(map[string]DateSiteAnom)
+	dayMac_anomaly := make(map[string]*entity.Anomaly) //dayMac = 2023-09-01_a0:b1:c2:d3:e4:f5
+	//beforeDays = ""
+	var anomSlice []string
+	var anomStr string
+	var dayMac string
+	//var dayHourStr string
+
+	myError := 1
+	for myError != 0 {
+		if db, errSqlOpen := sql.Open("mysql", ur.dataSourceITsup); errSqlOpen == nil {
+			errDBping := db.Ping()
+			if errDBping == nil {
+				defer db.Close() // defer the close till after the main function has finished
+				//queryAfter := "SELECT * FROM it_support_db.anomalies WHERE controller = " + strconv.Itoa(int(bdController))
+				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".anomalies WHERE date_hour >= '" + beforeDays + "' AND controller = " + strconv.Itoa(int(ur.controller))
+				fmt.Println(queryAfter)
+				for myError != 0 { //зацикливание выполнения запроса
+					results, errQuery := db.Query(queryAfter)
+					if errQuery == nil {
+						//var tag TagAnomaly
+						var tag entity.Anomaly
+						for results.Next() {
+							//errScan := results.Scan(&tag.DateHour, &tag.ClientMac, &tag.Controller, &tag.SiteName, &tag.AnomalySlice)
+							errScan := results.Scan(&tag.DateHour, &tag.ClientMac, &tag.Controller, &tag.SiteName, anomStr)
+							if errScan == nil {
+								//anomSlice = strings.Split(tag.AnomalySlice, ";")
+								anomSlice = strings.Split(anomStr, ";")
+								if len(anomSlice) > 2 {
+									//Если за час более двух аномалий, то заносим
+									dayMac = strings.Split(tag.DateHour, " ")[0] + tag.ClientMac
+									//dayMac = strings.Split(dayHourStr, " ")[0] + tag.ClientMac
+									//tag.DateHour, _ = time.Parse("2006-01-02 15:04:05", dayHourStr)
+									tag.AnomalySlice = anomSlice
+									dayMac_anomaly[dayMac] = &tag
+								}
+							} else {
+								//panic(errScan.Error()) // proper error handling instead of panic in your app
+								fmt.Println(errScan.Error())
+								fmt.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
+								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								myError = 0
+								//break
+							}
+						}
+						if errRowsNext := results.Err(); errRowsNext != nil {
+							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							//если есть ошибка прохода по строкам, отправляем на перезапрос
+							myError = 0
+						}
+						if myError != 1 {
+							//results.Close()
+							if errRowsClose := results.Close(); errRowsClose != nil {
+								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+							}
+							//db.Close()
+							if errDBclose := db.Close(); errDBclose != nil {
+								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+							}
+							myError = 0
+						} else {
+							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//time.Sleep(60 * time.Second)
+							myError = 0
+						}
+					} else {
+						//panic(errQuery.Error()) // proper error handling instead of panic in your app
+						fmt.Println(errQuery.Error())
+						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						//time.Sleep(60 * time.Second)
+						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
+					}
+				} //db.Query
+			} else {
+				fmt.Println("db.Ping failed:", errDBping)
+				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				time.Sleep(60 * time.Second)
+				//myError = 1
+				myError++
+			}
+		} else {
+			//log.Print(errSqlOpen.Error())
+			fmt.Println("Error creating DB:", errSqlOpen)
+			fmt.Println("To verify, db is:", db)
+			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			time.Sleep(60 * time.Second)
+			//myError = 1
+			myError++
+		}
+		if myError == 300 { //Если ночью сервер перезагрузился + нет доступа к БД = в ЦОДЕ коллапс. Могу подождать 5 часов
+			myError = 0
+		}
+	} //sql.Open
 	return dayMac_anomaly, nil
 }
+*/
 
 func (ur *UnifiRepo) DownloadMapFromDBmachinesErr() (map[string]*entity.Client, error) {
 
