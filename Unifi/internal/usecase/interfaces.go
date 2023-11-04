@@ -42,8 +42,10 @@ type (
 		ClientTicketCreating() error
 	}
 	UnifiRepo interface {
+		UpdateDbAnomaly(map[string]*entity.Anomaly) error
+		UpdateDbAp(map[string]*entity.Ap) error
 		UploadMapsToDBerr(string) error
-		DownloadMapFromDBanomaliesErr(string) (map[string]*entity.Anomaly, error)
+		DownloadClientsWithAnomalies(string) (map[string]*entity.Client, error)
 		DownloadMapFromDBmachinesErr() (map[string]*entity.Client, error)
 		DownloadMapFromDBapsErr() (map[string]*entity.Ap, error)
 		DownloadMapFromDBerr() (map[string]string, error)

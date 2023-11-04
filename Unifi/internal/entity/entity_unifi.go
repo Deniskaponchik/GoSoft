@@ -17,8 +17,9 @@ type Ap struct {
 }
 
 type Client struct {
-	Mac        string `json:"mac_client" example:"a0:b1:c2:d3:e4:f5"`
-	Hostname   string `json:"hostname"   example:"XXXX-PUPKIN"`
+	Mac      string `json:"mac_client" example:"a0:b1:c2:d3:e4:f5"`
+	Hostname string `json:"hostname"   example:"XXXX-PUPKIN"`
+	//SiteName   string `json:"sitename"   example:"Москва"`
 	SrID       string `json:"srid"       example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
 	Controller int    `json:"controller" example:"1"`
 	Exception  int    `json:"exception"  example:"1"`
@@ -26,9 +27,10 @@ type Client struct {
 	ApMac      string `json:"ap_mac"     example:"a0:b1:c2:d3:e4:f5"`
 	Modified   string `json:"modified"   example:"2023-10-28"`
 
-	Anomalies []Anomaly //Аномалии клиента за всё время
-	UserLogin string    `example:"vasya.pupkin"`
-	//PcName    string `json:"name" example:"XXXX-PUPKIN"`
+	//Anomalies []Anomaly 				//Аномалии клиента за 30 дней
+	Date_Anomaly map[string]*Anomaly //Аномалии клиента за 30 дней
+	UserLogin    string              `example:"vasya.pupkin"`
+
 	//Monitoring string `example:"https://zabbix.com"`
 	//Status      string `example:"Доступен"`
 	//Comment     string `example:"любой текст"`
@@ -48,11 +50,13 @@ type Anomaly struct {
 	ApMac     string `json:"mac_ap"      example:"68:d7:9a:1c:f2:b9"`
 	Exception int    `json:"exception"   example:"1"` //берётся от Client. 2 = exception from Ap and Client
 
-	TimeStr_sliceAnomStr map[string][]string //day - 2023-09-01, hour - 2023-09-01 12:00:00
+	//AnomalySlice []string  `json:"anomalies"  example:"USER_HIGH_TCP_LATENCY;USER_LOW_PHY_RATE;USER_SLEEPY_CLIENT;USER_HIGH_TCP_PACKET_LOSS;USER_HIGH_WIFI_RETRIES;USER_SIGNAL_STRENGTH_FAILURES;USER_DNS_TIMEOUT;USER_HIGH_WIFI_LATENCY;USER_POOR_STREAM_EFF;USER_HIGH_DNS_LATENCY"`
+	AnomStr      string `json:"anomalies"   example:"USER_HIGH_TCP_LATENCY;USER_LOW_PHY_RATE;USER_SLEEPY_CLIENT;USER_HIGH_TCP_PACKET_LOSS;"`
+	SliceAnomStr []string
+	//TimeStr_sliceAnomStr map[string][]string //day - 2023-09-01, hour - 2023-09-01 12:00:00
 	//mapHour      map[string][]string
 	//mapDay       map[string][]string
 
-	//DateHour     string    `json:"date_hour"  example:"2023-09-01 12:00:00"`
+	DateHour string `json:"date_hour"  example:"2023-09-01 12:00:00"`
 	//DateHour     time.Time `json:"date_hour"  example:"2023-09-01 12:00:00"`
-	//AnomalySlice []string  `json:"anomalies"  example:"USER_HIGH_TCP_LATENCY;USER_LOW_PHY_RATE;USER_SLEEPY_CLIENT;USER_HIGH_TCP_PACKET_LOSS;USER_HIGH_WIFI_RETRIES;USER_SIGNAL_STRENGTH_FAILURES;USER_DNS_TIMEOUT;USER_HIGH_WIFI_LATENCY;USER_POOR_STREAM_EFF;USER_HIGH_DNS_LATENCY"`
 }
