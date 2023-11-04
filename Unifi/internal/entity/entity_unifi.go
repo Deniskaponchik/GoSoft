@@ -22,12 +22,12 @@ type Client struct {
 	SrID       string `json:"srid"       example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
 	Controller int    `json:"controller" example:"1"`
 	Exception  int    `json:"exception"  example:"1"`
-	ApName     string `example:"XXX-OPENSPACE"`
-	ApMac      string `json:"mac_ap"     example:"a0:b1:c2:d3:e4:f5"`
+	ApName     string `json:"ap_name"    example:"XXX-OPENSPACE"` //отключаю, чтобы не было неразберихи. нет этого параметра у клиента и всё тут
+	ApMac      string `json:"ap_mac"     example:"a0:b1:c2:d3:e4:f5"`
+	Modified   string `json:"modified"   example:"2023-10-28"`
 
-	//Аномалии клиента за всё время
-	Anomalies []Anomaly
-	UserLogin string `example:"vasya.pupkin"`
+	Anomalies []Anomaly //Аномалии клиента за всё время
+	UserLogin string    `example:"vasya.pupkin"`
 	//PcName    string `json:"name" example:"XXXX-PUPKIN"`
 	//Monitoring string `example:"https://zabbix.com"`
 	//Status      string `example:"Доступен"`
@@ -40,13 +40,13 @@ type Anomaly struct {
 	ClientMac  string `json:"mac_client" example:"a0:b1:c2:d3:e4:f5"`
 	SiteName   string `json:"sitename"   example:"Москва"`
 	Controller int    `json:"controller" example:"1"`
-	Exception  int    `json:"exception"  example:"1"` //берётся от Client. 2 = exception from Ap and Client
-	//По-хорошему для каждой аномалии должна быть указана точка, на которой она произошла
-	//но т.к. по умолчанию из коробки нам эта информация не предоставляется,
-	//а получать её энергозатратно через мапу клиентов, которая связан связана с мапой точек
-	//то буду получать эту информацию ТОЛЬКО в финале во время создания заявки
-	//ApName string `json:"name_ap"     example:"XXX-FL1-01-OPENSPACE"` //специально убираю, чтобы даже мысли не было его пытаться получать отсюда
-	ApMac string `json:"mac_ap"      example:"68:d7:9a:1c:f2:b9"`
+
+	//при обработке каждой аномалии подключаюсь к мапе Клиентов.
+	//А при обработке каждого клиента подключаюсь к мапе точек, чтобы была актальная инфа по Exception
+	//Поэтому каждый раз получаю актуальный: имя точки, мак точки, сумму исключений точки и клиента
+	ApName    string `json:"name_ap"     example:"XXX-FL1-01-OPENSPACE"`
+	ApMac     string `json:"mac_ap"      example:"68:d7:9a:1c:f2:b9"`
+	Exception int    `json:"exception"   example:"1"` //берётся от Client. 2 = exception from Ap and Client
 
 	TimeStr_sliceAnomStr map[string][]string //day - 2023-09-01, hour - 2023-09-01 12:00:00
 	//mapHour      map[string][]string

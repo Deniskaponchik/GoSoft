@@ -57,10 +57,10 @@ func (puc *UnifiUseCase) InfinityProcessingUnifi() error {
 	countDay := time.Now().Day()
 
 	srStatusCodesForNewTicket = map[string]bool{
-		"Отменено":                  true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
-		"Решено":                    true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
-		"Закрыто":                   true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
-		"На уточнении":              true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
+		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
+		"Решено":       true, //Resolve  ae7f411e-f46b-1410-009b-0050ba5d6c38
+		"Закрыто":      true, //Closed  3e7f420c-f46b-1410-fc9a-0050ba5d6c38
+		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 		"Тикет введён не корректно": true,
 		//"": true,
 	}
@@ -71,13 +71,13 @@ func (puc *UnifiUseCase) InfinityProcessingUnifi() error {
 	}
 
 	//apMyMap := DownloadMapFromDBapsErr(wifiConf.GlpiConnectStringITsupport, bdController)
-	mapAp, err = puc.repo.DownloadMapFromDBapsErr()
+	mac_Ap, err = puc.repo.DownloadMapFromDBapsErr()
 	if err != nil {
 		fmt.Println("мапа точек доступа не смогла загрузиться из БД")
 		return err //прекращаем работу скрипта
 	}
 	//machineMyMap := DownloadMapFromDBmachinesErr(wifiConf.GlpiConnectStringITsupport, bdController)
-	mapClient, err = puc.repo.DownloadMapFromDBmachinesErr()
+	mac_Client, err = puc.repo.DownloadMapFromDBmachinesErr()
 	if err != nil {
 		fmt.Println("мапа машин не смогла загрузиться из БД")
 		return err //прекращаем работу скрипта
@@ -90,7 +90,7 @@ func (puc *UnifiUseCase) InfinityProcessingUnifi() error {
 	}
 
 	for true {
-		timeNow := time.Now()
+		timeNow = time.Now()
 		//Снятие показаний с контроллера раз в 12 минут. Промежутки разные для контроллеров
 		//if timeNow.Minute() != 0 && every12start[timeNow.Minute()] && timeNow.Minute() != count12minute {
 		if timeNow.Minute() != 0 && puc.everyCodeMap[timeNow.Minute()] && timeNow.Minute() != count12minute {
@@ -293,7 +293,6 @@ func (puc *UnifiUseCase) HandlingAps() error {
 	return nil
 }
 
-// Создание заявок
 func (puc *UnifiUseCase) TicketsCreatingAps() error {
 	fmt.Println("")
 	fmt.Println("Создание заявок по точкам:")
@@ -380,6 +379,7 @@ func (puc *UnifiUseCase) TicketsCreatingAnomalies() error {
 								var b2 bytes.Buffer
 								var apMacName map[string]string //временная небольшая мапа, чтобы 10 раз не подключаться к большой мапе Точек за именем
 								var apName string
+								var countApException int
 
 								for dateTime, anomSlice := range anom.TimeStr_sliceAnomStr {
 									nameAp, exisMacAp := apMacName[client.ApMac]
@@ -402,6 +402,10 @@ func (puc *UnifiUseCase) TicketsCreatingAnomalies() error {
 										b2.WriteString(oneAnomaly + "\n")
 									}
 									b2.WriteString("\n")
+								}
+
+								if len(anom.TimeStr_sliceAnomStr)-countApException < 9 {
+									continue //прекращаем создание заявки, если точка добавлена в исключение
 								}
 
 								errGetUserLogin := puc.repo.GetLoginPCerr(client)

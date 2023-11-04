@@ -103,6 +103,68 @@ func (ui *Ui) AddAps(mapAp map[string]*entity.Ap) (err error) {
 	//return
 }
 
+// При обработке каждого клиента к мапе точек НЕ ПОДКЛЮЧАЮСЬ для получения имени
+func (ui *Ui) UpdateClients(mapAp map[string]*entity.Ap, mapClient map[string]*entity.Client) (err error) {
+	//clients, errGetClients := uni.GetClients(sites) //client = Notebook or Mobile = machine
+	clients, errGetClients := ui.Uni.GetClients(ui.Sites) //client = Notebook or Mobile = machine
+	if errGetClients == nil {
+		fmt.Println("clients загрузились")
+		fmt.Println("")
+		var apName string //		var clientMac string		var clientName string
+		var apException int
+
+		for _, client := range clients {
+			//client.ApName //!!! НИЧЕГО не выводит и не содержит!!! Имя точки берётся ниже на основании сравнения мапой точек
+			//clientMac = client.Mac 	clientName = client.Name  		//clientIP = client.IP		//siteName = client.SiteName
+
+			if !client.IsGuest.Val {
+				var clExInt int
+				if client.Noted.Val {
+					clientExceptionStr := strings.Split(client.Note, " ")[0]
+					if clientExceptionStr == "Exception" {
+						clExInt = 1
+					} else {
+						clExInt = 0
+					}
+				}
+
+				k, exisApMac := mapAp[client.ApMac]
+				if exisApMac {
+					apName = k.Name
+					apException = k.Exception
+
+					//пробегаемся по всей мапе клиентов и добавляем имя точки клиенту
+					kcl, exis := mapClient[client.Mac]
+					if exis {
+						kcl.Hostname = client.Hostname
+						kcl.ApName = apName
+						kcl.Exception = clExInt + apException
+					} else {
+						mapClient[client.Mac] = &entity.Client{
+							Mac:       client.Mac,
+							Hostname:  client.Name,
+							ApName:    apName,
+							Exception: clExInt + apException,
+							SrID:      "",
+						}
+					}
+				} else {
+					fmt.Println("В мапе точек не удалось найти соответствие с маком точки, взятым у клиента")
+				}
+
+			} else {
+				//Если клиент Guest
+			}
+		}
+		return nil
+	} else {
+		fmt.Println("clients НЕ загрузились")
+		return errGetClients
+	}
+	//return
+}
+
+// При обработке кажого клиента идёт подключение к мапе точек для получения имени. НЕ ИСПОЛЬЗУЕТСЯ
 func (ui *Ui) AddClients(mapAp map[string]*entity.Ap, mapClient map[string]*entity.Client) (err error) {
 	//clients, errGetClients := uni.GetClients(sites) //client = Notebook or Mobile = machine
 	clients, errGetClients := ui.Uni.GetClients(ui.Sites) //client = Notebook or Mobile = machine
@@ -215,8 +277,8 @@ func (ui *Ui) AddClients(mapAp map[string]*entity.Ap, mapClient map[string]*enti
 	//return
 }
 
-func (ui *Ui) GetHourAnomalies(mapClient map[string]*entity.Client) (mac_Anomaly map[string]*entity.Anomaly, err error) {
-
+// Изменил порядок подключения к мапам: mac_Anomaly -> mac_Client -> mac_Ap
+func (ui *Ui) GetHourAnomalies(mac_Client map[string]*entity.Client, mac_Ap map[string]*entity.Ap) (mac_Anomaly map[string]*entity.Anomaly, err error) {
 	count := 1 //минус 1 час
 	then := time.Now().Add(time.Duration(-count) * time.Hour)
 
@@ -233,6 +295,92 @@ func (ui *Ui) GetHourAnomalies(mapClient map[string]*entity.Client) (mac_Anomaly
 		var siteNameCut string
 		var hourAnomalySlice map[string][]string
 		var dateTime string
+
+		for _, v := range anomalies {
+			//v.Anomaly == всего 1 простая аномалия, Пример: USER_POOR_STREAM_EFF
+			dateTime = v.Datetime.Format("2006-01-02 15:04:05")
+			noutMac = v.DeviceMAC
+
+			kAnom, exisMacAnom := mac_Anomaly[noutMac]
+			if !exisMacAnom {
+				kClient, exisMacClient := mac_Client[noutMac]
+				if exisMacClient {
+
+					siteNameCut = v.SiteName[:len(v.SiteName)-11]
+					if strings.Contains(siteNameCut, "Волг") {
+						siteNameCut = "Волга"
+					} else if strings.Contains(siteNameCut, "Ура") {
+						siteNameCut = "Урал"
+					}
+
+					hourAnomalySlice[dateTime] = []string{v.Anomaly}
+
+					mac_Anomaly[noutMac] = &entity.Anomaly{
+						ClientMac:            v.DeviceMAC,
+						SiteName:             siteNameCut, //v.SiteName,
+						TimeStr_sliceAnomStr: hourAnomalySlice,
+						ApMac:                kClient.Mac,       //в новой логике мапа Клиентов не будет запрашивать сразу имя точки. только мак
+						ApName:               "",                //на первом текущем заходе неизвестно. Будем подключаться к мапе точек на втором заходе
+						Exception:            kClient.Exception, //пока заносим исключения клиента. на втором заходе добавим искл точки
+					}
+
+				} else {
+					fmt.Println("мак в мапе Клиентов не найден. Дальнейшее создание записи аномалии невозможно")
+				}
+			} else {
+
+				//если размер массива == 1
+				//подключаемся к мапе Клиентов
+				//подключаемся к мапе Точек
+				//Увеличиваем размер массива
+				//в обратном случае
+				//Увеличиваем размер массива
+
+				//если запись в мапе Аномалий уже создана
+				kAnom.TimeStr_sliceAnomStr[dateTime] = append(kAnom.TimeStr_sliceAnomStr[dateTime], v.Anomaly)
+
+				if len(kAnom.TimeStr_sliceAnomStr[dateTime]) == 2 {
+
+					//подключаемся к мапе точек для получения Exception, а заодно и имени точки
+					kAp, exisMac3 := mac_Ap[kAnom.ApMac]
+					if exisMac3 {
+						kAnom.ApName = kAp.Name
+						kAnom.Exception = kAnom.Exception + kAp.Exception
+					} else {
+						kAnom.ApName = "undefined"
+						//exceptionSumm = k1.Exception
+					}
+				}
+			}
+		}
+		return mac_Anomaly, nil
+	} else {
+		fmt.Println("anomalies НЕ загрузились")
+		return nil, errGetAnomalies
+	}
+	//return
+}
+
+// при каждой аномалии идёт подключение к мапе клиентов для получения имени точки И аномалии точки
+/*func (ui *Ui) GetHourAnomalies(mapClient map[string]*entity.Client, mac_Ap map[string]*entity.Ap) (mac_Anomaly map[string]*entity.Anomaly, err error) {
+	count := 1 //минус 1 час
+	then := time.Now().Add(time.Duration(-count) * time.Hour)
+
+	//anomalies, errGetAnomalies := uni.GetAnomalies(sites,
+	anomalies, errGetAnomalies := ui.Uni.GetAnomalies(ui.Sites,
+		//time.Date(2023, 07, 11, 7, 0, 0, 0, time.Local), time.Now()
+		//time.Date(2023, 07, 01, 0, 0, 0, 0, time.Local), //time.Now(),
+		then,
+	)
+	if errGetAnomalies == nil {
+		fmt.Println("anomalies загрузились")
+		fmt.Println("")
+		var noutMac string
+		//var apName string
+		var siteNameCut string
+		var hourAnomalySlice map[string][]string
+		var dateTime string
+		//var exceptionSumm int
 
 		for _, v := range anomalies {
 			//v.Anomaly == всего 1 простая аномалия, Пример: USER_POOR_STREAM_EFF
@@ -258,12 +406,26 @@ func (ui *Ui) GetHourAnomalies(mapClient map[string]*entity.Client) (mac_Anomaly
 						SiteName:             siteNameCut, //v.SiteName,
 						TimeStr_sliceAnomStr: hourAnomalySlice,
 						ApMac:                k1.Mac, //в новой логике мапа Клиентов не будет запрашивать сразу имя точки. только мак
-						Exception:            k1.Exception,
+						ApName:               "", //apName,
+						Exception:            k1.Exception, //exceptionSumm,
 					}
+
 				} else {
 					//update slice of anomaly string
 					k2.TimeStr_sliceAnomStr[dateTime] = append(k2.TimeStr_sliceAnomStr[dateTime], v.Anomaly)
 					//k2.SiteName = siteNameCut
+
+					if len(k2.TimeStr_sliceAnomStr[dateTime]) == 2 {
+						//подключаемся к мапе точек для получения Exception, а заодно и имени точки
+						k3, exisMac3 := mac_Ap[k1.ApMac]
+						if exisMac3 {
+							k2.ApName = k3.Name
+							k2.Exception = k2.Exception + k3.Exception
+						} else {
+							k2.ApName = "undefined"
+							//exceptionSumm = k1.Exception
+						}
+					}
 				}
 			}
 		}
@@ -273,10 +435,10 @@ func (ui *Ui) GetHourAnomalies(mapClient map[string]*entity.Client) (mac_Anomaly
 		return nil, errGetAnomalies
 	}
 	//return
-}
+}*/
 
-/* Логика, когда при каждой аномалии идёт подключение к мапе клиентов для получения имени точки
-func (ui *Ui) GetHourAnomalies(mapClient map[string]*entity.Client) (maс_Anomaly map[string]*entity.Anomaly, err error) {
+// при каждой аномалии идёт подключение к мапе клиентов для получения имени точки. старая версия
+/*func (ui *Ui) GetHourAnomalies(mapClient map[string]*entity.Client) (maс_Anomaly map[string]*entity.Anomaly, err error) {
 	var siteNameCut string
 	count := 1 //минус 1 час
 	then := time.Now().Add(time.Duration(-count) * time.Hour)

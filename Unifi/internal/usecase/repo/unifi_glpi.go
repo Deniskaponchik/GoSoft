@@ -458,7 +458,7 @@ func (ur *UnifiRepo) DownloadMapFromDBmachinesErr() (map[string]*entity.Client, 
 						var tag *entity.Client
 
 						for results.Next() {
-							errScan := results.Scan(&tag.Mac, &tag.Hostname, &tag.Controller, &tag.Exception, &tag.SrID, &tag.ApName)
+							errScan := results.Scan(&tag.Mac, &tag.Hostname, &tag.Controller, &tag.Exception, &tag.SrID, &tag.ApName, &tag.ApMac, &tag.Modified)
 							if errScan == nil {
 								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
 								//m[tag.Mac] = MachineMyStruct{
