@@ -134,8 +134,49 @@ func (ur *UnifiRepo) UpdateDbAnomaly(mac_Anomaly map[string]*entity.Anomaly) (er
 	return nil
 }*/
 
-func (ur *UnifiRepo) UpdateDbAp(mapAp map[string]*entity.Ap) (err error) {
+// Создаёт query  и передаёт в функцию UploadMapsToDBerr
+func (ur *UnifiRepo) UpdateDbClient(mac_Client map[string]*entity.Client) (err error) {
+	bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
+	var lenMap int
+	var count int
+	var exception string
+	var b1 bytes.Buffer
+	var query string
+	lenMap = len(mac_Client)
+	count = 0
+	apName := ""
 
+	//b1.WriteString("REPLACE INTO " + "it_support_db.ap" + " VALUES ")
+	b1.WriteString("REPLACE INTO " + ur.databaseITsup + ".ap" + " VALUES ")
+
+	for k, v := range mac_Client {
+		exception = strconv.Itoa(int(v.Exception))
+		count++
+		if count != lenMap {
+			// mac, hostname, controller, exception, srid, ap_name(empty), ap_mac, modified
+			b1.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "','" +
+				apName + "','" + v.ApMac + "','" + v.Modified + "'),")
+		} else {
+			b1.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "','" +
+				apName + "','" + v.ApMac + "','" + v.Modified + "')")
+			//в конце НЕ ставим запятую
+		}
+	}
+	query = b1.String()
+	fmt.Println(query)
+	if count != 0 {
+		//UploadMapsToDBstring("it_support_db", query)
+		//UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
+		ur.UploadMapsToDBerr(query)
+	} else {
+		fmt.Println("Передана пустая карта. Запрос не выполнен")
+	}
+	fmt.Println("")
+	return nil
+}
+
+// Создаёт query  и передаёт в функцию UploadMapsToDBerr
+func (ur *UnifiRepo) UpdateDbAp(mapAp map[string]*entity.Ap) (err error) {
 	bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
 	var lenMap int
 	var count int
@@ -174,6 +215,7 @@ func (ur *UnifiRepo) UpdateDbAp(mapAp map[string]*entity.Ap) (err error) {
 	return nil
 }
 
+// Ожидает на входе query
 func (ur *UnifiRepo) UploadMapsToDBerr(query string) (err error) {
 
 	myError := 1
@@ -814,6 +856,7 @@ func (ur *UnifiRepo) DownloadMapFromDBapsErr() (map[string]*entity.Ap, error) {
 }
 
 func (ur *UnifiRepo) DownloadMapFromDBerr() (siteApcut_login map[string]string, err error) {
+	//загрузка мапы контактных лиц в офисах по точкам
 	type Tag struct {
 		KeyDB   sql.NullString `json:"keyDB""`
 		ValueDB sql.NullString `json:"valueDB"`

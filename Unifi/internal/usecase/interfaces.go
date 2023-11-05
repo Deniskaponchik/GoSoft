@@ -35,14 +35,14 @@ type (
 
 type (
 	UnifiInterface interface {
-		InfinityUnifiProcessing() error
-		ApSurvey() error
-		ApTicketCtreating() error
-		ClientSurvey() error
-		ClientTicketCreating() error
+		InfinityProcessingUnifi() error
+		HandlingAps() (map[string][]*entity.Ap, error)
+		TicketsCreatingAps(map[string][]*entity.Ap) error
+		TicketsCreatingAnomalies() error
 	}
 	UnifiRepo interface {
 		UpdateDbAnomaly(map[string]*entity.Anomaly) error
+		UpdateDbClient(map[string]*entity.Client) error
 		UpdateDbAp(map[string]*entity.Ap) error
 		UploadMapsToDBerr(string) error
 		DownloadClientsWithAnomalies(string) (map[string]*entity.Client, error)
@@ -62,7 +62,7 @@ type (
 		//GetUni(*map[string]entity.Ap, *map[string]entity.Client, *map[string]entity.Anomaly) error
 		GetSites() error
 		AddAps(map[string]*entity.Ap) error
-		AddClients(map[string]*entity.Ap, map[string]*entity.Client) error
-		GetHourAnomalies(map[string]*entity.Client) (map[string]*entity.Anomaly, error)
+		UpdateClientsWithoutApMap(map[string]*entity.Client, string) error
+		GetHourAnomalies(map[string]*entity.Client, map[string]*entity.Ap) (map[string]*entity.Anomaly, error)
 	}
 )

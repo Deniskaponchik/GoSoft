@@ -104,23 +104,24 @@ func (ui *Ui) AddAps(mapAp map[string]*entity.Ap) (err error) {
 }
 
 // При обработке каждого клиента к мапе точек НЕ ПОДКЛЮЧАЮСЬ для получения имени
-func (ui *Ui) UpdateClients(mapAp map[string]*entity.Ap, mapClient map[string]*entity.Client) (err error) {
+func (ui *Ui) UpdateClientsWithoutApMap(mapClient map[string]*entity.Client, date string) (err error) {
+	//Загружает в мапу Клиентов: Hostname, exception, mac Ap
+
 	//clients, errGetClients := uni.GetClients(sites) //client = Notebook or Mobile = machine
 	clients, errGetClients := ui.Uni.GetClients(ui.Sites) //client = Notebook or Mobile = machine
 	if errGetClients == nil {
 		fmt.Println("clients загрузились")
 		fmt.Println("")
-		var apName string //		var clientMac string		var clientName string
-		var apException int
+		var clExInt int
 
-		for _, client := range clients {
-			//client.ApName //!!! НИЧЕГО не выводит и не содержит!!! Имя точки берётся ниже на основании сравнения мапой точек
+		for _, client0 := range clients {
+			//client.ApName //!!! НИЧЕГО не выводит и не содержит!!! Имя точки берётся на основании сравнения мака мапой точек
 			//clientMac = client.Mac 	clientName = client.Name  		//clientIP = client.IP		//siteName = client.SiteName
 
-			if !client.IsGuest.Val {
-				var clExInt int
-				if client.Noted.Val {
-					clientExceptionStr := strings.Split(client.Note, " ")[0]
+			if !client0.IsGuest.Val {
+
+				if client0.Noted.Val {
+					clientExceptionStr := strings.Split(client0.Note, " ")[0]
 					if clientExceptionStr == "Exception" {
 						clExInt = 1
 					} else {
@@ -128,30 +129,23 @@ func (ui *Ui) UpdateClients(mapAp map[string]*entity.Ap, mapClient map[string]*e
 					}
 				}
 
-				k, exisApMac := mapAp[client.ApMac]
-				if exisApMac {
-					apName = k.Name
-					apException = k.Exception
-
-					//пробегаемся по всей мапе клиентов и добавляем имя точки клиенту
-					kcl, exis := mapClient[client.Mac]
-					if exis {
-						kcl.Hostname = client.Hostname
-						kcl.ApName = apName
-						kcl.Exception = clExInt + apException
-					} else {
-						mapClient[client.Mac] = &entity.Client{
-							Mac:       client.Mac,
-							Hostname:  client.Name,
-							ApName:    apName,
-							Exception: clExInt + apException,
-							SrID:      "",
-						}
-					}
+				//пробегаемся по всей мапе клиентов и обновляем Hostname, exception, mac Ap, modified
+				client1, exisClient1 := mapClient[client0.Mac]
+				if exisClient1 {
+					client1.Hostname = client0.Hostname
+					client1.Exception = clExInt
+					client1.ApMac = client0.ApMac
+					client1.Modified = date
 				} else {
-					fmt.Println("В мапе точек не удалось найти соответствие с маком точки, взятым у клиента")
+					mapClient[client0.Mac] = &entity.Client{
+						Mac:       client0.Mac,
+						Hostname:  client0.Name,
+						Exception: clExInt,
+						ApMac:     client0.ApMac,
+						SrID:      "",
+						Modified:  date,
+					}
 				}
-
 			} else {
 				//Если клиент Guest
 			}
@@ -165,7 +159,7 @@ func (ui *Ui) UpdateClients(mapAp map[string]*entity.Ap, mapClient map[string]*e
 }
 
 // При обработке кажого клиента идёт подключение к мапе точек для получения имени. НЕ ИСПОЛЬЗУЕТСЯ
-func (ui *Ui) AddClients(mapAp map[string]*entity.Ap, mapClient map[string]*entity.Client) (err error) {
+func (ui *Ui) AddClientsDeprecated(mapAp map[string]*entity.Ap, mapClient map[string]*entity.Client) (err error) {
 	//clients, errGetClients := uni.GetClients(sites) //client = Notebook or Mobile = machine
 	clients, errGetClients := ui.Uni.GetClients(ui.Sites) //client = Notebook or Mobile = machine
 	if errGetClients == nil {
@@ -176,7 +170,9 @@ func (ui *Ui) AddClients(mapAp map[string]*entity.Ap, mapClient map[string]*enti
 
 		for _, client := range clients {
 			//client.ApName //!!! НИЧЕГО не выводит и не содержит!!! Имя точки берётся ниже на основании сравнения мапой точек
-			//clientMac = client.Mac 	clientName = client.Name  		//clientIP = client.IP		//siteName = client.SiteName
+			//clientMac = client.Mac 	clientName = client.Name  		//clientIP = client.IP
+			//siteName = client.SiteName
+			//SiteName нужен только на этапе создания заявок по клиентам. Поэтому при обработке каждого клиента его не получаю.
 
 			if !client.IsGuest.Val {
 				var clExInt int

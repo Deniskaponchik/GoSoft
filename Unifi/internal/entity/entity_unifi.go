@@ -19,7 +19,8 @@ type Ap struct {
 type Client struct {
 	Mac      string `json:"mac_client" example:"a0:b1:c2:d3:e4:f5"`
 	Hostname string `json:"hostname"   example:"XXXX-PUPKIN"`
-	//SiteName   string `json:"sitename"   example:"Москва"`
+	//SiteName нужен только на этапе создания заявок по клиентам. Поэтому при обработке каждого клиента его не получаю.
+	SiteName   string `json:"sitename"   example:"Москва"`
 	SrID       string `json:"srid"       example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
 	Controller int    `json:"controller" example:"1"`
 	Exception  int    `json:"exception"  example:"1"`
