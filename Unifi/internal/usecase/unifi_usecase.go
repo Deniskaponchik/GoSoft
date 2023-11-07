@@ -131,9 +131,9 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 						fmt.Println(err.Error())
 						fmt.Println("Клиенты НЕ загрузились с контроллера")
 					}
-					fmt.Println("вывод мапы после AddClients")
-					//for k, v := range mac_Client {fmt.Println(k, v.Mac, v.Controller, v.Exception, v.ApMac, v.Modified, v.Hostname, v.SrID)}					}
-					//time.Sleep(6000000 * time.Second)
+					/*fmt.Println("вывод мапы после AddClients")
+					for k, v := range mac_Client {fmt.Println(k, v.Mac, v.Controller, v.Exception, v.ApMac, v.Modified, v.Hostname, v.SrID)}					}
+					time.Sleep(6000000 * time.Second)*/
 
 				} else {
 					fmt.Println(err.Error())
@@ -516,7 +516,10 @@ func (uuc *UnifiUseCase) TicketsCreatingAnomalies(mac_Client map[string]*entity.
 
 								fmt.Println("Попытка создания заявки")
 								errCreateTicket := uuc.soap.CreateTicketSmacWifi(ticket)
-								if errCreateTicket != nil {
+								if errCreateTicket == nil {
+									fmt.Println(ticket.Url)
+									client1.SrID = ticket.ID
+								} else {
 									fmt.Println("Ошибка создания обращения")
 									fmt.Println(errCreateTicket.Error())
 								}
