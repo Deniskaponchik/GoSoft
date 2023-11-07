@@ -38,7 +38,7 @@ type (
 		InfinityProcessingUnifi() error
 		HandlingAps() (map[string][]*entity.Ap, error)
 		TicketsCreatingAps(map[string][]*entity.Ap) error
-		TicketsCreatingAnomalies() error
+		TicketsCreatingAnomalies(map[string][]*entity.Client) error
 	}
 	UnifiRepo interface {
 		UpdateDbAnomaly(map[string]*entity.Anomaly) error
@@ -59,7 +59,6 @@ type (
 		AddCommentErr(ticket *entity.Ticket) (err error)
 	}
 	Ui interface {
-		//GetUni(*map[string]entity.Ap, *map[string]entity.Client, *map[string]entity.Anomaly) error
 		GetSites() error
 		AddAps(map[string]*entity.Ap) error
 		UpdateClientsWithoutApMap(map[string]*entity.Client, string) error

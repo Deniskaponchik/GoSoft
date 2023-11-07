@@ -53,7 +53,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 
 	err = unifiUseCase.InfinityProcessingUnifi() //cfg.BpmUrl, cfg.SoapUrl)
 	if err != nil {
-		l.Fatal(fmt.Errorf("app - Run - InfinityPolyProcessing: %w", err))
+		l.Fatal(fmt.Errorf("app - Run - InfinityUnifiProcessing: %w", err))
 	}
 
 }

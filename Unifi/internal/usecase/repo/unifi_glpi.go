@@ -23,6 +23,9 @@ type UnifiRepo struct {
 
 // реализуем Инъекцию зависимостей DI. Используется в app
 func NewUnifiRepo(i string, g string, c int) (*UnifiRepo, error) {
+	fmt.Println(i)
+	fmt.Println(g)
+
 	pr := &UnifiRepo{
 		dataSourceITsup: i,
 		databaseITsup:   strings.Split(i, "/")[1],
@@ -57,7 +60,7 @@ func (ur *UnifiRepo) UpdateDbAnomaly(mac_Anomaly map[string]*entity.Anomaly) (er
 	var anomSliceString string
 	var query string
 	var b1 bytes.Buffer
-	b1.WriteString("INSERT INTO  " + ur.databaseITsup + ".anomalies VALUES ")
+	b1.WriteString("INSERT INTO  " + ur.databaseITsup + ".anomaly VALUES ")
 	countB1 := 0
 
 	for _, v := range mac_Anomaly { //mac_DateSiteAnom {
@@ -147,7 +150,7 @@ func (ur *UnifiRepo) UpdateDbClient(mac_Client map[string]*entity.Client) (err e
 	apName := ""
 
 	//b1.WriteString("REPLACE INTO " + "it_support_db.ap" + " VALUES ")
-	b1.WriteString("REPLACE INTO " + ur.databaseITsup + ".ap" + " VALUES ")
+	b1.WriteString("REPLACE INTO " + ur.databaseITsup + ".client" + " VALUES ")
 
 	for k, v := range mac_Client {
 		exception = strconv.Itoa(int(v.Exception))
@@ -196,8 +199,11 @@ func (ur *UnifiRepo) UpdateDbAp(mapAp map[string]*entity.Ap) (err error) {
 		if count != lenMap {
 			// mac, name, controller, exception, srid
 			b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "'),")
+			// mac, name, controller, srid
+			//b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + v.SrID + "'),")
 		} else {
 			b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "')")
+			//b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + v.SrID + "')")
 			//в конце НЕ ставим запятую
 		}
 	}
@@ -275,9 +281,9 @@ func (ur *UnifiRepo) DownloadClientsWithAnomalies(beforeDays string) (mac_Client
 
 	//beforeDays = "2023-09-01 12:00:00"
 	//var anomSlice []string
-	var date string                             //2023-09-01
-	var date_Anomaly map[string]*entity.Anomaly //date == 2023-09-01
-	//var dateStr_sliceAnomStr map[string][]string
+	var date string //2023-09-01
+	//var date_Anomaly map[string]*entity.Anomaly     //date == 2023-09-01
+	mac_Client = make(map[string]*entity.Client)
 
 	myError := 1
 	for myError != 0 {
@@ -286,7 +292,7 @@ func (ur *UnifiRepo) DownloadClientsWithAnomalies(beforeDays string) (mac_Client
 			if errDBping == nil {
 				defer db.Close() // defer the close till after the main function has finished
 				//queryAfter := "SELECT * FROM it_support_db.anomalies WHERE controller = " + strconv.Itoa(int(bdController))
-				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".anomaly WHERE date_hour >= `" + beforeDays + "` AND controller = " +
+				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".anomaly WHERE date_hour >= '" + beforeDays + "' AND controller = " +
 					strconv.Itoa(int(ur.controller)) + " AND exception = 0"
 				fmt.Println(queryAfter)
 
@@ -294,7 +300,7 @@ func (ur *UnifiRepo) DownloadClientsWithAnomalies(beforeDays string) (mac_Client
 					results, errQuery := db.Query(queryAfter)
 					if errQuery == nil {
 
-						var tag *entity.Anomaly
+						var tag entity.Anomaly
 						//var tag Tag
 
 						for results.Next() {
@@ -304,21 +310,43 @@ func (ur *UnifiRepo) DownloadClientsWithAnomalies(beforeDays string) (mac_Client
 							if errScan == nil {
 								//anomSlice = strings.Split(tag.Anomalies, ";")
 								tag.SliceAnomStr = strings.Split(tag.AnomStr, ";")
+								date = strings.Split(tag.DateHour, " ")[0]
 
 								//if len(anomSlice) > 2 { //в БД уже записи с двумя и более аномалиями.
 								//комментирую на будущее, если захочу пропускать с тремя и более аномалиями
 
-								date = strings.Split(tag.DateHour, " ")[0]
-								date_Anomaly[date] = tag //date == 2023-09-01
-
 								client, exisMacClient := mac_Client[tag.ClientMac]
 								if !exisMacClient {
+
+									date_Anomaly := make(map[string]*entity.Anomaly) //date == 2023-09-01
+									//date_Anomaly[date] = tag //date == 2023-09-01
+									date_Anomaly[date] = &entity.Anomaly{
+										DateHour:     tag.DateHour,
+										ClientMac:    tag.ClientMac,
+										Controller:   tag.Controller, //не использую, если что, в дальнейшем
+										SiteName:     tag.SiteName,
+										SliceAnomStr: tag.SliceAnomStr,
+										ApMac:        tag.ApMac,
+										ApName:       tag.ApName,
+										Exception:    tag.Exception, //по условию SELECT exception = 0
+									}
+
 									mac_Client[tag.ClientMac] = &entity.Client{
 										Mac:          tag.ClientMac,
 										Date_Anomaly: date_Anomaly,
 									}
 								} else {
-									client.Date_Anomaly[date] = tag
+									//client.Date_Anomaly[date] = tag
+									client.Date_Anomaly[date] = &entity.Anomaly{
+										DateHour:     tag.DateHour,
+										ClientMac:    tag.ClientMac,
+										Controller:   tag.Controller, //не использую, если что, в дальнейшем
+										SiteName:     tag.SiteName,
+										SliceAnomStr: tag.SliceAnomStr,
+										ApMac:        tag.ApMac,
+										ApName:       tag.ApName,
+										Exception:    tag.Exception, //по условию SELECT exception = 0
+									}
 								}
 								//} //if len(anomSlice) > 2 {
 							} else {
@@ -345,11 +373,7 @@ func (ur *UnifiRepo) DownloadClientsWithAnomalies(beforeDays string) (mac_Client
 								fmt.Println("Закрытие подключения к БД завершилось не корректно")
 							}
 							myError = 0
-							/*
-								fmt.Println("Вывод мапы ВНУТРИ функции")
-								for k, v := range m {
-									fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
-								}*/
+
 						} else {
 							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
 							//time.Sleep(60 * time.Second)
@@ -650,32 +674,32 @@ func (ur *UnifiRepo) DownloadMapFromDBmachinesErr() (map[string]*entity.Client, 
 			if errDBping == nil {
 				defer db.Close() // defer the close till after the main function has finished
 				//queryAfter := "SELECT * FROM it_support_db.machine WHERE controller = " + strconv.Itoa(int(bdController))
-				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".machine WHERE controller = " + strconv.Itoa(int(ur.controller))
+				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".client WHERE controller = " + strconv.Itoa(int(ur.controller))
 				fmt.Println(queryAfter)
 
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)
 					if errQuery == nil {
 						//var tag TagPoly
-						var tag *entity.Client
+						var tag entity.Client
 
 						for results.Next() {
-							errScan := results.Scan(&tag.Mac, &tag.Hostname, &tag.Controller, &tag.Exception, &tag.SrID, &tag.ApName, &tag.ApMac, &tag.Modified)
+							errScan := results.Scan(&tag.Mac, &tag.Hostname, &tag.Controller, &tag.Exception, &tag.SrID,
+								&tag.ApName, &tag.ApMac, &tag.Modified)
 							if errScan == nil {
 								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
-								//m[tag.Mac] = MachineMyStruct{
-								machineMap[tag.Mac] = tag
-								/*
-									machineMap[tag.Mac] = entity.Client{
-										tag.Mac,
-										tag.Hostname,
-										tag.SrID,
-										tag.Controller,
-										tag.Exception,
-										tag.ApName,
-										nil,
-										"",
-									}*/
+								//machineMap[tag.Mac] = &tag
+								machineMap[tag.Mac] = &entity.Client{
+									Mac:        tag.Mac,
+									Hostname:   tag.Hostname,
+									Controller: tag.Controller,
+									Exception:  tag.Exception,
+									SrID:       tag.SrID,
+									ApName:     tag.ApName,
+									ApMac:      tag.ApMac,
+									Modified:   tag.Modified,
+								}
+
 							} else {
 								fmt.Println(errScan.Error())
 								fmt.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
@@ -767,22 +791,24 @@ func (ur *UnifiRepo) DownloadMapFromDBapsErr() (map[string]*entity.Ap, error) {
 						var tag entity.Ap
 
 						for results.Next() {
-							errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.SrID, &tag.Exception)
+							errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
+							//errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.SrID)
 							if errScan == nil {
 								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
-								//m[tag.Mac] = ApMyStruct{
-								apMap[tag.Mac] = &tag
-								/*
-									apMap[tag.Mac] = entity.Ap{
-										tag.Mac,
-										"",
-										tag.Name,
-										"",
-										tag.SrID,
-										tag.Exception,
-										tag.Controller,
-										0,
-									}*/
+
+								//тоже рабочее
+								//var ap entity.Ap
+								//ap = tag
+								//apMap[tag.Mac] = &ap //&tag
+
+								apMap[tag.Mac] = &entity.Ap{
+									Mac:        tag.Mac,
+									Name:       tag.Name,
+									Controller: tag.Controller,
+									Exception:  tag.Exception,
+									SrID:       tag.SrID,
+								}
+
 							} else {
 								fmt.Println(errScan.Error())
 								fmt.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
@@ -805,11 +831,7 @@ func (ur *UnifiRepo) DownloadMapFromDBapsErr() (map[string]*entity.Ap, error) {
 								fmt.Println("Закрытие подключения к БД завершилось не корректно")
 							}
 							myError = 0
-							/*
-								fmt.Println("Вывод мапы ВНУТРИ функции")
-								for k, v := range m {
-									fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
-								}*/
+
 						} else {
 							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
 							//time.Sleep(60 * time.Second)
@@ -861,7 +883,7 @@ func (ur *UnifiRepo) DownloadMapFromDBerr() (siteApcut_login map[string]string, 
 		KeyDB   sql.NullString `json:"keyDB""`
 		ValueDB sql.NullString `json:"valueDB"`
 	}
-	//siteApcut_login := make(map[string]string)
+	siteApcut_login = make(map[string]string) //panic: assignment to entry in nil map
 
 	myError := 1
 	for myError != 0 {
@@ -907,11 +929,7 @@ func (ur *UnifiRepo) DownloadMapFromDBerr() (siteApcut_login map[string]string, 
 								fmt.Println("Закрытие подключения к БД завершилось не корректно")
 							}
 							myError = 0
-							/*
-								fmt.Println("Вывод мапы ВНУТРИ функции")
-								for k, v := range m {
-									fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
-								}*/
+
 						} else {
 							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
 							//time.Sleep(60 * time.Second)

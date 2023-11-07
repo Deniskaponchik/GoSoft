@@ -17,6 +17,8 @@ type Ui struct {
 }
 
 func NewUi(u string, p string, url string) *Ui {
+	fmt.Println(url)
+
 	unfConf := unifi.Config{
 		User:     u,
 		Pass:     p,
@@ -50,12 +52,8 @@ func (ui *Ui) GetSites() (err error) { //unifi.Unifi, error){
 	//return nil
 }
 
-func (ui *Ui) AddAps(mapAp map[string]*entity.Ap) (err error) {
-	/*
-		sitesException := map[string]bool{
-			"5f2285f3a1a7693ae6139c00": true, //Novosib. Резерв/Склад
-			"5f5b49d1a9f6167b55119c9b": true, //Ростов. Резерв/Склад
-		}*/
+func (ui *Ui) AddAps(mapAp map[string]*entity.Ap) error {
+
 	//devices, errGetDevices := uni.GetDevices(sites) //devices = APs
 	devices, errGetDevices := ui.Uni.GetDevices(ui.Sites) //devices = APs
 	if errGetDevices == nil {
@@ -76,12 +74,19 @@ func (ui *Ui) AddAps(mapAp map[string]*entity.Ap) (err error) {
 
 			kap, exis := mapAp[ap.Mac]
 			if exis {
+				//fmt.Println(kap.Mac + " kap есть в мапе. Обновление данных")
+				//fmt.Println(ap.Mac + " ap есть в мапе. Обновление данных")
+				//fmt.Println(ap.Name, ap.SiteName, ap.State.Int())
 				kap.Name = ap.Name
 				kap.SiteName = siteName
 				kap.SiteID = siteID
 				kap.StateInt = ap.State.Int()
-				//k.Exception = ap. //в идеале должен прилетать от контроллера, но в жизни вношу его в БД руками
+				//k.Exception = ap. //исключение должно приходить от контроллера, но по факту вношу единички в БД
+				//Подгрузка единичек исключений по точкам из БД реализована пока что только в самом начале скрипта
+				//Периодического обновления из БД пока что нет
 			} else {
+				//fmt.Println(ap.Mac + "в мапе нет. Создание новой сущности")
+				//fmt.Println(ap.Name, ap.SiteName, ap.State.Int())
 				mapAp[ap.Mac] = &entity.Ap{
 					Mac:          ap.Mac,
 					SiteName:     siteName,
@@ -89,22 +94,23 @@ func (ui *Ui) AddAps(mapAp map[string]*entity.Ap) (err error) {
 					Name:         ap.Name,
 					StateInt:     ap.State.Int(),
 					SrID:         "",
-					Exception:    0,
+					Exception:    0, //исключение для аномалий клиентов
 					CommentCount: 0,
 				}
 			}
 			//} //НЕ Резерв/Склад
 		}
+		//return mapAp, nil
 		return nil
 	} else {
 		fmt.Println("devices НЕ загрузились")
+		//return mapAp, errGetDevices
 		return errGetDevices
 	}
-	//return
 }
 
 // При обработке каждого клиента к мапе точек НЕ ПОДКЛЮЧАЮСЬ для получения имени
-func (ui *Ui) UpdateClientsWithoutApMap(mapClient map[string]*entity.Client, date string) (err error) {
+func (ui *Ui) UpdateClientsWithoutApMap(mapClient map[string]*entity.Client, date string) error {
 	//Загружает в мапу Клиентов: Hostname, exception, mac Ap
 
 	//clients, errGetClients := uni.GetClients(sites) //client = Notebook or Mobile = machine
@@ -150,9 +156,11 @@ func (ui *Ui) UpdateClientsWithoutApMap(mapClient map[string]*entity.Client, dat
 				//Если клиент Guest
 			}
 		}
+		//return mapClient, nil
 		return nil
 	} else {
 		fmt.Println("clients НЕ загрузились")
+		//return mapClient, errGetClients
 		return errGetClients
 	}
 	//return
@@ -284,6 +292,9 @@ func (ui *Ui) GetHourAnomalies(mac_Client map[string]*entity.Client, mac_Ap map[
 		//time.Date(2023, 07, 01, 0, 0, 0, 0, time.Local), //time.Now(),
 		then,
 	)
+
+	mac_Anomaly = make(map[string]*entity.Anomaly) //panic: assignment to entry in nil map
+
 	if errGetAnomalies == nil {
 		fmt.Println("anomalies загрузились")
 		fmt.Println("")

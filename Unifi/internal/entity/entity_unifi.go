@@ -9,7 +9,7 @@ type Ap struct {
 	Name          string `json:"name"       example:"XXX-OPENSPACE"`
 	UserLogin     string `json:"login"      example:"vasya.pupkin"`
 	SrID          string `json:"srid"       example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
-	Exception     int    `json:"exception"  example:"1"`
+	Exception     int    `json:"exception"  example:"1"` //Исключение для аномалий клиентов, а не для отключений точек
 	Controller    int    `json:"controller" example:"1"`
 	CommentCount  int    `example:"1"` //0 - нет комментариев, 1 - комментарий "точка появилась в сети", 2 - Попытка закрыть обращение. commentForUpdate
 	StateInt      int    `example:"0"` // 0 - available
@@ -24,7 +24,7 @@ type Client struct {
 	SrID       string `json:"srid"       example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
 	Controller int    `json:"controller" example:"1"`
 	Exception  int    `json:"exception"  example:"1"`
-	ApName     string `json:"ap_name"    example:"XXX-OPENSPACE"` //отключаю, чтобы не было неразберихи. нет этого параметра у клиента и всё тут
+	ApName     string `json:"ap_name"    example:"XXX-OPENSPACE"` //отключаю, чтобы не было неразберихи. не заполянется этот параметр на контроллере
 	ApMac      string `json:"ap_mac"     example:"a0:b1:c2:d3:e4:f5"`
 	Modified   string `json:"modified"   example:"2023-10-28"`
 

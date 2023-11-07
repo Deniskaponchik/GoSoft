@@ -84,8 +84,7 @@ func NewConfigUnifi() (*ConfigUi, error) {
 	if *mode == "TEST" {
 		cfg.BpmUrl = cfg.BpmTest
 		cfg.SoapUrl = cfg.SoapTest
-		//cfg.GlpiITsupport = cfg.GlpiITsupportTest
-		cfg.GlpiITsupport = "root:t2root@tcp(10.77.252.153:3306)/it_support_test_db"
+		cfg.GlpiITsupport = cfg.GlpiITsupportTest
 	} else {
 		// "PROD"
 		cfg.BpmUrl = cfg.BpmProd
@@ -161,7 +160,7 @@ type (
 	GLPI struct {
 		GlpiConnectStrGLPI string `env-required:"true"   env:"GLPI_CONNECT_STR_GLPI"`
 		GlpiITsupportProd  string `env-required:"true"   env:"GLPI_CONNECT_STR_ITSUP"`
-		GlpiITsupportTest  string //`env-required:"true"   env:"GLPI_ITSUP_TEST"`
+		GlpiITsupportTest  string `env-required:"true"   env:"GLPI_ITSUP_TEST"`
 		GlpiITsupport      string //`env-required:"false"`
 	}
 

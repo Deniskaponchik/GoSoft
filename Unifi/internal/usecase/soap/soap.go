@@ -24,6 +24,9 @@ type Soap struct {
 }
 
 func NewSoap(s string, b string) *Soap {
+	fmt.Println(s)
+	fmt.Println(b)
+
 	return &Soap{
 		soapUrl: s,
 		bpmUrl:  b,
