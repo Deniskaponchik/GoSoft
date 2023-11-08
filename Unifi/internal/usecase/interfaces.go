@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
+	"time"
 )
 
 type (
@@ -38,14 +39,16 @@ type (
 		InfinityProcessingUnifi() error
 		HandlingAps() (map[string][]*entity.Ap, error)
 		TicketsCreatingAps(map[string][]*entity.Ap) error
-		TicketsCreatingAnomalies(map[string][]*entity.Client) error
+		TicketsCreatingMacClients(map[string]*entity.Client) error
+		//TicketsCreatingAnomalies(map[string][]*entity.Client) error
 	}
 	UnifiRepo interface {
 		UpdateDbAnomaly(map[string]*entity.Anomaly) error
 		UpdateDbClient(map[string]*entity.Client) error
 		UpdateDbAp(map[string]*entity.Ap) error
 		UploadMapsToDBerr(string) error
-		DownloadClientsWithAnomalies(string) (map[string]*entity.Client, error)
+		DownloadMacClientsWithAnomalies(map[string]*entity.Client, string, time.Time) error
+		//DownloadClientsWithAnomalies(string) (map[string]*entity.Client, error)
 		DownloadMapFromDBmachinesErr() (map[string]*entity.Client, error)
 		DownloadMapFromDBapsErr() (map[string]*entity.Ap, error)
 		DownloadMapFromDBerr() (map[string]string, error)

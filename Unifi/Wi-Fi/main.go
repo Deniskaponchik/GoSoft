@@ -846,6 +846,7 @@ func main() {
 																fmt.Println("Созданное обращение:")
 																fmt.Println(bpmUrl + srID)
 																fmt.Println(statusTicket)
+
 																//Добавить коммент с аномалиями за последние сутки
 																yesterday := timeNow.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
 																dayMac := yesterday + k

@@ -364,7 +364,7 @@ func (ss *Soap) CreateTicketSmacVcs(ticket *entity.Ticket) (err error) { //(enti
 
 func (ss *Soap) CheckTicketStatusErr(ticket *entity.Ticket) (err error) {
 
-	ticket.BpmServer = ss.bpmUrl //не убирать. используется вне функции
+	ticket.BpmServer = ss.bpmUrl //не убирать. Используется вне функции
 
 	//Убрать из строки \n
 	strBefore := "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><soapenv:Header/><soapenv:Body><bpm:getStatusRequest><CaseID>SRid</CaseID></bpm:getStatusRequest></soapenv:Body></soapenv:Envelope>"
@@ -434,6 +434,7 @@ func (ss *Soap) CheckTicketStatusErr(ticket *entity.Ticket) (err error) {
 						} else {
 							//Успешное завершение функции
 							ticket.Status = envelope.Body.GetStatusResponse.Status
+							ticket.Url = ticket.BpmServer + ticket.ID
 							myError = 0
 							return nil
 						}
@@ -525,14 +526,6 @@ func (ss *Soap) ChangeStatusErr(ticket *entity.Ticket) (err error) {
 			}
 			res, errClientDo := client.Do(req)
 			if errClientDo == nil {
-				/*Посмотреть response Body, если понадобится
-				defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
-				b, err := io.ReadAll(res.Body)
-				if err != nil {
-					log.Fatalln(err)
-				}
-				fmt.Println(string(b))
-				//os.Exit(0)*/
 
 				envelope := &Envelope{}
 				bodyByte, errIOread := io.ReadAll(res.Body)

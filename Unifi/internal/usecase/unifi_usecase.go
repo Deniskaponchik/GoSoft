@@ -30,9 +30,7 @@ func NewUnifiUC(r UnifiRepo, s UnifiSoap, ui Ui, everyCode map[int]bool) *UnifiU
 
 // Переменные, которые используются во всех методах ниже
 var mac_Ap map[string]*entity.Ap
-
-// var siteNameApCutName_Ap map[string][]*entity.Ap //По новой логике должна создаваться новая раз в 12 минут. Реализовано за счёт ap.CountAttempts
-var siteApCutName_Login map[string]string //мапа ответственных сотрудников по офису
+var siteApCutName_Login map[string]string //мапа ответственных сотрудников по офису. Нужно ТОЛЬКО заявкам по точкам
 
 var mac_Client map[string]*entity.Client //string = client.mac. client = machine. Не обнуляется + передаётся между функциями
 //var mac_HourAnomalies map[string]*entity.Anomaly //string = client.mac. обнуляется каждый час. Создаётся и умирает внутри одной функции InfinityProcessingUnifi
@@ -115,13 +113,12 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 
 					//Обновление БД ap раз в час.
 					if timeNow.Hour() != countHourDBap {
+						fmt.Println("Ежечасовая выгрузка точек в БД")
 						countHourDBap = timeNow.Hour()
 						err = uuc.repo.UpdateDbAp(mac_Ap)
 						if err != nil {
 							fmt.Println(err.Error())
 							fmt.Println("выгрузка точек в БД завершилось ошибкой")
-						} else {
-							fmt.Println("Ежечасовая выгрузка точек в БД")
 						}
 					}
 
@@ -142,7 +139,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 
 				if timeNow.Hour() != countHourAnom {
 					fmt.Println("")
-					fmt.Println("Ежечасовое занесение аномалий в БД")
+					fmt.Println("Ежечасовое получение и занесение аномалий в БД")
 
 					macClient_OneHourAnomalies, errGetHourAnom := uuc.ui.GetHourAnomalies(mac_Client, mac_Ap)
 					if errGetHourAnom == nil {
@@ -162,11 +159,12 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 				fmt.Println("sites НЕ загрузились с контроллера")
 			}
 
-			if timeNow.Hour() != countDayTicketCreateAnom {
+			if timeNow.Day() != countDayTicketCreateAnom {
 				fmt.Println("")
 				fmt.Println("Ежесуточное создание заявок по аномалиям")
 
-				err = uuc.TicketsCreatingAnomalies(mac_Client)
+				//err = uuc.TicketsCreatingAnomalies(mac_Client)
+				err = uuc.TicketsCreatingMacClients(mac_Client)
 				if err != nil {
 					fmt.Println("Создание заявок на основании аномалий за 30 дней завершилось ошибкой")
 					fmt.Println(err.Error())
@@ -207,12 +205,6 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 		time.Sleep(58 * time.Second)
 	} // while TRUE
 	return nil
-}
-
-// Удаление из массива точек. не используется в новой логике, где мапа точек ДляТикета обнуляется каждые 12 минут
-func removeFromSliceAp(s []*entity.Ap, i int) []*entity.Ap {
-	s[i] = s[len(s)-1]
-	return s[:len(s)-1]
 }
 
 // Обработка точек доступа
@@ -338,6 +330,7 @@ func (uuc *UnifiUseCase) HandlingAps() (siteNameApCutName_Ap map[string][]*entit
 				//Проверяем заявку на НЕ закрытость.
 				if ap.SrID != "" {
 					//status = CheckTicketStatusErr(soapServer, srID)
+					ticket.ID = ap.SrID
 					err = uuc.soap.CheckTicketStatusErr(ticket)
 
 					fmt.Println("Созданное обращение:")
@@ -360,7 +353,7 @@ func (uuc *UnifiUseCase) HandlingAps() (siteNameApCutName_Ap map[string][]*entit
 					//Проверяем и вносим во временную мапу. Заявка на данном этапе никакая ещё НЕ создаётся
 					//_, exisSiteName := siteapNameForTickets[siteApCutName] //проверяем, есть ли в мапе ДЛЯтикетов
 					k, exisSiteName := siteNameApCutName_Ap[siteApCutName] //проверяем, есть ли в мапе ДЛЯтикетов
-
+					//k - Ap slice
 					if !exisSiteName {
 						fmt.Println("в мапе для Тикета записи ещё НЕТ")
 						//apSlice := []*entity.Ap{ap}
@@ -387,15 +380,18 @@ func (uuc *UnifiUseCase) TicketsCreatingAps(siteNameApCutName_Ap map[string][]*e
 	fmt.Println("Создание заявок по точкам:")
 
 	var countAttempts int
-	var apsNames []string
+	var region string
 
 	for k, v := range siteNameApCutName_Ap {
-		// k - siteNameApCutName
+		// k - siteNameApCutName    v - Ap slice
+		var apsNames []string
+
 		for _, ap := range v {
 			//пробегаемся по массиву точек
 			ap.CountAttempts++
 			countAttempts = ap.CountAttempts
 			apsNames = append(apsNames, ap.Name)
+			region = ap.SiteName
 		}
 
 		if countAttempts >= 2 {
@@ -405,6 +401,7 @@ func (uuc *UnifiUseCase) TicketsCreatingAps(siteNameApCutName_Ap map[string][]*e
 			ticket := &entity.Ticket{
 				UserLogin:    siteApCutName_Login[k],
 				IncidentType: "Недоступна точка доступа",
+				Region:       region,
 				Description: "Зафиксировано отключение Wi-Fi точек доступа:" + "\n" +
 					desAps + "\n" +
 					"" + "\n" +
@@ -441,7 +438,150 @@ func (uuc *UnifiUseCase) TicketsCreatingAps(siteNameApCutName_Ap map[string][]*e
 	return nil
 }
 
-// Новая логика, где приходит мапа Клиентов со вложенной мапой Аномалий
+// Заявки создаём всё по той же mac_Client
+func (uuc *UnifiUseCase) TicketsCreatingMacClients(mac_Client map[string]*entity.Client) error {
+
+	before30days := timeNow.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
+	//before30days := timeNow.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
+
+	//mac_Anomaly, errDownAnomFromDB := uuc.repo.DownloadMapFromDBanomaliesErr(before30days)
+	//clientsWith30daysAnomalies, errDownClwithAnom := uuc.repo.DownloadClientsWithAnomalies(before30days)
+	errDownClwithAnom := uuc.repo.DownloadMacClientsWithAnomalies(mac_Client, before30days, timeNow)
+	if errDownClwithAnom == nil {
+
+		for _, client := range mac_Client {
+
+			//У каждого клиента проверить длину мапы Аномалий. Если длина 10 и более, то пробуем заводить заявку
+			if len(client.Date_Anomaly) > 9 {
+				fmt.Println(client.Mac)
+
+				//Проверяем, есть ли hostname. Без него всё бессмысленно
+				if client.Hostname != "" {
+					if client.Exception == 0 { //из бд взяты записи с Exception = 0
+						fmt.Println(client.Hostname)
+
+						ticket := &entity.Ticket{}
+						var errCheckStatus error
+						if client.SrID != "" {
+							ticket.ID = client.SrID
+							errCheckStatus = uuc.soap.CheckTicketStatusErr(ticket)
+							//fmt.Println("Заведённое ранее обращение:")
+							//fmt.Println(ticket.BpmServer + client1.SrID)
+							//fmt.Println(ticket.Status)
+						} else {
+							fmt.Println("заявка ещё не была создана")
+							ticket.Status = ""
+						}
+						//errCheckStatus := uuc.soap.CheckTicketStatusErr(ticket)
+						if errCheckStatus == nil { //&& (srStatusCodesForNewTicket[ticket.Status] || client.SrID == "") {
+
+							if srStatusCodesForNewTicket[ticket.Status] || client.SrID == "" {
+								//Если заявки ещё нет, либо закрыта отменена
+								var b2 bytes.Buffer
+
+								for date, anomalyStruct := range client.Date_Anomaly {
+									//имя точки уже получено в каждой аномалии
+									ticket.Region = anomalyStruct.SiteName //у клиентов не получаю SiteName. Беру из Аномалий
+
+									b2.WriteString(anomalyStruct.ApName + "\n")
+									b2.WriteString(date + "\n")
+									for _, oneAnomaly := range anomalyStruct.SliceAnomStr {
+										b2.WriteString(oneAnomaly + "\n")
+									}
+									b2.WriteString("\n")
+								}
+
+								errGetUserLogin := uuc.repo.GetLoginPCerr(client)
+								if errGetUserLogin == nil {
+									ticket.UserLogin = client.UserLogin
+								} else {
+									//в логику GetLoginPCerr уже заложено назначение client.UserLogin = "denis.tirskikh"
+									//ticket.UserLogin = "denis.tirskikh"
+								}
+
+								ticket.IncidentType = "Плохое качество соединения клиента"
+								//ticket.Region = anom.SiteName //получаю выше в цикле обработки аномалий
+
+								ticket.Description = "На ноутбуке:" + "\n" +
+									client.Hostname + "\n" + "" + "\n" +
+									"За последние 30 дней зафиксировано более 10 дней с Аномалиями качества работы Wi-Fi сети Tele2Corp" + "\n" +
+									"" + "\n" +
+									"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+									"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+									"" + "\n" +
+									b2.String() +
+									""
+
+								fmt.Println("Попытка создания заявки")
+								errCreateTicket := uuc.soap.CreateTicketSmacWifi(ticket)
+								if errCreateTicket == nil {
+									fmt.Println(ticket.Url)
+									client.SrID = ticket.ID
+								} else {
+									fmt.Println("Ошибка создания обращения")
+									fmt.Println(errCreateTicket.Error())
+								}
+							} else {
+								fmt.Println("Созданное обращение:")
+								fmt.Println(ticket.Url)
+								fmt.Println(ticket.Status)
+
+								//Добавить коммент с аномалиями за последние сутки
+								yesterday := timeNow.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
+								var b1 bytes.Buffer
+
+								for date, anomalyStruct := range client.Date_Anomaly {
+									//имя точки уже получено в каждой аномалии
+									//ticket.Region = anomalyStruct.SiteName //у клиентов не получаю SiteName. Беру из Аномалий
+									//b1.WriteString(date + "\n")
+
+									if date == yesterday {
+										b1.WriteString(anomalyStruct.ApName + "\n")
+										for _, oneAnomaly := range anomalyStruct.SliceAnomStr {
+											b1.WriteString(oneAnomaly + "\n")
+										}
+										b1.WriteString("\n")
+
+										break
+									}
+									if b1.Len() != 0 {
+										ticket.Comment = "За последние сутки появились новые аномалии:" + "\n" +
+											b1.String() +
+											""
+										err = uuc.soap.AddCommentErr(ticket)
+										if err == nil {
+											fmt.Println("оставлен комментарий, что за последние сутки были новые аномалии")
+										} else {
+											fmt.Println("Комментарий не смог добавиться в обращение")
+											fmt.Println(err.Error())
+										}
+									}
+								}
+							}
+						} else {
+							fmt.Println("Ошибка при получении статуса обращения")
+							fmt.Println("Дальнейшее создание обращения прекращено")
+						}
+					} else {
+						fmt.Println("Клиент или точка добавлены в исключение")
+					}
+				} else {
+					fmt.Println("у клиента не прописан hostname")
+					fmt.Println("Создание заявки без него невозможно")
+				}
+
+				fmt.Println("")
+			} //if len(anom.TimeStr_sliceAnomStr) > 9 {
+		} //for _, anom := range mac_Anomaly
+	} else {
+		fmt.Println("ошибка загрузки мапы аномалий за последние 30 дн. из БД")
+		fmt.Println(errDownClwithAnom.Error())
+	}
+	return nil
+}
+
+// приходит ОТДЕЛЬНАЯ мапа Клиентов со вложенной мапой Аномалий
+/*
 func (uuc *UnifiUseCase) TicketsCreatingAnomalies(mac_Client map[string]*entity.Client) error {
 
 	before30days := timeNow.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
@@ -455,17 +595,19 @@ func (uuc *UnifiUseCase) TicketsCreatingAnomalies(mac_Client map[string]*entity.
 
 			//у каждого клиента проверить длину мапы Аномалий. если длина 10 и более, то заводить заявку
 			if len(client2.Date_Anomaly) > 9 {
+				fmt.Println(client2.Mac)
+
 				//идём в мапу Клиентов, чтобы узнать, не заведена ли уже заявка
 				client1, exisMacClient1 := mac_Client[client2Mac] //cient1 - клиент без мапы аномалий
 				if exisMacClient1 {
 					if client1.Exception == 0 { //из бд взяты записи с Exception = 0
 						fmt.Println(client1.Hostname)
-						fmt.Println(client1.Mac)
 
 						ticket := &entity.Ticket{}
+						var errCheckStatus error
 						if client1.SrID != "" {
 							ticket.ID = client1.SrID
-							err = uuc.soap.CheckTicketStatusErr(ticket)
+							errCheckStatus = uuc.soap.CheckTicketStatusErr(ticket)
 							//fmt.Println("Заведённое ранее обращение:")
 							//fmt.Println(ticket.BpmServer + client1.SrID)
 							//fmt.Println(ticket.Status)
@@ -474,14 +616,13 @@ func (uuc *UnifiUseCase) TicketsCreatingAnomalies(mac_Client map[string]*entity.
 							ticket.Status = ""
 						}
 						//errCheckStatus := uuc.soap.CheckTicketStatusErr(ticket)
-						if err == nil { //&& (srStatusCodesForNewTicket[ticket.Status] || client.SrID == "") {
+						if errCheckStatus == nil { //&& (srStatusCodesForNewTicket[ticket.Status] || client.SrID == "") {
+
 							if srStatusCodesForNewTicket[ticket.Status] || client1.SrID == "" {
 								//Если заявки ещё нет, либо закрыта отменена
 								var b2 bytes.Buffer
-								//var apMacName map[string]string //временная небольшая мапа, чтобы 10 раз не подключаться к большой мапе Точек за именем
-								//var countApException int
 
-								for date, anomalyStruct := range client1.Date_Anomaly {
+								for date, anomalyStruct := range client2.Date_Anomaly {
 									//имя точки уже получено в каждой аномалии
 									ticket.Region = anomalyStruct.SiteName //у клиентов не получаю SiteName. Беру из Аномалий
 
@@ -527,6 +668,38 @@ func (uuc *UnifiUseCase) TicketsCreatingAnomalies(mac_Client map[string]*entity.
 								fmt.Println("Созданное обращение:")
 								fmt.Println(ticket.Url)
 								fmt.Println(ticket.Status)
+
+								//Добавить коммент с аномалиями за последние сутки
+								yesterday := timeNow.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
+								var b1 bytes.Buffer
+
+								for date, anomalyStruct := range client2.Date_Anomaly {
+									//имя точки уже получено в каждой аномалии
+									//ticket.Region = anomalyStruct.SiteName //у клиентов не получаю SiteName. Беру из Аномалий
+									//b1.WriteString(date + "\n")
+
+									if date == yesterday {
+										b1.WriteString(anomalyStruct.ApName + "\n")
+										for _, oneAnomaly := range anomalyStruct.SliceAnomStr {
+											b1.WriteString(oneAnomaly + "\n")
+										}
+										b1.WriteString("\n")
+
+										break
+									}
+									if b1.Len() != 0 {
+										ticket.Comment = "За последние сутки появились новые аномалии:" + "\n" +
+											b1.String() +
+											""
+										err = uuc.soap.AddCommentErr(ticket)
+										if err == nil {
+											fmt.Println("оставлен комментарий, что за последние сутки были новые аномалии")
+										} else {
+											fmt.Println("Комментарий не смог добавиться в обращение")
+											fmt.Println(err.Error())
+										}
+									}
+								}
 							}
 						} else {
 							fmt.Println("Ошибка при получении статуса обращения")
@@ -540,13 +713,14 @@ func (uuc *UnifiUseCase) TicketsCreatingAnomalies(mac_Client map[string]*entity.
 					fmt.Println("Создание заявки без этих данных невозможно")
 				}
 			} //if len(anom.TimeStr_sliceAnomStr) > 9 {
+			fmt.Println("")
 		} //for _, anom := range mac_Anomaly
 	} else {
 		fmt.Println("ошибка загрузки мапы аномалий за последние 30 дн. из БД")
 		fmt.Println(errDownClwithAnom.Error())
 	}
 	return nil
-}
+}*/
 
 //Просто старая логика. Даже сложно вспомнить, что там было
 /*

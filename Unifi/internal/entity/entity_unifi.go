@@ -27,6 +27,8 @@ type Client struct {
 	ApName     string `json:"ap_name"    example:"XXX-OPENSPACE"` //отключаю, чтобы не было неразберихи. не заполянется этот параметр на контроллере
 	ApMac      string `json:"ap_mac"     example:"a0:b1:c2:d3:e4:f5"`
 	Modified   string `json:"modified"   example:"2023-10-28"`
+	//DateTicketCreateAttempt time.Time `example: "2023-10-28"` //До первого захода либо nil, либо прошлая дата, после 1 захода - сегодняшняя дата
+	DateTicketCreateAttempt int `example:"28"`
 
 	//Anomalies []Anomaly 				//Аномалии клиента за 30 дней
 	Date_Anomaly map[string]*Anomaly //Аномалии клиента за 30 дней
