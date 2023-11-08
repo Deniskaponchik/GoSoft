@@ -301,14 +301,17 @@ func (puc *PolyUseCase) Survey() error {
 				fmt.Println("ВКС Недоступно")
 
 				//Проверяем заявку на НЕ закрытость. если заявки нет - ничего страшного
-				var errCheckStatus error
+				//var errCheckStatus error
 				if polyTicket.ID != "" { //srID != "" {
 					//statusTicket = CheckTicketStatusErr(soapServer, srID)
 					//polyTicket, errCheckStatus = puc.soap.CheckTicketStatusErr(polyTicket)
-					errCheckStatus = puc.soap.CheckTicketStatusErr(polyTicket)
+					errCheckStatus := puc.soap.CheckTicketStatusErr(polyTicket)
+					if errCheckStatus != nil {
+						fmt.Println("Статус обращения выяснить не удалось. Никаких действий не предпринимаем")
+					}
 				}
 
-				if srStatusCodesForNewTicket[polyTicket.Status] || polyTicket.ID == "" || errCheckStatus != nil {
+				if srStatusCodesForNewTicket[polyTicket.Status] || polyTicket.ID == "" { //} || errCheckStatus != nil {
 					//if srStatusCodesForNewTicket[statusTicket] || srID == "" {
 					//fmt.Println(bpmUrl + polyTicket.ID)         //srID)
 					fmt.Println(polyTicket.BpmServer + polyTicket.ID)
