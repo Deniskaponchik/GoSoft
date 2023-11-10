@@ -1177,14 +1177,12 @@ func (ur *UnifiRepo) GetLoginPCerr(client *entity.Client) (err error) { //(entit
 				errQuery := db.QueryRow(queryAfter, client.Hostname).Scan(&client.UserLogin)
 				if errQuery == nil {
 					//Если изменилась имя или структура таблицы, то нет смысла зацикливать на 5 минут SELECT
-					//result = pc.UserName
 					return nil
 				} else {
 					fmt.Println(errQuery.Error())
 					//fmt.Println("В БД нет доступного соответствия имени ПК и логина")
-					//result = "denis.tirskikh"
-					client.UserLogin = "denis.tirskikh"
-					return err
+					//client.UserLogin = "denis.tirskikh"
+					return errQuery
 				}
 				myError = 0
 				//db.Close()
@@ -1210,8 +1208,7 @@ func (ur *UnifiRepo) GetLoginPCerr(client *entity.Client) (err error) { //(entit
 		}
 		if myError == 5 {
 			myError = 0
-			//result = "denis.tirskikh"
-			client.UserLogin = "denis.tirskikh"
+			//client.UserLogin = "denis.tirskikh"
 			return err
 		}
 	} //sql.Open

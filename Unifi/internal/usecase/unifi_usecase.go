@@ -456,119 +456,126 @@ func (uuc *UnifiUseCase) TicketsCreatingMacClients(mac_Client map[string]*entity
 				fmt.Println(client.Mac)
 
 				//Проверяем, есть ли hostname. Без него всё бессмысленно
-				if client.Hostname != "" {
-					if client.Exception == 0 { //из бд взяты записи с Exception = 0
-						fmt.Println(client.Hostname)
+				//if client.Hostname != "" {
 
-						ticket := &entity.Ticket{}
-						var errCheckStatus error
-						if client.SrID != "" {
-							ticket.ID = client.SrID
-							errCheckStatus = uuc.soap.CheckTicketStatusErr(ticket)
-							//fmt.Println("Заведённое ранее обращение:")
-							//fmt.Println(ticket.BpmServer + client1.SrID)
-							//fmt.Println(ticket.Status)
-						} else {
-							fmt.Println("заявка ещё не была создана")
-							ticket.Status = ""
-						}
-						//errCheckStatus := uuc.soap.CheckTicketStatusErr(ticket)
-						if errCheckStatus == nil { //&& (srStatusCodesForNewTicket[ticket.Status] || client.SrID == "") {
+				if client.Exception == 0 { //из бд взяты записи с Exception = 0
+					fmt.Println(client.Hostname)
 
-							if srStatusCodesForNewTicket[ticket.Status] || client.SrID == "" {
-								//Если заявки ещё нет, либо закрыта отменена
-								var b2 bytes.Buffer
+					ticket := &entity.Ticket{}
+					var errCheckStatus error
+					if client.SrID != "" {
+						ticket.ID = client.SrID
+						errCheckStatus = uuc.soap.CheckTicketStatusErr(ticket)
+						//fmt.Println("Заведённое ранее обращение:")
+						//fmt.Println(ticket.BpmServer + client1.SrID)
+						//fmt.Println(ticket.Status)
+					} else {
+						fmt.Println("заявка ещё не была создана")
+						ticket.Status = ""
+					}
+					//errCheckStatus := uuc.soap.CheckTicketStatusErr(ticket)
+					if errCheckStatus == nil { //&& (srStatusCodesForNewTicket[ticket.Status] || client.SrID == "") {
 
-								for date, anomalyStruct := range client.Date_Anomaly {
-									//имя точки уже получено в каждой аномалии
-									ticket.Region = anomalyStruct.SiteName //у клиентов не получаю SiteName. Беру из Аномалий
+						if srStatusCodesForNewTicket[ticket.Status] || client.SrID == "" {
+							//Если заявки ещё нет, либо закрыта отменена
+							var b2 bytes.Buffer
 
-									b2.WriteString(anomalyStruct.ApName + "\n")
-									b2.WriteString(date + "\n")
-									for _, oneAnomaly := range anomalyStruct.SliceAnomStr {
-										b2.WriteString(oneAnomaly + "\n")
-									}
-									b2.WriteString("\n")
+							for date, anomalyStruct := range client.Date_Anomaly {
+								//имя точки уже получено в каждой аномалии
+								ticket.Region = anomalyStruct.SiteName //у клиентов не получаю SiteName. Беру из Аномалий
+
+								b2.WriteString(anomalyStruct.ApName + "\n")
+								b2.WriteString(date + "\n")
+								for _, oneAnomaly := range anomalyStruct.SliceAnomStr {
+									b2.WriteString(oneAnomaly + "\n")
 								}
+								b2.WriteString("\n")
+							}
 
+							//Получение userlogin
+							if client.Hostname != "" {
 								errGetUserLogin := uuc.repo.GetLoginPCerr(client)
-								if errGetUserLogin == nil {
-									ticket.UserLogin = client.UserLogin
-								} else {
-									//в логику GetLoginPCerr уже заложено назначение client.UserLogin = "denis.tirskikh"
-									//ticket.UserLogin = "denis.tirskikh"
-								}
-
-								ticket.IncidentType = "Плохое качество соединения клиента"
-								//ticket.Region = anom.SiteName //получаю выше в цикле обработки аномалий
-
-								ticket.Description = "На ноутбуке:" + "\n" +
-									client.Hostname + "\n" + "" + "\n" +
-									"За последние 30 дней зафиксировано более 10 дней с Аномалиями качества работы Wi-Fi сети Tele2Corp" + "\n" +
-									"" + "\n" +
-									"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
-									"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
-									"" + "\n" +
-									b2.String() +
-									""
-
-								fmt.Println("Попытка создания заявки")
-								errCreateTicket := uuc.soap.CreateTicketSmacWifi(ticket)
-								if errCreateTicket == nil {
-									fmt.Println(ticket.Url)
-									client.SrID = ticket.ID
-								} else {
-									fmt.Println("Ошибка создания обращения")
-									fmt.Println(errCreateTicket.Error())
+								if errGetUserLogin != nil {
+									client.UserLogin = "denis.tirskikh"
 								}
 							} else {
-								fmt.Println("Созданное обращение:")
+								//если client.Hostname == "" то создаю информационную заявку на себя, чтобы добавить в БД руками hostname
+								client.UserLogin = "denis.tirskikh"
+								client.Hostname = client.Mac
+							}
+							ticket.UserLogin = client.UserLogin
+
+							ticket.IncidentType = "Плохое качество соединения клиента"
+							//ticket.Region = anom.SiteName //получаю выше в цикле обработки аномалий
+
+							ticket.Description = "На ноутбуке:" + "\n" +
+								client.Hostname + "\n" + "" + "\n" +
+								"За последние 30 дней зафиксировано более 10 дней с Аномалиями качества работы Wi-Fi сети Tele2Corp" + "\n" +
+								"" + "\n" +
+								"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+								"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+								"" + "\n" +
+								b2.String() +
+								""
+
+							fmt.Println("Попытка создания заявки")
+							errCreateTicket := uuc.soap.CreateTicketSmacWifi(ticket)
+							if errCreateTicket == nil {
 								fmt.Println(ticket.Url)
-								fmt.Println(ticket.Status)
-
-								//Добавить коммент с аномалиями за последние сутки
-								yesterday := timeNow.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
-								var b1 bytes.Buffer
-
-								for date, anomalyStruct := range client.Date_Anomaly {
-									//имя точки уже получено в каждой аномалии
-									//ticket.Region = anomalyStruct.SiteName //у клиентов не получаю SiteName. Беру из Аномалий
-									//b1.WriteString(date + "\n")
-
-									if date == yesterday {
-										b1.WriteString(anomalyStruct.ApName + "\n")
-										for _, oneAnomaly := range anomalyStruct.SliceAnomStr {
-											b1.WriteString(oneAnomaly + "\n")
-										}
-										b1.WriteString("\n")
-
-										break
-									}
-									if b1.Len() != 0 {
-										ticket.Comment = "За последние сутки появились новые аномалии:" + "\n" +
-											b1.String() +
-											""
-										err = uuc.soap.AddCommentErr(ticket)
-										if err == nil {
-											fmt.Println("оставлен комментарий, что за последние сутки были новые аномалии")
-										} else {
-											fmt.Println("Комментарий не смог добавиться в обращение")
-											fmt.Println(err.Error())
-										}
-									}
-								}
+								client.SrID = ticket.ID
+							} else {
+								fmt.Println("Ошибка создания обращения")
+								fmt.Println(errCreateTicket.Error())
 							}
 						} else {
-							fmt.Println("Ошибка при получении статуса обращения")
-							fmt.Println("Дальнейшее создание обращения прекращено")
+							fmt.Println("Созданное обращение:")
+							fmt.Println(ticket.Url)
+							fmt.Println(ticket.Status)
+
+							//Добавить коммент с аномалиями за последние сутки
+							yesterday := timeNow.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
+							var b1 bytes.Buffer
+
+							for date, anomalyStruct := range client.Date_Anomaly {
+								//имя точки уже получено в каждой аномалии
+								//ticket.Region = anomalyStruct.SiteName //у клиентов не получаю SiteName. Беру из Аномалий
+								//b1.WriteString(date + "\n")
+
+								if date == yesterday {
+									b1.WriteString(anomalyStruct.ApName + "\n")
+									for _, oneAnomaly := range anomalyStruct.SliceAnomStr {
+										b1.WriteString(oneAnomaly + "\n")
+									}
+									b1.WriteString("\n")
+
+									break
+								}
+							}
+							if b1.Len() != 0 {
+								ticket.Comment = "За последние сутки появились новые аномалии:" + "\n" +
+									b1.String() +
+									""
+								err = uuc.soap.AddCommentErr(ticket)
+								if err == nil {
+									fmt.Println("оставлен комментарий, что за последние сутки были новые аномалии")
+								} else {
+									fmt.Println("Комментарий не смог добавиться в обращение")
+									fmt.Println(err.Error())
+								}
+							}
 						}
 					} else {
-						fmt.Println("Клиент или точка добавлены в исключение")
+						fmt.Println("Ошибка при получении статуса обращения")
+						fmt.Println("Дальнейшее создание обращения прекращено")
 					}
 				} else {
-					fmt.Println("у клиента не прописан hostname")
-					fmt.Println("Создание заявки без него невозможно")
+					fmt.Println("Клиент или точка добавлены в исключение")
 				}
+				/*
+					} else {
+						fmt.Println("у клиента не прописан hostname")
+						fmt.Println("Создание заявки без него невозможно")
+					}*/
 
 				fmt.Println("")
 			} //if len(anom.TimeStr_sliceAnomStr) > 9 {
