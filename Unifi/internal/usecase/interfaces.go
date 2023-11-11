@@ -51,7 +51,8 @@ type (
 		//DownloadClientsWithAnomalies(string) (map[string]*entity.Client, error)
 		DownloadMapFromDBmachinesErr() (map[string]*entity.Client, error)
 		DownloadMapFromDBapsErr() (map[string]*entity.Ap, error)
-		DownloadMapFromDBerr() (map[string]string, error)
+		DownloadMapOffice() (map[string]*entity.Office, error)
+		//DownloadMapFromDBerr() (map[string]string, error)
 		GetLoginPCerr(*entity.Client) (err error)
 	}
 	UnifiSoap interface {

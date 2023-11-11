@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -13,24 +14,26 @@ type UnifiUseCase struct {
 	soap         UnifiSoap //interface
 	ui           Ui        //interface
 	everyCodeMap map[int]bool
-	//restartHour  int
+	timezone     int
 }
 
 // реализуем Инъекцию зависимостей DI. Используется в app
-func NewUnifiUC(r UnifiRepo, s UnifiSoap, ui Ui, everyCode map[int]bool) *UnifiUseCase {
+func NewUnifiUC(r UnifiRepo, s UnifiSoap, ui Ui, everyCode map[int]bool, timezone int) *UnifiUseCase {
 	return &UnifiUseCase{
 		//Мы можем передать сюда ЛЮБОЙ репозиторий (pg, s3 и т.д.) НО КОД НЕ ПОМЕНЯЕТСЯ! В этом смысл DI
 		repo:         r,
 		soap:         s,
 		ui:           ui,
 		everyCodeMap: everyCode,
-		//restartHour:  restartHour,
+		timezone:     timezone,
 	}
 }
 
 // Переменные, которые используются во всех методах ниже
 var mac_Ap map[string]*entity.Ap
-var siteApCutName_Login map[string]string //мапа ответственных сотрудников по офису. Нужно ТОЛЬКО заявкам по точкам
+
+// var siteApCutName_Login map[string]string //мапа ответственных сотрудников по офису. Нужно ТОЛЬКО заявкам по точкам
+var siteApCutName_Office map[string]*entity.Office
 
 var mac_Client map[string]*entity.Client //string = client.mac. client = machine. Не обнуляется + передаётся между функциями
 //var mac_HourAnomalies map[string]*entity.Anomaly //string = client.mac. обнуляется каждый час. Создаётся и умирает внутри одной функции InfinityProcessingUnifi
@@ -38,6 +41,7 @@ var mac_Client map[string]*entity.Client //string = client.mac. client = machine
 
 var srStatusCodesForNewTicket map[string]bool
 var srStatusCodesForCancelTicket map[string]bool
+var sleepHours map[int]bool
 
 var timeNow time.Time
 var err error
@@ -66,6 +70,27 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 		"Назначено":    true,
 		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 	}
+	sleepHours = map[int]bool{
+		20: true,
+		21: true,
+		22: true,
+		23: true,
+		0:  true,
+		1:  true,
+		2:  true,
+		3:  true,
+		4:  true,
+		5:  true,
+		6:  true,
+		/*7:  true,
+		24: true,
+		25: true,
+		26: true,
+		27: true,
+		28: true,
+		29: true,
+		30: true,*/
+	}
 
 	//apMyMap := DownloadMapFromDBapsErr(wifiConf.GlpiConnectStringITsupport, bdController)
 	mac_Ap, err = uuc.repo.DownloadMapFromDBapsErr()
@@ -83,7 +108,8 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 	//for k, v := range mac_Client {fmt.Println(k, v.Mac, v.Controller, v.Exception, v.ApMac, v.Modified, v.Hostname, v.SrID)}
 
 	//siteApCutNameLogin := DownloadMapFromDBerr(wifiConf.GlpiConnectStringITsupport)
-	siteApCutName_Login, err = uuc.repo.DownloadMapFromDBerr()
+	//siteApCutName_Login, err = uuc.repo.DownloadMapFromDBerr()
+	siteApCutName_Office, err = uuc.repo.DownloadMapOffice()
 	if err != nil {
 		fmt.Println("мапа соответствия сайта и логина ответственного сотрудника не загрузилась")
 		return err //прекращаем работу скрипта
@@ -190,7 +216,8 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 				fmt.Println("")
 				fmt.Println("Ежесуточное обновление мапы контактных лиц в офисах по точкам")
 
-				siteApCutName_Login, err = uuc.repo.DownloadMapFromDBerr()
+				//siteApCutName_Login, err = uuc.repo.DownloadMapFromDBerr()
+				siteApCutName_Office, err = uuc.repo.DownloadMapOffice()
 				if err == nil {
 					countDayDownlSiteApCutName = timeNow.Day()
 				} else {
@@ -381,57 +408,79 @@ func (uuc *UnifiUseCase) TicketsCreatingAps(siteNameApCutName_Ap map[string][]*e
 
 	var countAttempts int
 	var region string
+	var office *entity.Office
+	var trueHour int
 
 	for k, v := range siteNameApCutName_Ap {
 		// k - siteNameApCutName    v - Ap slice
-		var apsNames []string
 
-		for _, ap := range v {
-			//пробегаемся по массиву точек
-			ap.CountAttempts++
-			countAttempts = ap.CountAttempts
-			apsNames = append(apsNames, ap.Name)
-			region = ap.SiteName
-		}
+		office = siteApCutName_Office[k]
 
-		if countAttempts >= 2 {
-			//create ticket
-			desAps := strings.Join(apsNames, "\n")
+		trueHour = timeNow.Add(time.Duration(office.TimeZone-uuc.timezone) * time.Hour).Hour()
+		if !sleepHours[trueHour] || uuc.timezone == 100 {
 
-			ticket := &entity.Ticket{
-				UserLogin:    siteApCutName_Login[k],
-				IncidentType: "Недоступна точка доступа",
-				Region:       region,
-				Description: "Зафиксировано отключение Wi-Fi точек доступа:" + "\n" +
-					desAps + "\n" +
-					"" + "\n" +
-					"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
-					"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
-					"" + "\n" +
-					"!!! Не нужно решать/отменять/отклонять/возвращать/закрывать заявку, пока работа точек не будет восстановлена - автоматически создастся новый тикет !!!" + "\n" +
-					"",
+			/*если зонаКода < зоныПроблемы{
+			if uuc.timezone > office.TimeZone {
+				sumTime = timeNow.Hour() - uuc.timezone - office.TimeZone
+			}else{
+				sumTime = timeNow.Hour() + office.TimeZone - uuc.timezone
+			}*/
+
+			var apsNames []string
+
+			for _, ap := range v {
+				//пробегаемся по массиву точек
+				ap.CountAttempts++
+				countAttempts = ap.CountAttempts
+				apsNames = append(apsNames, ap.Name)
+				region = ap.SiteName
 			}
-			if ticket.UserLogin == "" {
-				ticket.UserLogin = "denis.tirskikh"
-			}
-			fmt.Println(ticket.UserLogin)
 
-			//srTicketSlice := CreateSmacWiFiTicketErr(soapServer, bpmUrl, usrLogin, description, v.site, incidentType)
-			err = uuc.soap.CreateTicketSmacWifi(ticket)
-			if err == nil {
-				fmt.Println(ticket.Url) //srTicketSlice[2])
-				//После создания снова пробегаемся по всему массиву точек и прописываем SrID
-				for _, ap := range v {
-					ap.SrID = ticket.ID
-					ap.CountAttempts = 0
+			if countAttempts >= 2 {
+				//create ticket
+				desAps := strings.Join(apsNames, "\n")
+
+				ticket := &entity.Ticket{
+					//UserLogin:    siteApCutName_Login[k],
+					UserLogin:    office.UserLogin,
+					IncidentType: "Недоступна точка доступа",
+					Region:       region,
+					Description: "Зафиксировано отключение Wi-Fi точек доступа:" + "\n" +
+						desAps + "\n" +
+						"" + "\n" +
+						"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+						"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+						"" + "\n" +
+						"!!! Не нужно решать/отменять/отклонять/возвращать/закрывать заявку, пока работа точек не будет восстановлена - автоматически создастся новый тикет !!!" + "\n" +
+						"",
 				}
-				//Удаляем запись в мапе. По новой логике, где мапа ДляТикета обновляется каждые 12 минут это не нужно
-				//delete(siteNameApCutName_Ap, k)
+				if ticket.UserLogin == "" {
+					ticket.UserLogin = "denis.tirskikh"
+				}
+				fmt.Println(ticket.UserLogin)
+
+				//srTicketSlice := CreateSmacWiFiTicketErr(soapServer, bpmUrl, usrLogin, description, v.site, incidentType)
+				err = uuc.soap.CreateTicketSmacWifi(ticket)
+				if err == nil {
+					fmt.Println(ticket.Url) //srTicketSlice[2])
+					//После создания снова пробегаемся по всему массиву точек и прописываем SrID
+					for _, ap := range v {
+						ap.SrID = ticket.ID
+						ap.CountAttempts = 0
+					}
+					//Удаляем запись в мапе. По новой логике, где мапа ДляТикета обновляется каждые 12 минут это не нужно
+					//delete(siteNameApCutName_Ap, k)
+				} else {
+					fmt.Println("тикет НЕ был создан. В точках srID НЕ был прописан")
+				}
 			} else {
-				fmt.Println("тикет НЕ был создан. В точках srID НЕ был прописан")
+				//do nothing. Не создаём тикет. Переходим к следующему бакету мапы ДляТикета
 			}
 		} else {
-			//do nothing. Не создаём тикет. Переходим к следующему бакету мапы ДляТикета
+			fmt.Println("Аларм попадает в спящие часы")
+			fmt.Println("Текущий час на сервере: " + strconv.Itoa(timeNow.Hour()))
+			fmt.Println("Временная зона сервера: " + strconv.Itoa(uuc.timezone))
+			fmt.Println("Временная зона региона: " + strconv.Itoa(office.TimeZone))
 		}
 	}
 	fmt.Println("")

@@ -49,6 +49,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		//ubiq.NewUbiq(unpoller),                //cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword),
 		ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlstr),
 		cfg.App.EveryCodeMap,
+		cfg.App.TimeZone,
 	)
 
 	err = unifiUseCase.InfinityProcessingUnifi() //cfg.BpmUrl, cfg.SoapUrl)

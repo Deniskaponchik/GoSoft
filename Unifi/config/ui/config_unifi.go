@@ -78,18 +78,19 @@ func NewConfigUnifi() (*ConfigUi, error) {
 	//mode := "TEST"
 	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
 	controller := flag.String("cntrl", "Rostov", "controller: Novosib, Rostov")
+	timezone := flag.Int("time", 100, "Time hour from Moscow") //100-заявки создаются минута в минуту без задержек по ночам
 	flag.Parse()
 
 	//cfg.InnerVars.Mode = *mode
 	if *mode == "TEST" {
 		cfg.BpmUrl = cfg.BpmTest
 		cfg.SoapUrl = cfg.SoapTest
-		cfg.GlpiITsupport = cfg.GlpiITsupportTest
+		cfg.GlpiITsupport = cfg.GlpiITsupportProd
 	} else {
 		// "PROD"
 		cfg.BpmUrl = cfg.BpmProd
 		cfg.SoapUrl = cfg.SoapProd
-		cfg.GlpiITsupport = cfg.GlpiITsupportProd
+		cfg.GlpiITsupport = cfg.GlpiITsupportTest
 	}
 
 	//controller = *controller //
@@ -103,10 +104,12 @@ func NewConfigUnifi() (*ConfigUi, error) {
 		cfg.Ubiquiti.UiContrlint = 2
 		cfg.App.EveryCodeMap = everyCodeSlice[12] //каждые 12 минут
 	}
+	cfg.App.TimeZone = *timezone
 
 	fmt.Println("Mode: ", *mode) //cfg.InnerVars.Mode)
 	fmt.Println("Controller: ", cfg.Ubiquiti.UiContrlstr)
 	fmt.Println("Every Code Map: ", cfg.App.EveryCodeMap)
+	fmt.Println("Timezone: ", cfg.App.TimeZone)
 	//time.Sleep(1000 * time.Second)
 
 	return cfg, nil
@@ -131,6 +134,7 @@ type (
 		Name         string `yaml:"name"`
 		Version      string `yaml:"version"`
 		EveryCodeMap map[int]bool
+		TimeZone     int
 	}
 	//env-required:"true" - ОБЯЗАТЕЛЬНО должен получить перменную либо из окружения, либо из yaml. Между true и false разницы не заметил
 
