@@ -43,7 +43,7 @@ var srStatusCodesForNewTicket map[string]bool
 var srStatusCodesForCancelTicket map[string]bool
 var sleepHoursUnifi map[int]bool
 
-var timeNow time.Time
+var timeNowU time.Time
 var err error
 
 func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
@@ -116,12 +116,12 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 	}
 
 	for true {
-		timeNow = time.Now()
+		timeNowU = time.Now()
 		//Снятие показаний с контроллера раз в 12 минут. Промежутки разные для контроллеров
-		//if timeNow.Minute() != 0 && every12start[timeNow.Minute()] && timeNow.Minute() != count12minute {
-		if timeNow.Minute() != 0 && uuc.everyCodeMap[timeNow.Minute()] && timeNow.Minute() != count12minute {
-			count12minute = timeNow.Minute()
-			fmt.Println(timeNow.Format("02 January, 15:04:05"))
+		//if timeNowU.Minute() != 0 && every12start[timeNowU.Minute()] && timeNowU.Minute() != count12minute {
+		if timeNowU.Minute() != 0 && uuc.everyCodeMap[timeNowU.Minute()] && timeNowU.Minute() != count12minute {
+			count12minute = timeNowU.Minute()
+			fmt.Println(timeNowU.Format("02 January, 15:04:05"))
 
 			err = uuc.ui.GetSites() //в uuc *UnifiUseCase подгружаются Sites
 			if err == nil {
@@ -138,9 +138,9 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 					}
 
 					//Обновление БД ap раз в час.
-					if timeNow.Hour() != countHourDBap {
+					if timeNowU.Hour() != countHourDBap {
 						fmt.Println("Ежечасовая выгрузка точек в БД")
-						countHourDBap = timeNow.Hour()
+						countHourDBap = timeNowU.Hour()
 						err = uuc.repo.UpdateDbAp(mac_Ap)
 						if err != nil {
 							fmt.Println(err.Error())
@@ -149,7 +149,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 					}
 
 					//Загрузка Клиентов с контроллера и обновление мапы Клиентов mac_Client
-					err = uuc.ui.UpdateClientsWithoutApMap(mac_Client, timeNow.Format("2006-01-02"))
+					err = uuc.ui.UpdateClientsWithoutApMap(mac_Client, timeNowU.Format("2006-01-02"))
 					if err != nil {
 						fmt.Println(err.Error())
 						fmt.Println("Клиенты НЕ загрузились с контроллера")
@@ -163,7 +163,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 					fmt.Println("точки доступа НЕ загрузились с контроллера")
 				}
 
-				if timeNow.Hour() != countHourAnom {
+				if timeNowU.Hour() != countHourAnom {
 					fmt.Println("")
 					fmt.Println("Ежечасовое получение и занесение аномалий в БД")
 
@@ -175,7 +175,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 							fmt.Println(err.Error())
 						} else {
 							//Успешное прохождение Получения аномалий с контроллера + выгрузка их БД
-							countHourAnom = timeNow.Hour()
+							countHourAnom = timeNowU.Hour()
 						}
 					}
 				}
@@ -185,7 +185,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 				fmt.Println("sites НЕ загрузились с контроллера")
 			}
 
-			if timeNow.Day() != countDayTicketCreateAnom {
+			if timeNowU.Day() != countDayTicketCreateAnom {
 				fmt.Println("")
 				fmt.Println("Ежесуточное создание заявок по аномалиям")
 
@@ -195,31 +195,31 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 					fmt.Println("Создание заявок на основании аномалий за 30 дней завершилось ошибкой")
 					fmt.Println(err.Error())
 				} else {
-					countDayTicketCreateAnom = timeNow.Day()
+					countDayTicketCreateAnom = timeNowU.Day()
 				}
 			}
 
-			if timeNow.Day() != countDayUploadMachineToDB {
+			if timeNowU.Day() != countDayUploadMachineToDB {
 				fmt.Println("")
 				fmt.Println("Ежесуточная выгрузка мапы клиентов в БД")
 
 				err = uuc.repo.UpdateDbClient(mac_Client)
 				if err == nil {
-					countDayUploadMachineToDB = timeNow.Day()
+					countDayUploadMachineToDB = timeNowU.Day()
 				} else {
 					fmt.Println(err.Error())
 					fmt.Println("Ежесуточная выгрузка мапы клиентов в БД завершилось ошибкой")
 				}
 			}
 
-			if timeNow.Day() != countDayDownlSiteApCutName {
+			if timeNowU.Day() != countDayDownlSiteApCutName {
 				fmt.Println("")
 				fmt.Println("Ежесуточное обновление мапы контактных лиц в офисах по точкам")
 
 				//siteApCutName_Login, err = uuc.repo.DownloadMapFromDBerr()
 				siteApCutName_Office, err = uuc.repo.DownloadMapOffice()
 				if err == nil {
-					countDayDownlSiteApCutName = timeNow.Day()
+					countDayDownlSiteApCutName = timeNowU.Day()
 				} else {
 					fmt.Println(err.Error())
 					fmt.Println("Ежесуточное обновление мапы контактных лиц в офисах по точкам завершилось ошибкой")
@@ -416,14 +416,14 @@ func (uuc *UnifiUseCase) TicketsCreatingAps(siteNameApCutName_Ap map[string][]*e
 
 		office = siteApCutName_Office[k]
 
-		trueHour = timeNow.Add(time.Duration(office.TimeZone-uuc.timezone) * time.Hour).Hour()
+		trueHour = timeNowU.Add(time.Duration(office.TimeZone-uuc.timezone) * time.Hour).Hour()
 		if !sleepHoursUnifi[trueHour] || uuc.timezone == 100 {
 
 			/*если зонаКода < зоныПроблемы{
 			if uuc.timezone > office.TimeZone {
-				sumTime = timeNow.Hour() - uuc.timezone - office.TimeZone
+				sumTime = timeNowU.Hour() - uuc.timezone - office.TimeZone
 			}else{
-				sumTime = timeNow.Hour() + office.TimeZone - uuc.timezone
+				sumTime = timeNowU.Hour() + office.TimeZone - uuc.timezone
 			}*/
 
 			var apsNames []string
@@ -479,7 +479,7 @@ func (uuc *UnifiUseCase) TicketsCreatingAps(siteNameApCutName_Ap map[string][]*e
 		} else {
 			fmt.Println(k)
 			fmt.Println("Аларм попадает в спящие часы")
-			fmt.Println("Текущий час на сервере: " + strconv.Itoa(timeNow.Hour()))
+			fmt.Println("Текущий час на сервере: " + strconv.Itoa(timeNowU.Hour()))
 			fmt.Println("Временная зона сервера: " + strconv.Itoa(uuc.timezone))
 			fmt.Println("Временная зона региона: " + strconv.Itoa(office.TimeZone))
 			fmt.Println("Час в регионе: " + strconv.Itoa(trueHour))
@@ -493,12 +493,12 @@ func (uuc *UnifiUseCase) TicketsCreatingAps(siteNameApCutName_Ap map[string][]*e
 // Заявки создаём всё по той же mac_Client
 func (uuc *UnifiUseCase) TicketsCreatingMacClients(mac_Client map[string]*entity.Client) error {
 
-	before30days := timeNow.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
-	//before30days := timeNow.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
+	before30days := timeNowU.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
+	//before30days := timeNowU.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
 
 	//mac_Anomaly, errDownAnomFromDB := uuc.repo.DownloadMapFromDBanomaliesErr(before30days)
 	//clientsWith30daysAnomalies, errDownClwithAnom := uuc.repo.DownloadClientsWithAnomalies(before30days)
-	errDownClwithAnom := uuc.repo.DownloadMacClientsWithAnomalies(mac_Client, before30days, timeNow)
+	errDownClwithAnom := uuc.repo.DownloadMacClientsWithAnomalies(mac_Client, before30days, timeNowU)
 	if errDownClwithAnom == nil {
 
 		for _, client := range mac_Client {
@@ -585,7 +585,7 @@ func (uuc *UnifiUseCase) TicketsCreatingMacClients(mac_Client map[string]*entity
 							fmt.Println(ticket.Status)
 
 							//Добавить коммент с аномалиями за последние сутки
-							yesterday := timeNow.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
+							yesterday := timeNowU.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
 							var b1 bytes.Buffer
 
 							for date, anomalyStruct := range client.Date_Anomaly {
@@ -643,8 +643,8 @@ func (uuc *UnifiUseCase) TicketsCreatingMacClients(mac_Client map[string]*entity
 /*
 func (uuc *UnifiUseCase) TicketsCreatingAnomalies(mac_Client map[string]*entity.Client) error {
 
-	before30days := timeNow.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
-	//before30days := timeNow.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
+	before30days := timeNowU.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
+	//before30days := timeNowU.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
 
 	//mac_Anomaly, errDownAnomFromDB := uuc.repo.DownloadMapFromDBanomaliesErr(before30days)
 	clientsWith30daysAnomalies, errDownClwithAnom := uuc.repo.DownloadClientsWithAnomalies(before30days)
@@ -729,7 +729,7 @@ func (uuc *UnifiUseCase) TicketsCreatingAnomalies(mac_Client map[string]*entity.
 								fmt.Println(ticket.Status)
 
 								//Добавить коммент с аномалиями за последние сутки
-								yesterday := timeNow.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
+								yesterday := timeNowU.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
 								var b1 bytes.Buffer
 
 								for date, anomalyStruct := range client2.Date_Anomaly {
@@ -785,8 +785,8 @@ func (uuc *UnifiUseCase) TicketsCreatingAnomalies(mac_Client map[string]*entity.
 /*
 func (uuc *UnifiUseCase) TicketsCreatingAnomalies() error {
 
-	before30days := timeNow.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
-	//before30days := timeNow.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
+	before30days := timeNowU.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
+	//before30days := timeNowU.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
 
 	mac_Anomaly, errDownAnomFromDB := uuc.repo.DownloadMapFromDBanomaliesErr(before30days)
 	if errDownAnomFromDB == nil {

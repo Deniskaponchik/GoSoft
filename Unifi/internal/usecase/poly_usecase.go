@@ -390,17 +390,19 @@ func (puc *PolyUseCase) Survey() error {
 func (puc *PolyUseCase) TicketsCreating() error {
 	//region_VcsSlice map[string][]entity.PolyStruct,	polyMap map[string]entity.PolyStruct) error {
 
+	var usrLogin string
+	var trueHour int
+
 	fmt.Println("")
 	fmt.Println("Создание заявок по ВКС:")
 	for k, v := range region_VcsSlice {
 		// k - region
 		fmt.Println(k)
 
-		trueHour := timeNowP.Add(time.Duration(v[0].TimeZone-puc.timezone) * time.Hour).Hour()
+		trueHour = timeNowP.Add(time.Duration(v[0].TimeZone-puc.timezone) * time.Hour).Hour()
 		if !sleepHoursUnifi[trueHour] || puc.timezone == 100 {
 
 			var vcsInfo []string
-			var usrLogin string
 
 			for _, vcs := range v {
 				vcsInfo = append(vcsInfo, vcs.RoomName)

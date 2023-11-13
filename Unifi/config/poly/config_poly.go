@@ -154,7 +154,7 @@ type (
 	GLPI struct {
 		GlpiConnectStrGLPI string `env-required:"true"   env:"GLPI_CONNECT_STR_GLPI"`
 		GlpiITsupportProd  string `env-required:"true"   env:"GLPI_CONNECT_STR_ITSUP"`
-		GlpiITsupportTest  string //`env-required:"true"   env:"GLPI_ITSUP_TEST"`
+		GlpiITsupportTest  string `env-required:"true"   env:"GLPI_ITSUP_TEST"`
 		GlpiITsupport      string //`env-required:"false"`
 	}
 

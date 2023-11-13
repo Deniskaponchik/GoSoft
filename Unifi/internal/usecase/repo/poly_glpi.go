@@ -135,7 +135,8 @@ func (pr *PolyRepo) DownloadMapFromDBvcsErr(marker int) (map[string]entity.PolyS
 						var tag entity.PolyStruct
 
 						for results.Next() {
-							errScan := results.Scan(&tag.Mac, &tag.IP, &tag.Region, &tag.RoomName, &tag.Login, &tag.SrID, &tag.PolyType, &tag.Comment, &tag.Exception)
+							errScan := results.Scan(&tag.Mac, &tag.IP, &tag.Region, &tag.RoomName, &tag.Login, &tag.SrID, &tag.PolyType,
+								&tag.Comment, &tag.Exception, &tag.TimeZone)
 							if errScan == nil {
 								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
 								polyMap[tag.Mac] = entity.PolyStruct{
@@ -148,6 +149,7 @@ func (pr *PolyRepo) DownloadMapFromDBvcsErr(marker int) (map[string]entity.PolyS
 									tag.PolyType,
 									tag.Comment,
 									tag.Exception,
+									tag.TimeZone,
 									"",
 								}
 							} else {
