@@ -12,6 +12,7 @@ type PolyStruct struct {
 	PolyType  int    `json:"type"       example:"1"`
 	Comment   int    `json:"comment"    example:"1"`
 	Exception int    `json:"exception"  example:"1"`
+	TimeZone  int    `json:"time_zone"  example:"+5"`
 
 	Status string `example:"Registered"`
 }

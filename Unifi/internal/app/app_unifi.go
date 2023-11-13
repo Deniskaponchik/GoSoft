@@ -22,7 +22,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	}
 	defer pg.Close()
 	*/
-	unifiRepo, err := repo.NewUnifiRepo(cfg.GLPI.GlpiITsupportTest, cfg.GLPI.GlpiConnectStrGLPI, cfg.UiContrlint)
+	unifiRepo, err := repo.NewUnifiRepo(cfg.GLPI.GlpiITsupport, cfg.GLPI.GlpiConnectStrGLPI, cfg.UiContrlint)
 	if err != nil {
 		//если БД недоступна - останавливаем тут же
 		l.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))

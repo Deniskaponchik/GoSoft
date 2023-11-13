@@ -78,28 +78,29 @@ func NewConfigPoly() (*ConfigPoly, error) {
 	//mode := "TEST"
 	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
 	restart := flag.Int("restart", 7, "hour when codecs restart") //чтобы отключить ежедневную перезагрузку, указать 25 и выше
-	//controller := flag.String("cntrl", "Rostov", "controller: Novosib, Rostov")
+	timezone := flag.Int("time", 100, "Time hour from Moscow")    //100-заявки создаются минута в минуту без задержек по ночам
 	flag.Parse()
 
 	cfg.InnerVars.Mode = *mode
 	if cfg.InnerVars.Mode == "TEST" {
 		cfg.BpmUrl = cfg.BpmTest
 		cfg.SoapUrl = cfg.SoapTest
-		//cfg.GlpiITsupport = cfg.GlpiITsupportTest
-		cfg.GlpiITsupport = "root:t2root@tcp(10.77.252.153:3306)/it_support_test_db"
+		cfg.GlpiITsupport = cfg.GlpiITsupportProd
 		cfg.InnerVars.EveryCodeMap = everyCodeSlice[3] //каждые 3 минут
 	} else {
 		// "PROD"
 		cfg.BpmUrl = cfg.BpmProd
 		cfg.SoapUrl = cfg.SoapProd
-		cfg.GlpiITsupport = cfg.GlpiITsupportProd
+		cfg.GlpiITsupport = cfg.GlpiITsupportTest
 		cfg.InnerVars.EveryCodeMap = everyCodeSlice[0] //каждые 20 минут, старт в 5 минут
 	}
-	cfg.InnerVars.RestartHour = *restart //7 //в 7 часов по времени сервера, где запущен скрипт
+	cfg.InnerVars.RestartHour = *restart //в 7 часов по времени сервера, где запущен скрипт
+	cfg.App.TimeZone = *timezone
 
 	fmt.Println("Mode: ", cfg.InnerVars.Mode)
 	fmt.Println("Restart hour: ", cfg.InnerVars.RestartHour)
 	fmt.Println("Every Code Map: ", cfg.InnerVars.EveryCodeMap)
+	fmt.Println("Timezone: ", cfg.App.TimeZone)
 	//time.Sleep(1000 * time.Second)
 
 	return cfg, nil
@@ -158,8 +159,9 @@ type (
 	}
 
 	App struct {
-		Name    string `yaml:"name"`
-		Version string `yaml:"version"`
+		Name     string `yaml:"name"`
+		Version  string `yaml:"version"`
+		TimeZone int
 	}
 	Log struct {
 		Level string `yaml:"log_level"   env:"LOG_LEVEL"`

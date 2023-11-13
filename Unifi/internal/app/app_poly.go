@@ -40,6 +40,7 @@ func PolyRun(cfg *poly.ConfigPoly) {
 		soap.New(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
 		cfg.InnerVars.EveryCodeMap,
 		cfg.InnerVars.RestartHour,
+		cfg.App.TimeZone,
 	)
 
 	err = polyUseCase.InfinityPolyProcessing() //cfg.BpmUrl, cfg.SoapUrl)

@@ -41,7 +41,7 @@ var mac_Client map[string]*entity.Client //string = client.mac. client = machine
 
 var srStatusCodesForNewTicket map[string]bool
 var srStatusCodesForCancelTicket map[string]bool
-var sleepHours map[int]bool
+var sleepHoursUnifi map[int]bool
 
 var timeNow time.Time
 var err error
@@ -70,7 +70,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 		"Назначено":    true,
 		"На уточнении": true, //Clarification 81e6a1ee-16c1-4661-953e-dde140624fb
 	}
-	sleepHours = map[int]bool{
+	sleepHoursUnifi = map[int]bool{
 		20: true,
 		21: true,
 		22: true,
@@ -417,7 +417,7 @@ func (uuc *UnifiUseCase) TicketsCreatingAps(siteNameApCutName_Ap map[string][]*e
 		office = siteApCutName_Office[k]
 
 		trueHour = timeNow.Add(time.Duration(office.TimeZone-uuc.timezone) * time.Hour).Hour()
-		if !sleepHours[trueHour] || uuc.timezone == 100 {
+		if !sleepHoursUnifi[trueHour] || uuc.timezone == 100 {
 
 			/*если зонаКода < зоныПроблемы{
 			if uuc.timezone > office.TimeZone {
@@ -477,11 +477,14 @@ func (uuc *UnifiUseCase) TicketsCreatingAps(siteNameApCutName_Ap map[string][]*e
 				//do nothing. Не создаём тикет. Переходим к следующему бакету мапы ДляТикета
 			}
 		} else {
+			fmt.Println(k)
 			fmt.Println("Аларм попадает в спящие часы")
 			fmt.Println("Текущий час на сервере: " + strconv.Itoa(timeNow.Hour()))
 			fmt.Println("Временная зона сервера: " + strconv.Itoa(uuc.timezone))
 			fmt.Println("Временная зона региона: " + strconv.Itoa(office.TimeZone))
+			fmt.Println("Час в регионе: " + strconv.Itoa(trueHour))
 		}
+		fmt.Println("")
 	}
 	fmt.Println("")
 	return nil
