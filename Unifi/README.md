@@ -1,6 +1,7 @@
 # [Main]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/main/Unifi))
 | | |
 | - | - |
+| version | не доведён до работающего приложения|
 | Code Structure | github.com/golang-standards/project-layout |
 | ORM | нет |
 | Aps | тикеты создаются со второй попытки (через 24 минуты) |
@@ -12,6 +13,7 @@
 # [Dev]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev1/Unifi))
 | | |
 | - | - |
+| version | 1.3 |
 | Code Structure | github.com/golang-standards/project-layout |
 | ORM | нет |
 | Aps | тикеты создаются со второй попытки (через 24 минуты) |
@@ -22,6 +24,7 @@
 # [Dev1]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev1/Unifi))
 | | |
 | - | - |
+| version | 2.3 |
 | Code Structure | github.com/golang-standards/project-layout |
 | ORM | github.com/jinzhu/gorm |
 | Web server | github.com/gin-gonic/gin |
@@ -31,9 +34,13 @@
 | Poly | с перезагрузками |
 
 # [Dev2]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev2/Unifi))
-- AP. тикеты со второй попытки
-- Anomalies. Ежедневная обработка
-- Poly. с перезагрузками
-- 
+| | |
+| - | - |
+| version | 0.5 |
+| Code Structure | старый лапша-код, всё в одном main файле практически |
+| Aps | тикеты создаются со второй попытки (через 24 минуты) |
+| Clients |  |
+| Anomalies | Ежедневная обработка |
+| Poly | с перезагрузками |
 
 
