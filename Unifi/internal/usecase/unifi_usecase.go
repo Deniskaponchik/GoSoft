@@ -245,26 +245,6 @@ func (uuc *UnifiUseCase) HandlingAps() (siteNameApCutName_Ap map[string][]*entit
 						ap.CountAttempts = 0
 					}
 
-					/*Старая логика, где мапа ДляТикета статична всегда и за ней нужно следить
-					//Пытаемся удалить запись и в мапе ДляТикета, если она там начала создаваться
-					for k, v := range siteNameApCutName_Ap {
-						// v = массив структур
-						if k == siteApCutName {
-							ap.CountAttempts = 0
-							if len(v) > 1 {
-								//если элементов с массиве больше 1, то удаляю лишний
-								for i, eap := range v {
-									if ap.Mac == eap.Mac {
-										v = removeFromSliceAp(v, i)
-									}
-								}
-							} else {
-								//если всего 1 элемент в массиве, удаляю бакет в мапе
-								delete(siteNameApCutName_Ap, k)
-								break
-							}
-						}
-					}*/
 				} else { //Заявка есть
 					fmt.Println(ap.Name)
 					fmt.Println(ap.Mac)
@@ -381,7 +361,12 @@ func (uuc *UnifiUseCase) HandlingAps() (siteNameApCutName_Ap map[string][]*entit
 					} else {
 						fmt.Println("в мапе для Тикета запись ЕСТЬ")
 						// k - slice
-						k = append(k, ap) //просто добавляем точку в уже созданный массив в мапе ДляТикета
+						k = append(k, ap)
+						siteNameApCutName_Ap[siteApCutName] = k
+
+						//apSlice := k
+						//apSlice = append(apSlice, ap)
+						//siteNameApCutName_Ap[siteApCutName] = apSlice
 					}
 				} else {
 					//Заявка создана и её статус позволяет её оставить в таком виде
