@@ -165,27 +165,12 @@ func (puc *PolyUseCase) Survey() error {
 		//polyStruct := &v
 		if v.Exception == 0 {
 
-			/*теперь передаю структуру в сервисы, а не текст
-			ip := v.IP
-			region := v.Region
-			roomName := v.RoomName
-			login := v.Login
-			srID := v.SrID
-			*/
 			polyTicket := &entity.Ticket{
 				ID:        v.SrID,
 				UserLogin: v.Login,
 				Region:    v.Region,
 			}
 			//statusReach := v.Status  //нигде не использую пока убираю
-
-			/*
-				fmt.Println(ip)
-				fmt.Println(region)
-				fmt.Println(roomName)
-				fmt.Println(v.PolyType)
-				fmt.Println(srID)
-			*/
 			//var commentUnreach string
 
 			//var statusReach string   //нигде не использую пока убираю
@@ -298,6 +283,7 @@ func (puc *PolyUseCase) Survey() error {
 							}
 						} else {
 							//Получение статуса обращения завершилось ошибкой
+							v.SrID = ""
 							v.Comment = commentForUpdate
 							polyMap[k] = v
 						}

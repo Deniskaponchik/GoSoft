@@ -9,7 +9,7 @@
 | Anomalies | Ежедневная обработка. При обработке каждой аномалии подключение к мапе клиентов для получения имени точки |
 | Poly | с перезагрузками |
 
-# [Dev1]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev1/Unifi))
+# [Dev2]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev1/Unifi))
 | | |
 | - | - |
 | version | 2.3 |
