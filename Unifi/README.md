@@ -9,18 +9,6 @@
 | Anomalies | Ежедневная обработка. При обработке каждой аномалии подключение к мапе клиентов для получения имени точки |
 | Poly | с перезагрузками |
 
-
-# [Dev]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev1/Unifi))
-| | |
-| - | - |
-| version | 1.3 |
-| Code Structure | github.com/golang-standards/project-layout |
-| ORM | нет |
-| Aps | тикеты создаются со второй попытки (через 24 минуты) |
-| Clients | При обработке каждого клиента подключение к мапе точек для получения ИМЕНИ точки НЕ производится. По умолчанию доступен только мак точки |
-| Anomalies | При обработке каждой аномалии раз в час производится подключение к мапе клиентов для получения МАКА точки, потом подключение к мапе точек для получения и занесение имени точки в БД. |
-| Poly | с перезагрузками |
-
 # [Dev1]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev1/Unifi))
 | | |
 | - | - |
@@ -33,7 +21,18 @@
 | Anomalies | ЧАС. Информация заносится клиенту в МАССИВ аномалий. СУТКИ. Пробегаемся по МАПЕ клиентов, а не делаем запрос к БД. МЕСЯЦ. Дропаем массив аномалий у клиентов и загружаем снова из БД за 30 дн.|
 | Poly | с перезагрузками |
 
-# [Dev2]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev2/Unifi))
+# [Dev1]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev1/Unifi))
+| | |
+| - | - |
+| version | 1.3 |
+| Code Structure | github.com/golang-standards/project-layout |
+| ORM | нет |
+| Aps | тикеты создаются со второй попытки (через 24 минуты) |
+| Clients | При обработке каждого клиента подключение к мапе точек для получения ИМЕНИ точки НЕ производится. По умолчанию доступен только мак точки |
+| Anomalies | При обработке каждой аномалии раз в час производится подключение к мапе клиентов для получения МАКА точки, потом подключение к мапе точек для получения и занесение имени точки в БД. |
+| Poly | с перезагрузками |
+
+# [Dev]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev2/Unifi))
 | | |
 | - | - |
 | version | 0.5 |
