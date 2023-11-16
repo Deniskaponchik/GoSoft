@@ -382,6 +382,7 @@ func (uuc *UnifiUseCase) HandlingAps() (siteNameApCutName_Ap map[string][]*entit
 						fmt.Println("в мапе для Тикета запись ЕСТЬ")
 						// k - slice
 						k = append(k, ap) //просто добавляем точку в уже созданный массив в мапе ДляТикета
+						siteNameApCutName_Ap[siteApCutName] = k
 					}
 				} else {
 					//Заявка создана и её статус позволяет её оставить в таком виде
