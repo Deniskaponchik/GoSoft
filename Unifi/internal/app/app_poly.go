@@ -5,7 +5,6 @@ import (
 	"github.com/deniskaponchik/GoSoft/Unifi/config/poly"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/netdial"
-	_ "github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/ping"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/soap"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/webapi"

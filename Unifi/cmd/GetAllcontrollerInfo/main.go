@@ -13,7 +13,7 @@ func main() {
 	c := unifi.Config{
 		User: "",
 		Pass: "",
-		URL: "https://ip:8443/",
+		URL:  "https://ip:8443/",
 		// Log with log.Printf or make your own interface that accepts (msg, test_SOAP)
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,
@@ -39,7 +39,7 @@ func main() {
 	}
 	log.Println(len(devices.UAPs), "Unifi Wireless APs Found:")
 	for i, uap := range devices.UAPs {
-		log.Println(i+1, uap.Name, uap.IP, uap.)
+		log.Println(i+1, uap.Name, uap.IP) //, uap.)
 	}
 
 	clients, err := uni.GetClients(sites)
@@ -48,7 +48,7 @@ func main() {
 	}
 	log.Println(len(clients), "Clients connected:")
 	for _, client := range clients {
-		client.
+		//client.
 
 		splitIP := strings.Split(client.IP, ".")[0]
 		//if splitIP == "169" {
