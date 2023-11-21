@@ -3,11 +3,14 @@ package app
 import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/config/ui"
+	v1 "github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/v1"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/soap"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/ubiq"
+	"github.com/deniskaponchik/GoSoft/Unifi/pkg/httpserver"
 	"github.com/deniskaponchik/GoSoft/Unifi/pkg/logger"
+	"github.com/gin-gonic/gin"
 )
 
 // Run creates objects via constructors.
@@ -51,6 +54,11 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		cfg.App.EveryCodeMap,
 		cfg.App.TimeZone,
 	)
+
+	// HTTP Server
+	handler := gin.New()
+	v1.NewRouter(handler, l, unifiUseCase)
+	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
 
 	err = unifiUseCase.InfinityProcessingUnifi() //cfg.BpmUrl, cfg.SoapUrl)
 	if err != nil {

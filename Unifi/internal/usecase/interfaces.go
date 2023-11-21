@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"time"
 )
@@ -35,6 +36,9 @@ type (
 )
 
 type (
+	UnifiRest interface {
+		GetClientAnomalies(context.Context) (entity.Client, error)
+	}
 	UnifiInterface interface {
 		InfinityProcessingUnifi() error
 		HandlingAps() (map[string][]*entity.Ap, error)
