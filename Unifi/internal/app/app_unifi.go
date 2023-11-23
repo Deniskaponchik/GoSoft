@@ -11,6 +11,9 @@ import (
 	"github.com/deniskaponchik/GoSoft/Unifi/pkg/httpserver"
 	"github.com/deniskaponchik/GoSoft/Unifi/pkg/logger"
 	"github.com/gin-gonic/gin"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 // Run creates objects via constructors.
@@ -33,18 +36,6 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		fmt.Println("Проверка подключения к БД прошла успешно")
 	}
 
-	//unpoller := unpoller.NewUnpoller(cfg.UiUsername, cfg.UiPassword, cfg.UiContrlstr)
-	/*
-		uc := unifi.Config{
-			//c := *unifi.Config{  //ORIGINAL
-			User: cfg.UiUsername,  //wifiConf.UnifiUsername,
-			Pass: cfg.UiPassword,  //wifiConf.UnifiPassword,
-			URL:  cfg.UiContrlstr, //urlController,
-			// Log with log.Printf or make your own interface that accepts (msg, test_SOAP)
-			ErrorLog: log.Printf,
-			DebugLog: log.Printf,
-		}*/
-
 	unifiUseCase := usecase.NewUnifiUC(
 		//repo.New(cfg.GLPI.GlpiConnectStrITsupport),
 		unifiRepo,
@@ -55,14 +46,41 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		cfg.App.TimeZone,
 	)
 
+	go unifiUseCase.InfinityProcessingUnifi()
+	fmt.Println("InfinityProcessingUnifi отправился в горутину")
+	/*https://stackoverflow.com/questions/25142016/how-to-return-a-error-from-a-goroutine-through-channels
+	errors := make(chan error, 0)
+	go func() {
+		err = unifiUseCase.InfinityProcessingUnifi()
+		if err != nil {
+			errors <- err
+			return
+		}
+	}()
+	*/
+	//первоначальная версия:
+	//err = unifiUseCase.InfinityProcessingUnifi() //cfg.BpmUrl, cfg.SoapUrl)
+	//if err != nil {		l.Fatal(fmt.Errorf("app - Run - InfinityUnifiProcessing: %w", err))	}
+
 	// HTTP Server
 	handler := gin.New()
 	v1.NewRouter(handler, l, unifiUseCase)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
 
-	err = unifiUseCase.InfinityProcessingUnifi() //cfg.BpmUrl, cfg.SoapUrl)
-	if err != nil {
-		l.Fatal(fmt.Errorf("app - Run - InfinityUnifiProcessing: %w", err))
+	// Waiting signal
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+
+	select {
+	case s := <-interrupt:
+		l.Info("app - Run - signal: " + s.String())
+	case err = <-httpServer.Notify():
+		l.Error(fmt.Errorf("app - Run - httpServer.Notify: %w", err))
 	}
 
+	// Shutdown
+	err = httpServer.Shutdown()
+	if err != nil {
+		l.Error(fmt.Errorf("app - Run - httpServer.Shutdown: %w", err))
+	}
 }

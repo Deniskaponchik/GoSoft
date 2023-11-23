@@ -37,7 +37,7 @@ type (
 
 type (
 	UnifiRest interface {
-		GetClientAnomalies(context.Context) (entity.Client, error)
+		GetClient(context.Context) (entity.Client, error)
 	}
 	UnifiInterface interface {
 		InfinityProcessingUnifi() error
@@ -52,7 +52,7 @@ type (
 		UpdateDbAp(map[string]*entity.Ap) error
 		UploadMapsToDBerr(string) error
 		DownloadMacClientsWithAnomalies(map[string]*entity.Client, string, time.Time) error
-		//DownloadClientsWithAnomalies(string) (map[string]*entity.Client, error)
+		Download2MapFromDBclient() (map[string]*entity.Client, map[string]*entity.Client, error)
 		DownloadMapFromDBmachinesErr() (map[string]*entity.Client, error)
 		DownloadMapFromDBapsErr() (map[string]*entity.Ap, error)
 		DownloadMapOffice() (map[string]*entity.Office, error)
@@ -69,7 +69,8 @@ type (
 	Ui interface {
 		GetSites() error
 		AddAps(map[string]*entity.Ap) error
-		UpdateClientsWithoutApMap(map[string]*entity.Client, string) error
+		Update2MapClientsWithoutApMap(map[string]*entity.Client, map[string]*entity.Client, string) error
+		//UpdateClientsWithoutApMap(map[string]*entity.Client, string) error
 		GetHourAnomalies(map[string]*entity.Client, map[string]*entity.Ap) (map[string]*entity.Anomaly, error)
 	}
 )

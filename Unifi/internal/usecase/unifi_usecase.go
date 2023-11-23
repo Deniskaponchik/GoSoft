@@ -4,28 +4,45 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
+	"log"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 type UnifiUseCase struct {
-	repo         UnifiRepo //interface
-	soap         UnifiSoap //interface
-	ui           Ui        //interface
-	everyCodeMap map[int]bool
-	timezone     int
+	repo           UnifiRepo //interface
+	soap           UnifiSoap //interface
+	ui             Ui        //interface
+	everyCodeMap   map[int]bool
+	timezone       int
+	mx             sync.RWMutex
+	hostnameClient map[string]*entity.Client
 }
 
 // реализуем Инъекцию зависимостей DI. Используется в app
 func NewUnifiUC(r UnifiRepo, s UnifiSoap, ui Ui, everyCode map[int]bool, timezone int) *UnifiUseCase {
 	return &UnifiUseCase{
 		//Мы можем передать сюда ЛЮБОЙ репозиторий (pg, s3 и т.д.) НО КОД НЕ ПОМЕНЯЕТСЯ! В этом смысл DI
-		repo:         r,
-		soap:         s,
-		ui:           ui,
-		everyCodeMap: everyCode,
-		timezone:     timezone,
+		repo:           r,
+		soap:           s,
+		ui:             ui,
+		everyCodeMap:   everyCode,
+		timezone:       timezone,
+		hostnameClient: make(map[string]*entity.Client),
+		//hostnameClient: map[string]*entity.Client,
+	}
+}
+
+func (uuc *UnifiUseCase) getClientForHttp(hostname string) *entity.Client {
+	uuc.mx.RLock()
+	defer uuc.mx.RUnlock()
+	client, exisHost := uuc.hostnameClient[hostname]
+	if exisHost {
+		return client
+	} else {
+		return nil
 	}
 }
 
@@ -46,7 +63,7 @@ var sleepHoursUnifi map[int]bool
 var timeNowU time.Time
 var err error
 
-func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
+func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 
 	count12minute := 0
 	//count20minute := 0
@@ -87,24 +104,30 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 	//apMyMap := DownloadMapFromDBapsErr(wifiConf.GlpiConnectStringITsupport, bdController)
 	mac_Ap, err = uuc.repo.DownloadMapFromDBapsErr()
 	if err != nil {
-		fmt.Println("мапа точек доступа не смогла загрузиться из БД")
-		return err //прекращаем работу скрипта
+		//fmt.Println("мапа точек доступа не смогла загрузиться из БД")
+		//return err //прекращаем работу скрипта
+		log.Fatalf("мапа точек доступа не смогла загрузиться из БД")
 	}
 
+	uuc.mx.Lock() //блокируем на всю загрузку из БД мютекс у hostnameClient
 	//machineMyMap := DownloadMapFromDBmachinesErr(wifiConf.GlpiConnectStringITsupport, bdController)
-	mac_Client, err = uuc.repo.DownloadMapFromDBmachinesErr()
+	//mac_Client, err = uuc.repo.DownloadMapFromDBmachinesErr()
+	mac_Client, uuc.hostnameClient, err = uuc.repo.Download2MapFromDBclient()
 	if err != nil {
-		fmt.Println("мапа машин не смогла загрузиться из БД")
-		return err //прекращаем работу скрипта
+		//fmt.Println("мапа машин не смогла загрузиться из БД")
+		//return err //прекращаем работу скрипта
+		log.Fatalf("мапа машин не смогла загрузиться из БД")
 	}
+	uuc.mx.Unlock()
 	//for k, v := range mac_Client {fmt.Println(k, v.Mac, v.Controller, v.Exception, v.ApMac, v.Modified, v.Hostname, v.SrID)}
 
 	//siteApCutNameLogin := DownloadMapFromDBerr(wifiConf.GlpiConnectStringITsupport)
 	//siteApCutName_Login, err = uuc.repo.DownloadMapFromDBerr()
 	siteApCutName_Office, err = uuc.repo.DownloadMapOffice()
 	if err != nil {
-		fmt.Println("мапа соответствия сайта и логина ответственного сотрудника не загрузилась")
-		return err //прекращаем работу скрипта
+		//fmt.Println("мапа соответствия сайта и логина ответственного сотрудника не загрузилась")
+		//return err //прекращаем работу скрипта
+		log.Fatalf("мапа машин не смогла загрузиться из БД")
 	}
 
 	for true {
@@ -141,11 +164,14 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 					}
 
 					//Загрузка Клиентов с контроллера и обновление мапы Клиентов mac_Client
-					err = uuc.ui.UpdateClientsWithoutApMap(mac_Client, timeNowU.Format("2006-01-02"))
+					uuc.mx.Lock() //блокируем на всю загрузку из БД мютекс у hostnameClient
+					//err = uuc.ui.UpdateClientsWithoutApMap(mac_Client, timeNowU.Format("2006-01-02"))
+					err = uuc.ui.Update2MapClientsWithoutApMap(mac_Client, uuc.hostnameClient, timeNowU.Format("2006-01-02"))
 					if err != nil {
 						fmt.Println(err.Error())
 						fmt.Println("Клиенты НЕ загрузились с контроллера")
 					}
+					uuc.mx.Unlock()
 					/*fmt.Println("вывод мапы после AddClients")
 					for k, v := range mac_Client {fmt.Println(k, v.Mac, v.Controller, v.Exception, v.ApMac, v.Modified, v.Hostname, v.SrID)}					}
 					time.Sleep(6000000 * time.Second)*/
@@ -223,7 +249,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() error {
 		fmt.Println("")
 		time.Sleep(58 * time.Second)
 	} // while TRUE
-	return nil
+	//return nil
 }
 
 // Обработка точек доступа

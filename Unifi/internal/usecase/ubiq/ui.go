@@ -110,6 +110,83 @@ func (ui *Ui) AddAps(mapAp map[string]*entity.Ap) error {
 }
 
 // При обработке каждого клиента к мапе точек НЕ ПОДКЛЮЧАЮСЬ для получения имени
+func (ui *Ui) Update2MapClientsWithoutApMap(macClient map[string]*entity.Client, hostnameClient map[string]*entity.Client, date string) error {
+	//Загружает в мапу Клиентов: Hostname, exception, mac Ap
+
+	//clients, errGetClients := uni.GetClients(sites) //client = Notebook or Mobile = machine
+	clients, errGetClients := ui.Uni.GetClients(ui.Sites) //client = Notebook or Mobile = machine
+	if errGetClients == nil {
+		fmt.Println("clients загрузились")
+		fmt.Println("")
+		var clExInt int
+		var clPointer *entity.Client //клиент создаётся при каждом взятии из массива
+		var client1 *entity.Client   //клиент из мапы macClient
+		//var client2 *entity.Client   //клиент из мапы hostnameClient
+		var exisClient1 bool
+		var exisClient2 bool
+
+		for _, client0 := range clients {
+			//client.ApName //!!! НИЧЕГО не выводит и не содержит!!! Имя точки берётся на основании сравнения мака мапой точек
+			//clientMac = client.Mac 	clientName = client.Name  		//clientIP = client.IP		//siteName = client.SiteName
+
+			if !client0.IsGuest.Val {
+
+				if client0.Noted.Val {
+					clientExceptionStr := strings.Split(client0.Note, " ")[0]
+					if clientExceptionStr == "Exception" {
+						clExInt = 1
+					} else {
+						clExInt = 0
+					}
+				}
+
+				//проверяем доступность бакета в мапе macClient
+				client1, exisClient1 = macClient[client0.Mac]
+				if exisClient1 {
+					//если бакет есть, обновляем данные клиента (меняются и в мапе hostnameClient также)
+					client1.Hostname = client0.Hostname
+					client1.Exception = clExInt
+					client1.ApMac = client0.ApMac
+					client1.Modified = date
+
+					//проверяем доступность в мапе hostnameClient
+					_, exisClient2 = hostnameClient[client0.Name]
+					if !exisClient2 {
+						//Если бакета нет, значит, только сменилось сетевое имя - переназначаем ссылку на client1
+						hostnameClient[client0.Name] = client1
+					}
+
+				} else {
+					//если мак не бьётся, создаём нового клиента
+					clPointer = &entity.Client{
+						Mac:       client0.Mac,
+						Hostname:  client0.Name,
+						Exception: clExInt,
+						ApMac:     client0.ApMac,
+						SrID:      "",
+						Modified:  date,
+					}
+
+					macClient[client0.Mac] = clPointer
+					//если мак не бьётся, значит в hostname клиента не будет
+					hostnameClient[client0.Name] = clPointer
+				}
+
+			} else {
+				//Если клиент Guest
+			}
+		}
+		//return mapClient, nil
+		return nil
+	} else {
+		fmt.Println("clients НЕ загрузились")
+		//return mapClient, errGetClients
+		return errGetClients
+	}
+	//return
+}
+
+// НЕ ИСПОЛЬЗУЕТСЯ. При обработке каждого клиента к мапе точек НЕ ПОДКЛЮЧАЮСЬ для получения имени
 func (ui *Ui) UpdateClientsWithoutApMap(mapClient map[string]*entity.Client, date string) error {
 	//Загружает в мапу Клиентов: Hostname, exception, mac Ap
 

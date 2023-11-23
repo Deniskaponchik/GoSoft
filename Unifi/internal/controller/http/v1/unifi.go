@@ -8,19 +8,51 @@ import (
 	"net/http"
 )
 
-type translationRoutes struct {
-	t usecase.Translation
+type unifiRoutes struct {
+	//t usecase.Translation
+	u *usecase.UnifiUseCase
 	l logger.Interface
 }
 
-func newTranslationRoutes(handler *gin.RouterGroup, t usecase.Translation, l logger.Interface) {
-	r := &translationRoutes{t, l}
+func newUnifiRoutes(handler *gin.RouterGroup, u *usecase.UnifiUseCase, l logger.Interface) {
+	r := &unifiRoutes{u, l}
 
-	h := handler.Group("/translation")
+	clientRoutes := handler.Group("/client")
 	{
-		h.GET("/history", r.history)
-		h.POST("/do-translate", r.doTranslate)
+		//h.GET("/history", r.history)
+		//h.POST("/do-translate", r.doTranslate)
+		clientRoutes.GET("/view/:client_id", r.getClient)
 	}
+	/*
+		apsRoutes := handler.Group("/ap")
+		{
+			apsRoutes.GET("/region", r.getAps)
+		}*/
+}
+
+type clientResponse struct {
+	Client entity.Client `json:"history"`
+}
+
+// @Summary     Show history
+// @Description Show all translation history
+// @ID          history
+// @Tags  	    translation
+// @Accept      json
+// @Produce     json
+// @Success     200 {object} historyResponse
+// @Failure     500 {object} response
+// @Router      /translation/history [get]
+func (r *unifiRoutes) getClient(c *gin.Context) {
+	translations, err := r.t.History(c.Request.Context())
+	if err != nil {
+		r.l.Error(err, "http - v1 - history")
+		errorResponse(c, http.StatusInternalServerError, "database problems")
+
+		return
+	}
+
+	c.JSON(http.StatusOK, historyResponse{translations})
 }
 
 type historyResponse struct {
