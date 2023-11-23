@@ -1,10 +1,8 @@
 package amqp_rpc
 
-import (
-	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
-	"github.com/deniskaponchik/GoSoft/Unifi/pkg/rabbitmq/rmq_rpc/server"
-)
+//https://github.com/evrone/go-clean-template/blob/master/internal/controller/amqp_rpc/router.go
 
+/*
 // NewRouter -.
 func NewRouter(t usecase.Translation) map[string]server.CallHandler {
 	routes := make(map[string]server.CallHandler)
@@ -13,4 +11,4 @@ func NewRouter(t usecase.Translation) map[string]server.CallHandler {
 	}
 
 	return routes
-}
+}*/

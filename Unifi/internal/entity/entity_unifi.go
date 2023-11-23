@@ -30,9 +30,9 @@ type Client struct {
 	//DateTicketCreateAttempt time.Time `example: "2023-10-28"` //До первого захода либо nil, либо прошлая дата, после 1 захода - сегодняшняя дата
 	DateTicketCreateAttempt int `example:"28"`
 
-	//Anomalies []Anomaly 				//Аномалии клиента за 30 дней
-	Date_Anomaly map[string]*Anomaly //Аномалии клиента за 30 дней
-	UserLogin    string              `example:"vasya.pupkin"`
+	SliceAnomalies []*Anomaly          //Аномалии клиента за 30 дней
+	Date_Anomaly   map[string]*Anomaly //Аномалии клиента за 30 дней
+	UserLogin      string              `example:"vasya.pupkin"`
 
 	//Monitoring string `example:"https://zabbix.com"`
 	//Status      string `example:"Доступен"`

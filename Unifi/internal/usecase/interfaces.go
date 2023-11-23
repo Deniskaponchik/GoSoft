@@ -1,9 +1,9 @@
 package usecase
 
 import (
-	"context"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"time"
+	//"context"
 )
 
 type (
@@ -36,11 +36,10 @@ type (
 )
 
 type (
-	UnifiRest interface {
-		GetClient(context.Context) (entity.Client, error)
-	}
+	//UnifiRest interface {	}
 	UnifiInterface interface {
-		InfinityProcessingUnifi() error
+		GetClientForRest(string) *entity.Client //, error) //context.Context
+		InfinityProcessingUnifi()               //error
 		HandlingAps() (map[string][]*entity.Ap, error)
 		TicketsCreatingAps(map[string][]*entity.Ap) error
 		TicketsCreatingMacClients(map[string]*entity.Client) error

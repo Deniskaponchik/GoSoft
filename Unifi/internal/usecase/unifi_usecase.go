@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	//"context"
 )
 
 type UnifiUseCase struct {
@@ -35,10 +36,10 @@ func NewUnifiUC(r UnifiRepo, s UnifiSoap, ui Ui, everyCode map[int]bool, timezon
 	}
 }
 
-func (uuc *UnifiUseCase) getClientForHttp(hostname string) *entity.Client {
+func (uuc *UnifiUseCase) GetClientForRest(hostName string) *entity.Client { //c context.Context
 	uuc.mx.RLock()
 	defer uuc.mx.RUnlock()
-	client, exisHost := uuc.hostnameClient[hostname]
+	client, exisHost := uuc.hostnameClient[hostName]
 	if exisHost {
 		return client
 	} else {
