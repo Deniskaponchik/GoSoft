@@ -507,6 +507,7 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 	before30days := timeNowU.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
 	//before30days := timeNowU.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
 
+	var lenAnomStructSlice int
 	var anomalyStruct *entity.Anomaly
 	var anomalyTempMap map[string]string
 	var date string
@@ -518,7 +519,8 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 		for _, client := range mac_Client {
 			//У каждого клиента проверить длину массива Аномалий. из бд взяты записи с Exception = 0
 			//if len(client.Date_Anomaly) > 9 {
-			if len(client.SliceAnomalies) > 9 {
+			lenAnomStructSlice = len(client.SliceAnomalies)
+			if lenAnomStructSlice > 9 {
 				anomalyTempMap = make(map[string]string)
 				var b2 bytes.Buffer
 				ticket := &entity.Ticket{}
@@ -590,6 +592,10 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 								"Ресурс для просмотра актуальных аномалий на клиенте:" + "\n" +
 								webView + "\n" +
 								"" + "\n" +
+								"Время аномалий:" + "\n" +
+								"для Урала, Сибири и ДВ - Новосибирское" + "\n" +
+								"для всей остальной западной России - Московское" + "\n" +
+								"" + "\n" +
 								b2.String() +
 								""
 
@@ -611,21 +617,19 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 							yesterday := timeNowU.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
 							var b1 bytes.Buffer
 
-							for date, anomalyStruct := range client.Date_Anomaly {
-								//имя точки уже получено в каждой аномалии
-								//ticket.Region = anomalyStruct.SiteName //у клиентов не получаю SiteName. Беру из Аномалий
-								//b1.WriteString(date + "\n")
+							//беру последнюю добавленную аномалию в массив
+							anomalyStruct = client.SliceAnomalies[lenAnomStructSlice-1]
+							date = strings.Split(anomalyStruct.DateHour, " ")[0] //обрезаю только Date
 
-								if date == yesterday {
-									b1.WriteString(anomalyStruct.ApName + "\n")
-									for _, oneAnomaly := range anomalyStruct.SliceAnomStr {
-										b1.WriteString(oneAnomaly + "\n")
-									}
-									b1.WriteString("\n")
-
-									break
+							if yesterday == date {
+								//если за прошедшие сутки были аномалии
+								b1.WriteString(anomalyStruct.ApName + "\n")
+								for _, oneAnomaly := range anomalyStruct.SliceAnomStr {
+									b1.WriteString(oneAnomaly + "\n")
 								}
+								b1.WriteString("\n")
 							}
+
 							if b1.Len() != 0 {
 								ticket.Comment = "За последние сутки появились новые аномалии:" + "\n" +
 									b1.String() +
