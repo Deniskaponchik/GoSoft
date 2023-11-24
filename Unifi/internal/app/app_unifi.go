@@ -44,6 +44,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlstr),
 		cfg.App.EveryCodeMap,
 		cfg.App.TimeZone,
+		cfg.HTTP.URL,
 	)
 
 	go unifiUseCase.InfinityProcessingUnifi()

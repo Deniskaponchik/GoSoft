@@ -109,7 +109,7 @@ func (ui *Ui) AddAps(mapAp map[string]*entity.Ap) error {
 	}
 }
 
-// При обработке каждого клиента к мапе точек НЕ ПОДКЛЮЧАЮСЬ для получения имени
+// При обработке каждого клиента к мапе точек НЕ ПОДКЛЮЧАЮСЬ для получения имени. 2 мапы заполняется
 func (ui *Ui) Update2MapClientsWithoutApMap(macClient map[string]*entity.Client, hostnameClient map[string]*entity.Client, date string) error {
 	//Загружает в мапу Клиентов: Hostname, exception, mac Ap
 
@@ -359,6 +359,99 @@ func (ui *Ui) AddClientsDeprecated(mapAp map[string]*entity.Ap, mapClient map[st
 }
 
 // Изменения согласно логике, когда у Клиента несколько аномалий лежат в массиве
+func (ui *Ui) GetHourAnomaliesAddSlice(mac_Client map[string]*entity.Client, mac_Ap map[string]*entity.Ap) (mac_Anomaly map[string]*entity.Anomaly, err error) {
+	count := 1 //минус 1 час
+	then := time.Now().Add(time.Duration(-count) * time.Hour)
+
+	mac_Anomaly = make(map[string]*entity.Anomaly) //panic: assignment to entry in nil map
+
+	//anomalies, errGetAnomalies := uni.GetAnomalies(sites,
+	anomalies, errGetAnomalies := ui.Uni.GetAnomalies(ui.Sites,
+		//time.Date(2023, 07, 11, 7, 0, 0, 0, time.Local), time.Now()
+		//time.Date(2023, 07, 01, 0, 0, 0, 0, time.Local), //time.Now(),
+		then,
+	)
+	if errGetAnomalies == nil {
+		fmt.Println("anomalies загрузились")
+		fmt.Println("")
+		var noutMac string
+		var siteNameCut string
+		//var hourAnomalySlice map[string][]string
+
+		for _, v := range anomalies {
+			//v.Anomaly == всего 1 простая аномалия, Пример: USER_POOR_STREAM_EFF
+			noutMac = v.DeviceMAC
+
+			kAnom, exisMacAnom := mac_Anomaly[noutMac]
+			if !exisMacAnom {
+
+				//hourAnomalySlice[dateTime] = []string{v.Anomaly}
+
+				mac_Anomaly[noutMac] = &entity.Anomaly{
+					ClientMac:    v.DeviceMAC,
+					SliceAnomStr: []string{v.Anomaly},
+					SiteName:     v.SiteName, //изменим на втором заходе
+					ApMac:        "",         //Бакет с одной записью аномалии в массиве  TimeStr_sliceAnomStr мне не интересен
+					ApName:       "",         //Поэтому буду заполнять эти поля, когда появится вторая запись за час по тому же маку
+					Exception:    0,          //
+				}
+
+			} else {
+				//если размер массива == 1
+				if len(kAnom.SliceAnomStr) == 1 {
+					//подключаемся к мапе Клиентов
+					kClient, exisMacClient := mac_Client[noutMac]
+					if exisMacClient {
+						//подключаемся к мапе Точек
+						kAp, exisMacAp := mac_Ap[kClient.ApMac]
+						if exisMacAp {
+
+							siteNameCut = v.SiteName[:len(v.SiteName)-11]
+							if strings.Contains(siteNameCut, "Волг") {
+								siteNameCut = "Волга"
+							} else if strings.Contains(siteNameCut, "Ура") {
+								siteNameCut = "Урал"
+							}
+
+							kAnom.DateHour = v.Datetime.Format("2006-01-02 15:04:05")
+							kAnom.SiteName = siteNameCut
+							kAnom.ApMac = kClient.ApMac
+							kAnom.ApName = kAp.Name
+							kAnom.Exception = kClient.Exception + kAp.Exception
+							//kAnom.TimeStr_sliceAnomStr[dateTime] = append(kAnom.TimeStr_sliceAnomStr[dateTime], v.Anomaly)
+							kAnom.SliceAnomStr = append(kAnom.SliceAnomStr, v.Anomaly)
+						}
+					}
+				} else {
+					//kAnom.TimeStr_sliceAnomStr[dateTime] = append(kAnom.TimeStr_sliceAnomStr[dateTime], v.Anomaly)
+					kAnom.SliceAnomStr = append(kAnom.SliceAnomStr, v.Anomaly)
+				}
+			}
+		}
+
+		for macClient, anomalyStruct := range mac_Anomaly {
+			client, exisClient := mac_Client[macClient]
+			if exisClient {
+				//мак клиента есть в мапе
+				client.SliceAnomalies = append(client.SliceAnomalies, anomalyStruct)
+			} else {
+				//мака клиента из ряда аномалии нет в мапе Клиентов
+				mac_Client[macClient] = &entity.Client{
+					Mac:            macClient,
+					SliceAnomalies: []*entity.Anomaly{anomalyStruct},
+				}
+			}
+		}
+
+		return mac_Anomaly, nil
+	} else {
+		fmt.Println("anomalies НЕ загрузились")
+		return nil, errGetAnomalies
+	}
+	//return
+}
+
+// Изменения согласно логике, когда у Клиента несколько аномалий лежат в массиве
 func (ui *Ui) GetHourAnomalies(mac_Client map[string]*entity.Client, mac_Ap map[string]*entity.Ap) (mac_Anomaly map[string]*entity.Anomaly, err error) {
 	count := 1 //минус 1 час
 	then := time.Now().Add(time.Duration(-count) * time.Hour)
@@ -594,131 +687,3 @@ func (ui *Ui) GetHourAnomalies(mac_Client map[string]*entity.Client, mac_Ap map[
 	}
 	//return
 }*/
-
-// при каждой аномалии идёт подключение к мапе клиентов для получения имени точки И аномалии точки
-/*func (ui *Ui) GetHourAnomalies(mapClient map[string]*entity.Client, mac_Ap map[string]*entity.Ap) (mac_Anomaly map[string]*entity.Anomaly, err error) {
-	count := 1 //минус 1 час
-	then := time.Now().Add(time.Duration(-count) * time.Hour)
-
-	//anomalies, errGetAnomalies := uni.GetAnomalies(sites,
-	anomalies, errGetAnomalies := ui.Uni.GetAnomalies(ui.Sites,
-		//time.Date(2023, 07, 11, 7, 0, 0, 0, time.Local), time.Now()
-		//time.Date(2023, 07, 01, 0, 0, 0, 0, time.Local), //time.Now(),
-		then,
-	)
-	if errGetAnomalies == nil {
-		fmt.Println("anomalies загрузились")
-		fmt.Println("")
-		var noutMac string
-		//var apName string
-		var siteNameCut string
-		var hourAnomalySlice map[string][]string
-		var dateTime string
-		//var exceptionSumm int
-
-		for _, v := range anomalies {
-			//v.Anomaly == всего 1 простая аномалия, Пример: USER_POOR_STREAM_EFF
-			dateTime = v.Datetime.Format("2006-01-02 15:04:05")
-			noutMac = v.DeviceMAC
-
-			k1, exisMac1 := mapClient[noutMac] //НЕОБХОДИМО подключение к мапе Клиентов каждый час, чтобы получать актуальный мак точки на этот период времени
-			if exisMac1 {
-				k2, exisMac2 := mac_Anomaly[noutMac]
-				if !exisMac2 {
-
-					siteNameCut = v.SiteName[:len(v.SiteName)-11]
-					if strings.Contains(siteNameCut, "Волг") {
-						siteNameCut = "Волга"
-					} else if strings.Contains(siteNameCut, "Ура") {
-						siteNameCut = "Урал"
-					}
-
-					hourAnomalySlice[dateTime] = []string{v.Anomaly}
-
-					mac_Anomaly[noutMac] = &entity.Anomaly{
-						ClientMac:            v.DeviceMAC,
-						SiteName:             siteNameCut, //v.SiteName,
-						TimeStr_sliceAnomStr: hourAnomalySlice,
-						ApMac:                k1.Mac, //в новой логике мапа Клиентов не будет запрашивать сразу имя точки. только мак
-						ApName:               "", //apName,
-						Exception:            k1.Exception, //exceptionSumm,
-					}
-
-				} else {
-					//update slice of anomaly string
-					k2.TimeStr_sliceAnomStr[dateTime] = append(k2.TimeStr_sliceAnomStr[dateTime], v.Anomaly)
-					//k2.SiteName = siteNameCut
-
-					if len(k2.TimeStr_sliceAnomStr[dateTime]) == 2 {
-						//подключаемся к мапе точек для получения Exception, а заодно и имени точки
-						k3, exisMac3 := mac_Ap[k1.ApMac]
-						if exisMac3 {
-							k2.ApName = k3.Name
-							k2.Exception = k2.Exception + k3.Exception
-						} else {
-							k2.ApName = "undefined"
-							//exceptionSumm = k1.Exception
-						}
-					}
-				}
-			}
-		}
-		return mac_Anomaly, nil
-	} else {
-		fmt.Println("anomalies НЕ загрузились")
-		return nil, errGetAnomalies
-	}
-	//return
-}*/
-
-// при каждой аномалии идёт подключение к мапе клиентов для получения имени точки. старая версия
-/*func (ui *Ui) GetHourAnomalies(mapClient map[string]*entity.Client) (maс_Anomaly map[string]*entity.Anomaly, err error) {
-	var siteNameCut string
-	count := 1 //минус 1 час
-	then := time.Now().Add(time.Duration(-count) * time.Hour)
-
-	//anomalies, errGetAnomalies := uni.GetAnomalies(sites,
-	anomalies, errGetAnomalies := ui.Uni.GetAnomalies(ui.Sites,
-		//time.Date(2023, 07, 11, 7, 0, 0, 0, time.Local), time.Now()
-		//time.Date(2023, 07, 01, 0, 0, 0, 0, time.Local), //time.Now(),
-		then,
-	)
-	if errGetAnomalies == nil {
-		fmt.Println("anomalies загрузились")
-		fmt.Println("")
-		var noutMac string
-		//v.anomaly == всего 1 простая аномалия, Пример: USER_POOR_STREAM_EFF
-
-		for _, v := range anomalies {
-			noutMac = v.DeviceMAC
-			k1, exisMac1 := mapClient[noutMac]
-			if exisMac1 {
-				siteNameCut = v.SiteName[:len(v.SiteName)-11]
-				if strings.Contains(siteNameCut, "Волг") {
-					siteNameCut = "Волга"
-				} else if strings.Contains(siteNameCut, "Ура") {
-					siteNameCut = "Урал"
-				}
-
-				k2, exisMac2 := mapAnomaly[noutMac]
-				if !exisMac2 {
-					mapAnomaly[noutMac] = &entity.Anomaly{
-						ClientMac:    noutMac,
-						SiteName:     siteNameCut, //v.SiteName,
-						AnomalySlice: []string{v.Anomaly},
-						ApName:       k1.ApName,
-					}
-				} else {
-					k2.AnomalySlice = append(k2.AnomalySlice, v.Anomaly)
-					k2.SiteName = siteNameCut
-				}
-			}
-		}
-		return mapAnomaly, nil
-	} else {
-		fmt.Println("anomalies НЕ загрузились")
-		return nil, errGetAnomalies
-	}
-	//return
-}
-*/

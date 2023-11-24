@@ -40,6 +40,7 @@ func (r *unifiRoutes) getClient(c *gin.Context) {
 	if client != nil {
 		render(c, gin.H{
 			//"title":   article.Title,
+			"title":    client.Hostname, //используется в header.html
 			"hostname": client.Hostname,
 			//"payload": article},
 			"anomalies_struct": client.SliceAnomalies},

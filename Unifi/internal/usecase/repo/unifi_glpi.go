@@ -91,52 +91,6 @@ func (ur *UnifiRepo) UpdateDbAnomaly(mac_Anomaly map[string]*entity.Anomaly) (er
 	return nil
 }
 
-//Логика, когда в аномалии была мапа со временем и аномалиями
-/*func (ur *UnifiRepo) UpdateDbAnomaly(mac_Anomaly map[string]*entity.Anomaly) (err error) {
-	//приходит мапа типа: dayMac_Anomaly
-
-	bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
-	var anomSliceString string
-	var query string
-	var b1 bytes.Buffer
-	b1.WriteString("INSERT INTO  " + ur.databaseITsup + ".anomalies VALUES ")
-	//lenMap := len(mapAnomaly) //mac_DateSiteAnom)
-	var lenSlice int
-	countB1 := 0
-
-	for _, v := range mac_Anomaly { //mac_DateSiteAnom {
-		for dateHour, va := range v.TimeStr_sliceAnomStr {
-			//dateHour = 2023-09-01 12:00:00
-			//пробегаемся по каждой записи мапы. но она всего одна, так сгруппировано всё за один час
-			lenSlice = len(va) //v.AnomalySlice) //AnomSlice)
-			if lenSlice > 1 {
-				//если аномалий за час накопилось 2 и более, то такие заносим в БД
-				countB1++
-				//anomSliceString = strings.Join(v.AnomalySlice, ";")
-				anomSliceString = strings.Join(va, ";")
-				//b1.WriteString("('" + v.DateTime + "','" + k + "','" + bdCntrl + "','" + siteNameCut + "','" + anomSliceString + "'),")
-				b1.WriteString("('" + dateHour + "','" + v.ClientMac + "','" + bdCntrl + "','" + v.SiteName + "','" + anomSliceString +
-					"','" + v.ApMac + "','" + v.ApName + "','" + strconv.Itoa(int(v.Exception)) + "'),")
-			}
-		}
-	}
-	query = b1.String()
-	//Возможно, не самый эффективный метод обрезать строку с конца, но рабочий
-	if last := len(query) - 1; last >= 0 && query[last] == ',' {
-		query = query[:last]
-	}
-	fmt.Println(query)
-	if countB1 != 0 {
-		//UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
-		err = ur.UploadMapsToDBerr(query)
-	} else {
-		fmt.Println("Передана пустая карта. Запрос не выполнен")
-	}
-	fmt.Println("")
-
-	return nil
-}*/
-
 // Создаёт query  и передаёт в функцию UploadMapsToDBerr
 func (ur *UnifiRepo) UpdateDbClient(mac_Client map[string]*entity.Client) (err error) {
 	bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
@@ -282,6 +236,139 @@ func (ur *UnifiRepo) UploadMapsToDBerr(query string) (err error) {
 }
 
 //DownloadApWithAnomalies (реализовать можно в будущем)
+
+func (ur *UnifiRepo) DownloadClientsWithAnomalySlice(mac_Client map[string]*entity.Client, beforeDays string, timeNow time.Time) (err error) {
+
+	var anomalyRow *entity.Anomaly
+	//beforeDays = "2023-09-01 12:00:00"
+	todaydayInt := timeNow.Day() //нужен для массива аномалий
+	//var date string //2023-09-01  нужна была для мапы аномалий за сутки
+	//var date_Anomaly map[string]*entity.Anomaly     //date == 2023-09-01
+	//mac_Client = make(map[string]*entity.Client)
+
+	myError := 1
+	for myError != 0 {
+		if db, errSqlOpen := sql.Open("mysql", ur.dataSourceITsup); errSqlOpen == nil {
+			errDBping := db.Ping()
+			if errDBping == nil {
+				defer db.Close() // defer the close till after the main function has finished
+				//queryAfter := "SELECT * FROM it_support_db.anomalies WHERE controller = " + strconv.Itoa(int(bdController))
+				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".anomaly WHERE date_hour >= '" + beforeDays + "' AND controller = " +
+					strconv.Itoa(int(ur.controller)) + " AND exception = 0 order by date_hour DESC"
+				fmt.Println(queryAfter)
+
+				for myError != 0 { //зацикливание выполнения запроса
+					results, errQuery := db.Query(queryAfter)
+					if errQuery == nil {
+
+						var tag entity.Anomaly
+						//var tag Tag
+
+						for results.Next() {
+							errScan := results.Scan(&tag.DateHour, &tag.ClientMac, &tag.Controller, &tag.SiteName, &tag.AnomStr,
+								&tag.ApMac, &tag.ApName, &tag.Exception)
+
+							if errScan == nil {
+								//anomSlice = strings.Split(tag.Anomalies, ";")
+								tag.SliceAnomStr = strings.Split(tag.AnomStr, ";")
+								//date = strings.Split(tag.DateHour, " ")[0]
+
+								//if len(anomSlice) > 2 { //в БД уже записи с двумя и более аномалиями.
+								//комментирую на будущее, если захочу пропускать с тремя и более аномалиями
+
+								anomalyRow = &entity.Anomaly{
+									DateHour:     tag.DateHour,
+									ClientMac:    tag.ClientMac,
+									Controller:   tag.Controller, //не использую, если что, в дальнейшем
+									SiteName:     tag.SiteName,
+									SliceAnomStr: tag.SliceAnomStr,
+									ApMac:        tag.ApMac,
+									ApName:       tag.ApName,
+									Exception:    tag.Exception, //по условию SELECT exception = 0
+								}
+
+								client, exisMacClient := mac_Client[tag.ClientMac]
+								if !exisMacClient {
+									mac_Client[tag.ClientMac] = &entity.Client{
+										Mac:            tag.ClientMac,
+										SliceAnomalies: []*entity.Anomaly{anomalyRow},
+										//Date_Anomaly: date_Anomaly,
+									}
+								} else {
+									//мак клиента в мапе есть
+									if client.Date30count != todaydayInt {
+										//если массив сегодня ещё не обновлялся
+										client.Date30count = todaydayInt
+										client.SliceAnomalies = []*entity.Anomaly{anomalyRow}
+									} else {
+										//если масив сегодня обновился
+										client.SliceAnomalies = append(client.SliceAnomalies, anomalyRow)
+									}
+								}
+								//}
+							} else {
+								//panic(errScan.Error()) // proper error handling instead of panic in your app
+								fmt.Println(errScan.Error())
+								fmt.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
+								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								myError = 0
+								//break
+							}
+						}
+						if errRowsNext := results.Err(); errRowsNext != nil {
+							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							//если есть ошибка прохода по строкам, отправляем на перезапрос
+							myError = 0
+						}
+						if myError != 1 {
+							//results.Close()
+							if errRowsClose := results.Close(); errRowsClose != nil {
+								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+							}
+							//db.Close()
+							if errDBclose := db.Close(); errDBclose != nil {
+								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+							}
+							myError = 0
+
+						} else {
+							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//time.Sleep(60 * time.Second)
+							myError = 0
+						}
+					} else {
+						//panic(errQuery.Error()) // proper error handling instead of panic in your app
+						fmt.Println(errQuery.Error())
+						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						//time.Sleep(60 * time.Second)
+						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
+					}
+				} //db.Query
+			} else {
+				fmt.Println("db.Ping failed:", errDBping)
+				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				time.Sleep(60 * time.Second)
+				//myError = 1
+				myError++
+			}
+		} else {
+			//log.Print(errSqlOpen.Error())
+			fmt.Println("Error creating DB:", errSqlOpen)
+			fmt.Println("To verify, db is:", db)
+			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			time.Sleep(60 * time.Second)
+			//myError = 1
+			myError++
+		}
+		if myError == 300 { //Если ночью сервер перезагрузился + нет доступа к БД = в ЦОДЕ коллапс. Могу подождать 5 часов
+			myError = 0
+		}
+	} //sql.Open
+	return nil
+}
 
 func (ur *UnifiRepo) DownloadMacClientsWithAnomalies(mac_Client map[string]*entity.Client, beforeDays string, timeNow time.Time) (err error) {
 

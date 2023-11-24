@@ -50,6 +50,7 @@ type (
 		UpdateDbClient(map[string]*entity.Client) error
 		UpdateDbAp(map[string]*entity.Ap) error
 		UploadMapsToDBerr(string) error
+		DownloadClientsWithAnomalySlice(map[string]*entity.Client, string, time.Time) error
 		DownloadMacClientsWithAnomalies(map[string]*entity.Client, string, time.Time) error
 		Download2MapFromDBclient() (map[string]*entity.Client, map[string]*entity.Client, error)
 		DownloadMapFromDBmachinesErr() (map[string]*entity.Client, error)
@@ -69,7 +70,7 @@ type (
 		GetSites() error
 		AddAps(map[string]*entity.Ap) error
 		Update2MapClientsWithoutApMap(map[string]*entity.Client, map[string]*entity.Client, string) error
-		//UpdateClientsWithoutApMap(map[string]*entity.Client, string) error
+		GetHourAnomaliesAddSlice(map[string]*entity.Client, map[string]*entity.Ap) (map[string]*entity.Anomaly, error)
 		GetHourAnomalies(map[string]*entity.Client, map[string]*entity.Ap) (map[string]*entity.Anomaly, error)
 	}
 )

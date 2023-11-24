@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
+	"strings"
 )
 
 func NewConfigUnifi() (*ConfigUi, error) {
@@ -79,6 +80,9 @@ func NewConfigUnifi() (*ConfigUi, error) {
 	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
 	controller := flag.String("cntrl", "Rostov", "controller: Novosib, Rostov")
 	timezone := flag.Int("time", 100, "Time hour from Moscow") //100-заявки создаются минута в минуту без задержек по ночам
+	//port := flag.Int("port", 8081, "Port for web-server")
+	//port := flag.String("port", "8081", "Port for web-server")
+	httpUrl := flag.String("httpUrl", "wsir-it-03:8081", "url of web-server")
 	flag.Parse()
 
 	//cfg.InnerVars.Mode = *mode
@@ -105,11 +109,15 @@ func NewConfigUnifi() (*ConfigUi, error) {
 		cfg.App.EveryCodeMap = everyCodeSlice[12] //каждые 12 минут
 	}
 	cfg.App.TimeZone = *timezone
+	cfg.HTTP.URL = *httpUrl
+	cfg.HTTP.Port = strings.Split(*httpUrl, ":")[1]
+	//cfg.HTTP.Port = *port
 
 	fmt.Println("Mode: ", *mode) //cfg.InnerVars.Mode)
 	fmt.Println("Controller: ", cfg.Ubiquiti.UiContrlstr)
 	fmt.Println("Every Code Map: ", cfg.App.EveryCodeMap)
 	fmt.Println("Timezone: ", cfg.App.TimeZone)
+	fmt.Println("HTTP URL: ", cfg.HTTP.URL)
 	//time.Sleep(1000 * time.Second)
 
 	return cfg, nil
@@ -127,7 +135,7 @@ type (
 		HTTP `yaml:"http"`
 		Log  `yaml:"logger"`
 		PG   `yaml:"postgres"`
-		RMQ  `yaml:"rabbitmq"`
+		//RMQ  `yaml:"rabbitmq"`
 	}
 
 	App struct {
@@ -138,11 +146,10 @@ type (
 	}
 	//env-required:"true" - ОБЯЗАТЕЛЬНО должен получить перменную либо из окружения, либо из yaml. Между true и false разницы не заметил
 
-	/*
-		Polycom struct {
-			PolyUsername string `env-required:"true" yaml:"poly_usernamename"    env:"POLY_USERNAME"`
-			PolyPassword string `env-required:"true" yaml:"poly_password"        env:"POLY_PASSWORD"`
-		}*/
+	/*Polycom struct {
+		PolyUsername string `env-required:"true" yaml:"poly_usernamename"    env:"POLY_USERNAME"`
+		PolyPassword string `env-required:"true" yaml:"poly_password"        env:"POLY_PASSWORD"`
+	}*/
 	Ubiquiti struct {
 		UiUsername      string `env-required:"true" yaml:"unifi_usernamename"   env:"UNIFI_USERNAME"`
 		UiPassword      string `env-required:"true" yaml:"unifi_password"       env:"UNIFI_PASSWORD"`
@@ -172,15 +179,16 @@ type (
 		Level string `yaml:"log_level"   env:"LOG_LEVEL"`
 	}
 	HTTP struct {
-		Port string `yaml:"port" env:"HTTP_PORT"`
+		URL  string
+		Port string //`yaml:"port" env:"HTTP_PORT"`
 	}
 	PG struct {
 		PoolMax int `yaml:"pool_max" env:"PG_POOL_MAX"`
 		//URL     string `env-required:"true"                 env:"PG_URL"`
-	}
-	RMQ struct {
-		ServerExchange string `yaml:"rpc_server_exchange" env:"RMQ_RPC_SERVER"`
-		ClientExchange string `yaml:"rpc_client_exchange" env:"RMQ_RPC_CLIENT"`
-		//URL            string `env-required:"true"                            env:"RMQ_URL"`
-	}
+	} /*
+		RMQ struct {
+			ServerExchange string `yaml:"rpc_server_exchange" env:"RMQ_RPC_SERVER"`
+			ClientExchange string `yaml:"rpc_client_exchange" env:"RMQ_RPC_CLIENT"`
+			//URL            string `env-required:"true"                            env:"RMQ_URL"`
+		}*/
 )

@@ -8,23 +8,20 @@ type Client struct {
 
 func main() {
 	macClient := make(map[string]*Client)
-	hostClient := make(map[string]*Client)
+	//hostClient := make(map[string]*Client)
 
-	client := &Client{
-		"denis",
+	var client *Client
+	sliceName := []string{"denis", "vasya", "petya"}
+
+	for i := 0; i < 3; i++ {
+		client = &Client{
+			sliceName[i],
+		}
+		macClient[sliceName[i]] = client
 	}
 
-	macClient["abcd"] = client
-	hostClient["wsir"] = client
+	for _, mapClient := range macClient {
+		fmt.Println(mapClient.name)
+	}
 
-	client1 := macClient["abcd"]
-	client2 := hostClient["wsir"]
-
-	fmt.Println(client1.name)
-	fmt.Println(client2.name)
-
-	client1.name = "vasya"
-
-	fmt.Println(client1.name)
-	fmt.Println(client2.name)
 }

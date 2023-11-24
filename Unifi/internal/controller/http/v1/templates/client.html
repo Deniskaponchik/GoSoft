@@ -17,13 +17,13 @@
 
     <!--Display the content of the anomaly-->
     <!--<p>{{.Content}}</p>-->
-    <p>{{.ApName}}</p>
-    <p>{{.DateHour}}</p>
+    <p>{{.ApName}}<br>{{.DateHour}}<br>
 
         <!--Loop over the `anomalies_string` variable, which is the list of anomalies string-->
         {{range .SliceAnomStr }}
-          <p>{{ . }}</p>
+          {{ . }}<br>
         {{end}}
+    </p>
 
   {{end}}
 
