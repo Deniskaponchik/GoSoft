@@ -63,9 +63,10 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	httpFokusov := fokusov.New(
 		//gin.Engine,
 		unifiUseCase,
+		cfg.HTTP.Port,
 	)
-	go httpFokusov.Start()
-	fmt.Println("HTTP Fokusov отправился в горутину")
+	httpFokusov.Start()
+	//fmt.Println("HTTP Fokusov отправился в горутину")
 
 	/* EVRONE
 	handler := gin.New()

@@ -4,19 +4,12 @@
 {{ template "header.html" .}}
 
 <!--Display the title of the article -->
-<!--<h2>{{.Title}}</h2>-->
 <h2>{{.hostname}}</h2>
 
   <!--Loop over the `anomalies_struct` variable, which is the list of anomalies structure-->
   {{range .anomalies_struct }}
 
-    <!--Create the link for the article based on its ID-->
-    <!--<a href="/article/view/{{.ID}}">-->
-    <!--<a href="/client/view/{{.HOSTNAME}}">-->
-    <!--</a>-->
-
     <!--Display the content of the anomaly-->
-    <!--<p>{{.Content}}</p>-->
     <p>{{.ApName}}<br>{{.DateHour}}<br>
 
         <!--Loop over the `anomalies_string` variable, which is the list of anomalies string-->

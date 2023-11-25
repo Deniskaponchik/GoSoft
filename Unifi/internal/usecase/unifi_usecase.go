@@ -64,6 +64,7 @@ var srStatusCodesForCancelTicket map[string]bool
 var sleepHoursUnifi map[int]bool
 
 var timeNowU time.Time
+var before30days string
 var err error
 
 func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
@@ -112,6 +113,15 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 		log.Fatalf("мапа точек доступа не смогла загрузиться из БД")
 	}
 
+	//siteApCutNameLogin := DownloadMapFromDBerr(wifiConf.GlpiConnectStringITsupport)
+	//siteApCutName_Login, err = uuc.repo.DownloadMapFromDBerr()
+	siteApCutName_Office, err = uuc.repo.DownloadMapOffice()
+	if err != nil {
+		//fmt.Println("мапа соответствия сайта и логина ответственного сотрудника не загрузилась")
+		//return err //прекращаем работу скрипта
+		log.Fatalf("мапа ответсвенных за офис не смогла загрузиться из БД")
+	}
+
 	uuc.mx.Lock() //блокируем на всю загрузку из БД мютекс у hostnameClient
 	//machineMyMap := DownloadMapFromDBmachinesErr(wifiConf.GlpiConnectStringITsupport, bdController)
 	//mac_Client, err = uuc.repo.DownloadMapFromDBmachinesErr()
@@ -124,13 +134,11 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 	uuc.mx.Unlock()
 	//for k, v := range mac_Client {fmt.Println(k, v.Mac, v.Controller, v.Exception, v.ApMac, v.Modified, v.Hostname, v.SrID)}
 
-	//siteApCutNameLogin := DownloadMapFromDBerr(wifiConf.GlpiConnectStringITsupport)
-	//siteApCutName_Login, err = uuc.repo.DownloadMapFromDBerr()
-	siteApCutName_Office, err = uuc.repo.DownloadMapOffice()
-	if err != nil {
-		//fmt.Println("мапа соответствия сайта и логина ответственного сотрудника не загрузилась")
-		//return err //прекращаем работу скрипта
-		log.Fatalf("мапа машин не смогла загрузиться из БД")
+	before30days = timeNowU.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
+	timeNowU = time.Now()
+	errDownClwithAnom := uuc.repo.DownloadClientsWithAnomalySlice(mac_Client, before30days, timeNowU)
+	if errDownClwithAnom != nil {
+		log.Fatalf("мапа соответсвия hostname и клиентов не смогла загрузиться из БД")
 	}
 
 	for true {
@@ -504,7 +512,7 @@ func (uuc *UnifiUseCase) TicketsCreatingAps(siteNameApCutName_Ap map[string][]*e
 // Заявки создаём всё по той же mac_Client. Клиенты содержат мапу Аномалий
 func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[string]*entity.Client) error {
 
-	before30days := timeNowU.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
+	before30days = timeNowU.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
 	//before30days := timeNowU.Add(time.Duration(-3) * time.Hour).Format("2006-01-02 15:04:05")
 
 	var lenAnomStructSlice int
@@ -577,7 +585,7 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 							ticket.IncidentType = "Плохое качество соединения клиента"
 							//ticket.Region = anom.SiteName //получаю выше в цикле обработки аномалий
 
-							webView := "http://" + uuc.httpUrl + "/v1/client/view/" + client.Hostname
+							webView := "http://" + uuc.httpUrl + "/client/view/" + client.Hostname
 
 							ticket.Description = "На ноутбуке:" + "\n" +
 								client.Hostname + "\n" + "" + "\n" +
@@ -596,7 +604,8 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 								"для Урала, Сибири и ДВ - Новосибирское" + "\n" +
 								"для всей остальной западной России - Московское" + "\n" +
 								"" + "\n" +
-								b2.String() +
+								"Аномалии обновляются в начале каждого часа" + "\n" +
+								//b2.String() +
 								""
 
 							fmt.Println("Попытка создания заявки")
