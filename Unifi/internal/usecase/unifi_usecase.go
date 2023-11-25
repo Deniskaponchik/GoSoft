@@ -526,7 +526,7 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 				ticket := &entity.Ticket{}
 
 				//пробегаемся по всем элементам массива аномалий
-				for anomalyStruct = range client.SliceAnomalies {
+				for _, anomalyStruct = range client.SliceAnomalies {
 
 					date = strings.Split(anomalyStruct.DateHour, " ")[0]
 					anomalyTempMap[date] = date
