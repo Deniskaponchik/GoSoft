@@ -1,24 +1,58 @@
 <!--client.html-->
-
 <!--Embed the header.html template at this location-->
 {{ template "header.html" .}}
 
-<!--Display the title of the article -->
-<h2>{{.hostname}}</h2>
 
-  <!--Loop over the `anomalies_struct` variable, which is the list of anomalies structure-->
-  {{range .anomalies_struct }}
+<div class="parent">
 
-    <!--Display the content of the anomaly-->
-    <p>{{.ApName}}<br>{{.DateHour}}<br>
-
-        <!--Loop over the `anomalies_string` variable, which is the list of anomalies string-->
-        {{range .SliceAnomStr }}
-          {{ . }}<br>
+<div class="panel panel-default col-sm-6">
+    <div class="panel-body">
+        <!--If there's an error, display the error-->
+        {{ if .ErrorTitle}}
+        <p class="bg-danger">
+            {{.ErrorTitle}}: {{.ErrorMessage}}
+        </p>
         {{end}}
-    </p>
+        <!--Create a form that POSTs to the `/u/login` route-->
+        <form class="form" action="/client/request" method="POST">
+            <div class="form-group">
+                <label for="hostname">Notebook Hostname</label>
+                <input type="text" class="form-control" id="hostname" name="hostname" placeholder="Notebook Hostname">
+            </div>
+            <button type="submit" class="btn btn-primary">Get</button>
+        </form>
+    </div>
 
-  {{end}}
+    {{ if .hostname}}
+        <p></p>
+        <p>Аномалии обновляются в течение первых 10 минут каждого часа</p>
+        <p></p>
+        <p>Время аномалий:</p>
+        <p>Для Урала, Сибири, Дальнего Востока - Новосибирское</p>
+        <p>Для всей остальной западной России - Московское</p>
+    {{end}}
+
+</div>
+
+<div>
+    {{ if .hostname}}
+        <!--Display the title of the client -->
+        <h2>{{.hostname}}</h2>
+          <!--Loop over the `anomalies_struct` variable, which is the list of anomalies structure-->
+          {{range .anomalies_struct }}
+            <!--Display the content of the anomaly-->
+            <p>{{.ApName}}<br>{{.DateHour}}<br>
+                <!--Loop over the `anomalies_string` variable, which is the list of anomalies string-->
+                {{range .SliceAnomStr }}
+                  {{ . }}<br>
+                {{end}}
+            </p>
+          {{end}}
+    {{end}}
+</div>
+
+</div>
+
 
 <!--Embed the footer.html template at this location-->
 {{ template "footer.html" .}}

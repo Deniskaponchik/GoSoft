@@ -19,6 +19,6 @@ type Ticket struct {
 
 	//CreateWithoutUserLogin bool //использовать ли UserLogin. Если не использовать, то будут создаваться из под denis.tirskikh
 
-	//System  string `example:"Helpdesk IT"`
-	//Service string `example:"Устранение неисправности"`
+	SliceAps []*Ap
+	Client   *Client
 }

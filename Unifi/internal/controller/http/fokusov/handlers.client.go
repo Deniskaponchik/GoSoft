@@ -1,56 +1,113 @@
 // handlers.client.go
 package fokusov
 
+import (
+	"fmt"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
+	"github.com/gin-gonic/gin"
+)
+
 /*
-func getClient(c *gin.Context) {
+func (fok *Fokusov) postClient(c *gin.Context){
+	// Obtain the POSTed hostname
+	hostname := c.PostForm("hostname")
+
+	var sameSiteCookie http.SameSite
+
+	if _, err := registerNewUser(username, password); err == nil {
+		// If the user is created, set the token in a cookie and log the user in
+		token := generateSessionToken()
+		c.SetSameSite(sameSiteCookie)
+		//c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true)
+		c.SetCookie("token", token, 3600, "", "", false, true)
+		c.Set("is_logged_in", true)
+
+		render(c, gin.H{
+			"title": "Successful registration & Login"}, "login-successful.html")
+
+	} else {
+		// If the username/password combination is invalid,
+		// show the error message on the login page
+		c.HTML(http.StatusBadRequest, "register.html", gin.H{
+			"ErrorTitle":   "Registration Failed",
+			"ErrorMessage": err.Error()})
+
+	}
+}*/
+
+func (fok *Fokusov) getClient(c *gin.Context) {
 	// Check if the client hostname is valid
-	//if articleID, err := strconv.Atoi(c.Param("article_id")); err == nil {
-	clientHostname := c.Param("article_id")
+	var clientHostname string
+	clientHostname = c.PostForm("hostname")
+	if clientHostname == "" {
+		clientHostname = c.Param("client_hostname")
+		fmt.Println("Client взят из метода GET")
+	}
+	fmt.Println(clientHostname)
 
 	// Check if the client exists
-	if client, err := getArticleByID(articleID); err == nil {
+	//if client, err := getArticleByID(articleID); err == nil {
+	client := fok.UnifiUC.GetClientForRest(clientHostname)
+	//fok.UnifiClient = fok.UnifiUC.GetClientForRest(clientHostname)
+
+	if client != nil {
+		fmt.Println("клиент найден в мапе клиентов")
+		fmt.Println(client.Hostname)
+		sliceAnomalies := []*entity.Anomaly{}
+		sliceAnomalies = client.SliceAnomalies
+
 		// Call the render function with the title, article and the name of the
 		// template
 		render(c, gin.H{
-			"title":   article.Title,
-			"payload": article}, "article.html")
+			"title":    client.Hostname,
+			"hostname": client.Hostname,
+			//"anomalies_struct": client.SliceAnomalies},
+			"anomalies_struct": sliceAnomalies},
+			"client.html")
 
 	} else {
-		// If the article is not found, abort with an error
-		c.AbortWithError(http.StatusNotFound, err)
-	}
-
-}
-
-func showIndexPage(c *gin.Context) {
-	//articles := getAllArticles()
-
-	// Call the render function with the name of the template to render
-	render(c, gin.H{
-		"title": "Home Page"}, "index.html")
-	//"payload": articles}, "index.html")
-}
-*/
-/*
-func showArticleCreationPage(c *gin.Context) {
-	// Call the render function with the name of the template to render
-	render(c, gin.H{
-		"title": "Create New Article"}, "create-article.html")
-}
-
-func createArticle(c *gin.Context) {
-	// Obtain the POSTed title and content values
-	title := c.PostForm("title")
-	content := c.PostForm("content")
-
-	if a, err := createNewArticle(title, content); err == nil {
-		// If the article is created successfully, show success message
+		fmt.Println("клиент НЕ найден в мапе клиентов")
+		errMessage := "Client not found: " + clientHostname
+		// If the client is not found, abort with an error
+		//c.AbortWithError(http.StatusNotFound, err)
 		render(c, gin.H{
-			"title":   "Submission Successful",
-			"payload": a}, "submission-successful.html")
-	} else {
-		// if there was an error while creating the article, abort with an error
-		c.AbortWithStatus(http.StatusBadRequest)
+			"title":    "Client not found",
+			"hostname": errMessage},
+			//"anomalies_struct": client.SliceAnomalies},
+			"client.html")
 	}
 }
-*/
+
+/*
+func (fok *Fokusov) getClientFok(c *gin.Context) {
+	// Check if the client hostname is valid
+	//if articleID, err := strconv.Atoi(c.Param("article_id")); err == nil {
+	clientHostname := c.Param("client_hostname")
+	fmt.Println(clientHostname)
+
+	// Check if the client exists
+	//if client, err := getArticleByID(articleID); err == nil {
+	client := fok.UnifiUC.GetClientForRest(clientHostname)
+	//fok.UnifiClient = fok.UnifiUC.GetClientForRest(clientHostname)
+	if fok.UnifiClient != nil {
+		fmt.Println("клиент найден в мапе клиентов")
+		fmt.Println(fok.UnifiClient.Hostname)
+		// Call the render function with the title, article and the name of the
+		// template
+		fok.render(c, gin.H{
+			"title":            fok.UnifiClient.Hostname,
+			"hostname":         fok.UnifiClient.Hostname,
+			"anomalies_struct": fok.UnifiClient.SliceAnomalies},
+			"client.html")
+
+	} else {
+		fmt.Println("клиент НЕ найден в мапе клиентов")
+		// If the client is not found, abort with an error
+		//c.AbortWithError(http.StatusNotFound, err)
+		fok.render(c, gin.H{
+			"title":    "Client did not found",
+			"hostname": "Client did not found"},
+			//"anomalies_struct": client.SliceAnomalies},
+			"client.html")
+	}
+}*/
