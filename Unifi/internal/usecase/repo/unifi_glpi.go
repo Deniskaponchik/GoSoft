@@ -60,7 +60,7 @@ func (ur *UnifiRepo) ChangeCntrlNumber(newCntrlNumber int) {
 func (ur *UnifiRepo) UpdateDbAnomaly(mac_Anomaly map[string]*entity.Anomaly) (err error) {
 	//приходит мапа типа: мак адрес клиента _ аномалии клиента за 1 час
 
-	bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
+	//bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
 	var anomSliceString string
 	var query string
 	var b1 bytes.Buffer
@@ -73,8 +73,8 @@ func (ur *UnifiRepo) UpdateDbAnomaly(mac_Anomaly map[string]*entity.Anomaly) (er
 			//если аномалий за час накопилось 2 и более, то такие заносим в БД
 			countB1++
 			anomSliceString = strings.Join(v.SliceAnomStr, ";")
-			b1.WriteString("('" + v.DateHour + "','" + v.ClientMac + "','" + bdCntrl + "','" + v.SiteName + "','" + anomSliceString +
-				"','" + v.ApMac + "','" + v.ApName + "','" + strconv.Itoa(int(v.Exception)) + "'),")
+			b1.WriteString("('" + v.DateHour + "','" + v.ClientMac + "','" + strconv.Itoa(int(v.Controller)) +
+				"','" + v.SiteName + "','" + anomSliceString + "','" + v.ApMac + "','" + v.ApName + "','" + strconv.Itoa(int(v.Exception)) + "'),")
 		}
 
 	}
@@ -97,7 +97,7 @@ func (ur *UnifiRepo) UpdateDbAnomaly(mac_Anomaly map[string]*entity.Anomaly) (er
 
 // Создаёт query  и передаёт в функцию UploadMapsToDBerr
 func (ur *UnifiRepo) UpdateDbClient(mac_Client map[string]*entity.Client) (err error) {
-	bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
+	//bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
 	var lenMap int
 	var count int
 	var exception string
@@ -121,11 +121,11 @@ func (ur *UnifiRepo) UpdateDbClient(mac_Client map[string]*entity.Client) (err e
 		count++
 		if count != lenMap {
 			// mac, hostname, controller, exception, srid, ap_name(empty), ap_mac, modified
-			b1.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "','" +
-				apName + "','" + v.ApMac + "','" + modified + "'),")
+			b1.WriteString("('" + k + "','" + v.Hostname + "','" + strconv.Itoa(int(v.Controller)) +
+				"','" + exception + "','" + v.SrID + "','" + apName + "','" + v.ApMac + "','" + modified + "'),")
 		} else {
-			b1.WriteString("('" + k + "','" + v.Hostname + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "','" +
-				apName + "','" + v.ApMac + "','" + modified + "')")
+			b1.WriteString("('" + k + "','" + v.Hostname + "','" + strconv.Itoa(int(v.Controller)) +
+				"','" + exception + "','" + v.SrID + "','" + apName + "','" + v.ApMac + "','" + modified + "')")
 			//в конце НЕ ставим запятую
 		}
 	}
@@ -144,7 +144,7 @@ func (ur *UnifiRepo) UpdateDbClient(mac_Client map[string]*entity.Client) (err e
 
 // Создаёт query  и передаёт в функцию UploadMapsToDBerr
 func (ur *UnifiRepo) UpdateDbAp(mapAp map[string]*entity.Ap) (err error) {
-	bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
+	//bdCntrl := strconv.Itoa(int(ur.controller)) //bdController))
 	var lenMap int
 	var count int
 	var exception string
@@ -162,11 +162,11 @@ func (ur *UnifiRepo) UpdateDbAp(mapAp map[string]*entity.Ap) (err error) {
 		count++
 		if count != lenMap {
 			// mac, name, controller, exception, srid
-			b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "'),")
+			b1.WriteString("('" + k + "','" + v.Name + "','" + strconv.Itoa(int(v.Controller)) + "','" + exception + "','" + v.SrID + "'),")
 			// mac, name, controller, srid
 			//b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + v.SrID + "'),")
 		} else {
-			b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + exception + "','" + v.SrID + "')")
+			b1.WriteString("('" + k + "','" + v.Name + "','" + strconv.Itoa(int(v.Controller)) + "','" + exception + "','" + v.SrID + "')")
 			//b1.WriteString("('" + k + "','" + v.Name + "','" + bdCntrl + "','" + v.SrID + "')")
 			//в конце НЕ ставим запятую
 		}

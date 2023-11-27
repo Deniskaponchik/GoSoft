@@ -241,6 +241,7 @@ func (ui *Ui) UpdateClients2MapWithoutApMap(macClient map[string]*entity.Client,
 						client1.Exception = clExInt
 						client1.ApMac = client0.ApMac
 						client1.Modified = date
+						client1.Controller = ui.Controller
 
 						//проверяем доступность в мапе hostnameClient
 						_, exisClient2 = hostnameClient[clientNameUpperCase] //client0.Name]
@@ -252,12 +253,13 @@ func (ui *Ui) UpdateClients2MapWithoutApMap(macClient map[string]*entity.Client,
 					} else {
 						//если мак не бьётся, создаём нового клиента
 						clPointer = &entity.Client{
-							Mac:       client0.Mac,
-							Hostname:  clientNameUpperCase, //client0.Name,
-							Exception: clExInt,
-							ApMac:     client0.ApMac,
-							SrID:      "",
-							Modified:  date,
+							Mac:        client0.Mac,
+							Hostname:   clientNameUpperCase, //client0.Name,
+							Exception:  clExInt,
+							ApMac:      client0.ApMac,
+							SrID:       "",
+							Modified:   date,
+							Controller: ui.Controller,
 						}
 
 						macClient[client0.Mac] = clPointer
@@ -367,7 +369,7 @@ func (ui *Ui) GetHourAnomaliesAddSlice(mac_Client map[string]*entity.Client, mac
 			kAnom, exisMacAnom := mac_Anomaly[noutMac]
 			if !exisMacAnom {
 
-				/*В связи с ведением двух мап маков и hostname это усложняет процесс создания отдельных элементов в различных функциях
+				//В связи с ведением двух мап маков и hostname это усложняет процесс создания отдельных элементов в различных функциях
 				mac_Anomaly[noutMac] = &entity.Anomaly{
 					ClientMac:    v.DeviceMAC,
 					SliceAnomStr: []string{v.Anomaly},
@@ -375,10 +377,11 @@ func (ui *Ui) GetHourAnomaliesAddSlice(mac_Client map[string]*entity.Client, mac
 					ApMac:        "",         //Бакет с одной записью аномалии в массиве  TimeStr_sliceAnomStr мне не интересен
 					ApName:       "",         //Поэтому буду заполнять эти поля, когда появится вторая запись за час по тому же маку
 					Exception:    0,          //
-				}*/
+					//Controller: ui.Controller,
+				}
 
 			} else {
-				//если размер массива == 1
+				//выполниться ТОЛЬКО на ВТОРОМ заходе. не на первом, не на третьем
 				if len(kAnom.SliceAnomStr) == 1 {
 					//подключаемся к мапе Клиентов
 					kClient, exisMacClient := mac_Client[noutMac]
@@ -401,6 +404,8 @@ func (ui *Ui) GetHourAnomaliesAddSlice(mac_Client map[string]*entity.Client, mac
 							kAnom.Exception = kClient.Exception + kAp.Exception
 							//kAnom.TimeStr_sliceAnomStr[dateTime] = append(kAnom.TimeStr_sliceAnomStr[dateTime], v.Anomaly)
 							kAnom.SliceAnomStr = append(kAnom.SliceAnomStr, v.Anomaly)
+							kAnom.Controller = ui.Controller
+
 						} else {
 							//Если в мапе macAp нет мака? Создав точку здесь, всё равно не получу её имени и не создам её в мапе hostnameAp
 						}

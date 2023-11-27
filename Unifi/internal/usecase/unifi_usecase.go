@@ -220,7 +220,6 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 
 					//Загрузка Клиентов с контроллера и обновление мапы Клиентов mac_Client
 					uuc.mx.Lock() //блокируем на всю загрузку из БД мютекс у hostnameClient
-					//err = uuc.ui.Update2MapClientsWithoutApMap(mac_Client, uuc.hostnameClient, timeNowU.Format("2006-01-02"))
 					//err = ui.Update2MapClientsWithoutApMap(mac_Client, uuc.hostnameClient, timeNowU.Format("2006-01-02"))
 					err = ui.UpdateClients2MapWithoutApMap(mac_Client, uuc.hostnameClient, timeNowU.Format("2006-01-02"))
 					if err != nil {
@@ -302,8 +301,11 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 					fmt.Println("Ежесуточное обновление мапы контактных лиц в офисах по точкам завершилось ошибкой")
 				}
 			}
+
 			//} //every 12 minutes
-		}
+
+		} //if exis in every code map
+
 		//fmt.Println("Sleep 58s")
 		//fmt.Println("")
 		log.Println("Sleep 58s")

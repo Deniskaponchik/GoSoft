@@ -8,14 +8,24 @@ import (
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/soap"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/ubiq"
-	"github.com/deniskaponchik/GoSoft/Unifi/pkg/logger"
+	"log"
+	//"github.com/deniskaponchik/GoSoft/Unifi/pkg/logger"
 )
 
 // Run creates objects via constructors.
 func RunUnifi(cfg *ui.ConfigUi) {
 	//fmt.Println("")
-	l := logger.New(cfg.Log.Level)
-	l.Info("")
+
+	//удалить префикс времени в логах
+	//https://stackoverflow.com/questions/48629988/remove-timestamp-prefix-from-go-logger
+	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+	log.SetFlags(0)
+	//log.SetOutput()
+	log.Println("")
+
+	//Zerro Log
+	//l := logger.New(cfg.Log.Level)
+	//l.Info("")
 
 	/* Repository
 	pg, err := postgres.New(cfg.PG.URL, postgres.MaxPoolSize(cfg.PG.PoolMax))
@@ -28,10 +38,12 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	//repoRostov, err := repo.NewUnifiRepo(cfg.GLPI.GlpiITsupport, cfg.GLPI.GlpiConnectStrGLPI, cfg.)
 	if err != nil {
 		//если БД недоступна - останавливаем тут же
-		l.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))
+		//l.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))
+		log.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))
 	} else {
 		//fmt.Println("Проверка подключения к БД прошла успешно")
-		l.Warn("Проверка подключения к БД прошла успешно")
+		//l.Warn("Проверка подключения к БД прошла успешно")
+		log.Println("Проверка подключения к БД прошла успешно")
 	}
 
 	unifiUseCase := usecase.NewUnifiUC(
@@ -48,7 +60,8 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	)
 
 	go unifiUseCase.InfinityProcessingUnifi()
-	l.Info("InfinityProcessingUnifi отправился в горутину")
+	//l.Info("InfinityProcessingUnifi отправился в горутину")
+	log.Println("InfinityProcessingUnifi отправился в горутину")
 	/*https://stackoverflow.com/questions/25142016/how-to-return-a-error-from-a-goroutine-through-channels
 	errors := make(chan error, 0)
 	go func() {
