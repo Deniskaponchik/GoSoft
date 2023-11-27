@@ -36,27 +36,37 @@ type (
 )
 
 type (
-	//UnifiRest interface {	}
+	/*
+		Rest interface {
+			GetClientForRest(string) *entity.Client
+			GetApForRest(string) *entity.Ap
+		}*/
 	UnifiInterface interface {
 		GetClientForRest(string) *entity.Client //, error) //context.Context
 		InfinityProcessingUnifi()               //error
 		HandlingAps() (map[string][]*entity.Ap, error)
 		TicketsCreatingAps(map[string][]*entity.Ap) error
-		TicketsCreatingMacClients(map[string]*entity.Client) error
+		TicketsCreatingClientsWithAnomalySlice(map[string]*entity.Client) error
+		//TicketsCreatingMacClients(map[string]*entity.Client) error
 		//TicketsCreatingAnomalies(map[string][]*entity.Client) error
 	}
 	UnifiRepo interface {
+		ChangeCntrlNumber(int)
+
 		UpdateDbAnomaly(map[string]*entity.Anomaly) error
 		UpdateDbClient(map[string]*entity.Client) error
 		UpdateDbAp(map[string]*entity.Ap) error
 		UploadMapsToDBerr(string) error
-		DownloadClientsWithAnomalySlice(map[string]*entity.Client, string, time.Time) error
-		DownloadMacClientsWithAnomalies(map[string]*entity.Client, string, time.Time) error
+
+		DownloadMacMapsClientApWithAnomaly(map[string]*entity.Client, map[string]*entity.Ap, string, time.Time) error
+		//DownloadClientsWithAnomalySlice(map[string]*entity.Client, string, time.Time) error
+		//DownloadMacClientsWithAnomalies(map[string]*entity.Client, string, time.Time) error
 		Download2MapFromDBclient() (map[string]*entity.Client, map[string]*entity.Client, error)
-		DownloadMapFromDBmachinesErr() (map[string]*entity.Client, error)
-		DownloadMapFromDBapsErr() (map[string]*entity.Ap, error)
+		//DownloadMapFromDBmachinesErr() (map[string]*entity.Client, error)
+		Download2MapFromDBaps() (map[string]*entity.Ap, map[string]*entity.Ap, error)
+		//DownloadMapFromDBapsErr() (map[string]*entity.Ap, error)
+
 		DownloadMapOffice() (map[string]*entity.Office, error)
-		//DownloadMapFromDBerr() (map[string]string, error)
 		GetLoginPCerr(*entity.Client) (err error)
 	}
 	UnifiSoap interface {
@@ -68,9 +78,10 @@ type (
 	}
 	Ui interface {
 		GetSites() error
-		AddAps(map[string]*entity.Ap) error
-		Update2MapClientsWithoutApMap(map[string]*entity.Client, map[string]*entity.Client, string) error
+		AddAps2Maps(map[string]*entity.Ap, map[string]*entity.Ap) error
+		//AddAps(map[string]*entity.Ap) error
+		UpdateClients2MapWithoutApMap(map[string]*entity.Client, map[string]*entity.Client, string) error
 		GetHourAnomaliesAddSlice(map[string]*entity.Client, map[string]*entity.Ap) (map[string]*entity.Anomaly, error)
-		GetHourAnomalies(map[string]*entity.Client, map[string]*entity.Ap) (map[string]*entity.Anomaly, error)
+		//GetHourAnomalies(map[string]*entity.Client, map[string]*entity.Ap) (map[string]*entity.Anomaly, error)
 	}
 )

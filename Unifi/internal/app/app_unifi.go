@@ -13,8 +13,9 @@ import (
 
 // Run creates objects via constructors.
 func RunUnifi(cfg *ui.ConfigUi) {
-	fmt.Println("")
+	//fmt.Println("")
 	l := logger.New(cfg.Log.Level)
+	l.Info("")
 
 	/* Repository
 	pg, err := postgres.New(cfg.PG.URL, postgres.MaxPoolSize(cfg.PG.PoolMax))
@@ -23,12 +24,14 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	}
 	defer pg.Close()
 	*/
-	unifiRepo, err := repo.NewUnifiRepo(cfg.GLPI.GlpiITsupport, cfg.GLPI.GlpiConnectStrGLPI, cfg.UiContrlint)
+	unifiRepo, err := repo.NewUnifiRepo(cfg.GLPI.GlpiITsupport, cfg.GLPI.GlpiConnectStrGLPI) //, cfg.UiContrlint)
+	//repoRostov, err := repo.NewUnifiRepo(cfg.GLPI.GlpiITsupport, cfg.GLPI.GlpiConnectStrGLPI, cfg.)
 	if err != nil {
 		//если БД недоступна - останавливаем тут же
 		l.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))
 	} else {
-		fmt.Println("Проверка подключения к БД прошла успешно")
+		//fmt.Println("Проверка подключения к БД прошла успешно")
+		l.Warn("Проверка подключения к БД прошла успешно")
 	}
 
 	unifiUseCase := usecase.NewUnifiUC(
@@ -36,14 +39,16 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		unifiRepo,
 		soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
 		//ubiq.NewUbiq(unpoller),                //cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword),
-		ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlstr),
+		//ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlstr),
+		ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlRostov, 1),
+		ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
 		cfg.App.EveryCodeMap,
 		cfg.App.TimeZone,
 		cfg.HTTP.URL,
 	)
 
 	go unifiUseCase.InfinityProcessingUnifi()
-	fmt.Println("InfinityProcessingUnifi отправился в горутину")
+	l.Info("InfinityProcessingUnifi отправился в горутину")
 	/*https://stackoverflow.com/questions/25142016/how-to-return-a-error-from-a-goroutine-through-channels
 	errors := make(chan error, 0)
 	go func() {
@@ -63,6 +68,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	httpFokusov := fokusov.New(
 		//gin.Engine,
 		unifiUseCase,
+		//usecase.Rest(),
 		cfg.HTTP.Port,
 	)
 	httpFokusov.Start()

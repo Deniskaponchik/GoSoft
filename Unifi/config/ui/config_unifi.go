@@ -75,10 +75,23 @@ func NewConfigUnifi() (*ConfigUi, error) {
 		55: true,
 	}
 
+	cfg.App.EveryCodeMap = map[int]int{
+		2:  2, // в начале часа различные выгрузки/загрузки в БД. нужно больше времени
+		9:  1,
+		15: 2,
+		21: 1,
+		27: 2,
+		33: 1,
+		39: 2,
+		45: 1,
+		51: 2,
+		57: 1,
+	}
+
 	//https://stackoverflow.com/questions/2707434/how-to-access-command-line-arguments-passed-to-a-go-program
 	//mode := "TEST"
 	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
-	controller := flag.String("cntrl", "Rostov", "controller: Novosib, Rostov")
+	//controller := flag.String("cntrl", "Rostov", "controller: Novosib, Rostov")
 	timezone := flag.Int("time", 100, "Time hour from Moscow") //100-заявки создаются минута в минуту без задержек по ночам
 	//port := flag.Int("port", 8081, "Port for web-server")
 	//port := flag.String("port", "8081", "Port for web-server")
@@ -97,7 +110,7 @@ func NewConfigUnifi() (*ConfigUi, error) {
 		cfg.GlpiITsupport = cfg.GlpiITsupportTest
 	}
 
-	//controller = *controller //
+	/*controller = *controller //
 	if *controller == "Rostov" {
 		cfg.Ubiquiti.UiContrlstr = cfg.Ubiquiti.UiContrlRostov
 		cfg.Ubiquiti.UiContrlint = 1
@@ -107,14 +120,14 @@ func NewConfigUnifi() (*ConfigUi, error) {
 		cfg.Ubiquiti.UiContrlstr = cfg.Ubiquiti.UiContrlNovosib
 		cfg.Ubiquiti.UiContrlint = 2
 		cfg.App.EveryCodeMap = everyCodeSlice[12] //каждые 12 минут
-	}
+	}*/
 	cfg.App.TimeZone = *timezone
 	cfg.HTTP.URL = *httpUrl
 	cfg.HTTP.Port = strings.Split(*httpUrl, ":")[1]
 	//cfg.HTTP.Port = *port
 
 	fmt.Println("Mode: ", *mode) //cfg.InnerVars.Mode)
-	fmt.Println("Controller: ", cfg.Ubiquiti.UiContrlstr)
+	//fmt.Println("Controller: ", cfg.Ubiquiti.UiContrlstr)
 	fmt.Println("Every Code Map: ", cfg.App.EveryCodeMap)
 	fmt.Println("Timezone: ", cfg.App.TimeZone)
 	fmt.Println("HTTP URL: ", cfg.HTTP.URL)
@@ -134,14 +147,14 @@ type (
 		App  `yaml:"app"`
 		HTTP `yaml:"http"`
 		Log  `yaml:"logger"`
-		PG   `yaml:"postgres"`
+		//PG   `yaml:"postgres"`
 		//RMQ  `yaml:"rabbitmq"`
 	}
 
 	App struct {
 		Name         string `yaml:"name"`
 		Version      string `yaml:"version"`
-		EveryCodeMap map[int]bool
+		EveryCodeMap map[int]int
 		TimeZone     int
 	}
 	//env-required:"true" - ОБЯЗАТЕЛЬНО должен получить перменную либо из окружения, либо из yaml. Между true и false разницы не заметил
@@ -155,8 +168,8 @@ type (
 		UiPassword      string `env-required:"true" yaml:"unifi_password"       env:"UNIFI_PASSWORD"`
 		UiContrlRostov  string `env-required:"true" yaml:"contrl_rostov"   env:"UNIFI_CONTROLLER_ROSTOV"`
 		UiContrlNovosib string `env-required:"true" yaml:"contrl_novosib"  env:"UNIFI_CONTROLLER_NOVOSIB"`
-		UiContrlstr     string
-		UiContrlint     int
+		//UiContrlstr     string
+		//UiContrlint     int //для совместного приложения двух контроллеров не должен приходить с конфигом
 	}
 	Bpm struct {
 		BpmUrl  string //`env-required:"false"`
@@ -182,10 +195,11 @@ type (
 		URL  string
 		Port string //`yaml:"port" env:"HTTP_PORT"`
 	}
-	PG struct {
-		PoolMax int `yaml:"pool_max" env:"PG_POOL_MAX"`
-		//URL     string `env-required:"true"                 env:"PG_URL"`
-	} /*
+	/*
+		PG struct {
+			PoolMax int `yaml:"pool_max" env:"PG_POOL_MAX"`
+			//URL     string `env-required:"true"                 env:"PG_URL"`
+		}
 		RMQ struct {
 			ServerExchange string `yaml:"rpc_server_exchange" env:"RMQ_RPC_SERVER"`
 			ClientExchange string `yaml:"rpc_client_exchange" env:"RMQ_RPC_CLIENT"`

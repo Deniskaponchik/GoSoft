@@ -10,11 +10,12 @@ type Ap struct {
 	UserLogin      string     `json:"login"      example:"vasya.pupkin"`
 	SrID           string     `json:"srid"       example:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`
 	Exception      int        `json:"exception"  example:"1"` //Исключение для аномалий клиентов, а не для отключений точек
-	Controller     int        `json:"controller" example:"1"`
-	CommentCount   int        `example:"1"` //0 - нет комментариев, 1 - комментарий "точка появилась в сети", 2 - Попытка закрыть обращение. commentForUpdate
-	StateInt       int        `example:"0"` // 0 - available
-	CountAttempts  int        `example:"0"` // Число заходов на создание заявок. на втором заходе создаём тикет. не берётся из БД
+	Controller     int        `json:"controller" example:"1"` //
+	CommentCount   int        `example:"1"`                   //0 - нет комментариев, 1 - комментарий "точка появилась в сети", 2 - Попытка закрыть обращение. commentForUpdate
+	StateInt       int        `example:"0"`                   // 0 - available
+	CountAttempts  int        `example:"0"`                   // Число заходов на создание заявок. на втором заходе создаём тикет. не берётся из БД
 	SliceAnomalies []*Anomaly //Аномалии точки за 30 дней
+	Date30count    int        `example:"27"` //Используется в DownloadClientsWithAnomalySlice
 	//SliceClients   []*Client           //Аномалии точки за 30 дней
 	Ticket *Ticket
 }
@@ -30,20 +31,19 @@ type Client struct {
 	ApName     string `json:"ap_name"    example:"XXX-OPENSPACE"` //отключаю, чтобы не было неразберихи. не заполянется этот параметр на контроллере
 	ApMac      string `json:"ap_mac"     example:"a0:b1:c2:d3:e4:f5"`
 	Modified   string `json:"modified"   example:"2023-10-28"`
-	//DateTicketCreateAttempt time.Time `example: "2023-10-28"` //До первого захода либо nil, либо прошлая дата, после 1 захода - сегодняшняя дата
-	DateTicketCreateAttempt int `example:"28"` //Используется в DownloadMacClientsWithAnomalies
-	Date30count             int `example:"27"` //Используется в DownloadClientsWithAnomalySlice
+	UserLogin  string `example:"vasya.pupkin"` //не однозначная характеристика. нигде не используется
 
-	SliceAnomalies []*Anomaly          //Аномалии клиента за 30 дней
-	Date_Anomaly   map[string]*Anomaly //Аномалии клиента за 30 дней
-	UserLogin      string              `example:"vasya.pupkin"`
+	//DateTicketCreateAttempt time.Time `example: "2023-10-28"` //До первого захода либо nil, либо прошлая дата, после 1 захода - сегодняшняя дата
+	DateTicketCreateAttempt int                 `example:"28"` //Используется в DownloadMacClientsWithAnomalies
+	Date30count             int                 `example:"27"` //Используется в DownloadClientsWithAnomalySlice
+	SliceAnomalies          []*Anomaly          //Аномалии клиента за 30 дней
+	Date_Anomaly            map[string]*Anomaly //Аномалии клиента за 30 дней. Вроде, не должна больше использоваться
 }
 
 // Структура должна обнуляться каждый час и при выгрузке раз в сутки
 type Anomaly struct {
 	ClientMac  string `json:"mac_client" example:"a0:b1:c2:d3:e4:f5"`
 	ClientName string
-
 	SiteName   string `json:"sitename"   example:"Москва"`
 	Controller int    `json:"controller" example:"1"`
 
@@ -58,8 +58,6 @@ type Anomaly struct {
 	AnomStr      string `json:"anomalies"   example:"USER_HIGH_TCP_LATENCY;USER_LOW_PHY_RATE;USER_SLEEPY_CLIENT;USER_HIGH_TCP_PACKET_LOSS;"`
 	SliceAnomStr []string
 	//TimeStr_sliceAnomStr map[string][]string //day - 2023-09-01, hour - 2023-09-01 12:00:00
-	//mapHour      map[string][]string
-	//mapDay       map[string][]string
 
 	DateHour string `json:"date_hour"  example:"2023-09-01 12:00:00"`
 	//DateHour     time.Time `json:"date_hour"  example:"2023-09-01 12:00:00"`

@@ -11,18 +11,20 @@ import (
 var router *gin.Engine
 
 type Fokusov struct {
-	//Router      *gin.Engine
+	//Router    *gin.Engine
 	UnifiUC *usecase.UnifiUseCase
+	//Rest 		*usecase.Rest  //interface
 	//UnifiClient *entity.Client
 	Port string
 }
 
-func New(uuc *usecase.UnifiUseCase, port string) *Fokusov { //router *gin.Engine,
+func New(uuc *usecase.UnifiUseCase, port string) *Fokusov { //router *gin.Engine,rest *usecase.Rest
 	return &Fokusov{
 		//Router: router,
 		//Router:  *gin.Engine,
 		UnifiUC: uuc,
-		Port:    port,
+		//Rest:    rest,
+		Port: port,
 	}
 }
 
@@ -55,7 +57,7 @@ func (fok *Fokusov) Start() {
 	//clientRoutes := fok.Router.Group("/client")
 	{
 		// Handle GET requests at
-		clientRoutes.GET("/request", fok.getClient)
+		clientRoutes.GET("/request", fok.showClientRequestPage)
 		// Handle POST requests at
 		clientRoutes.POST("/request", fok.getClient)
 		// Handle GET requests at /article/view/some_article_id
@@ -65,7 +67,7 @@ func (fok *Fokusov) Start() {
 	//clientRoutes := fok.Router.Group("/client")
 	{
 		// Handle GET requests at
-		apRoutes.GET("/request", fok.getAP)
+		apRoutes.GET("/request", fok.showApRequestPage)
 		// Handle POST requests at
 		apRoutes.POST("/request", fok.getAP)
 		// Handle GET requests at /article/view/some_article_id
@@ -81,6 +83,7 @@ func (fok *Fokusov) Start() {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
+
 }
 
 // Render one of HTML, JSON or CSV based on the 'Accept' header of the request

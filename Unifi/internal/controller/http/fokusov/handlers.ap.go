@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 func (fok *Fokusov) getAP(c *gin.Context) {
@@ -12,41 +13,42 @@ func (fok *Fokusov) getAP(c *gin.Context) {
 	var apHostname string
 	apHostname = c.PostForm("hostname")
 	if apHostname == "" {
-		apHostname = c.Param("client_hostname")
-		fmt.Println("Client взят из метода GET")
+		apHostname = c.Param("ap_hostname")
+		fmt.Println("Точка взята из метода GET")
 	}
+	apHostname = strings.ToUpper(apHostname)
 	fmt.Println(apHostname)
 
 	// Check if the client exists
 	//if client, err := getArticleByID(articleID); err == nil {
-	ap := fok.UnifiUC.GetClientForRest(apHostname)
+	ap := fok.UnifiUC.GetApForRest(apHostname)
 	//fok.UnifiClient = fok.UnifiUC.GetClientForRest(clientHostname)
 
 	if ap != nil {
 		fmt.Println("точка найдена в мапе")
-		fmt.Println(ap.Hostname)
+		fmt.Println(ap.Name)
 		sliceAnomalies := []*entity.Anomaly{}
 		sliceAnomalies = ap.SliceAnomalies
 
 		// Call the render function with the title, article and the name of the
 		// template
 		render(c, gin.H{
-			"title":    ap.Hostname,
-			"hostname": ap.Hostname,
+			"title":    ap.Name,
+			"hostname": ap.Name,
 			//"anomalies_struct": client.SliceAnomalies},
 			"anomalies_struct": sliceAnomalies},
 			"client.html")
 
 	} else {
-		fmt.Println("клиент НЕ найден в мапе клиентов")
-		errMessage := "Client not found: " + apHostname
+		fmt.Println("Точка НЕ найдена в мапе")
+		errMessage := "Access point not found: " + apHostname
 		// If the client is not found, abort with an error
 		//c.AbortWithError(http.StatusNotFound, err)
 		render(c, gin.H{
-			"title":    "Client not found",
+			"title":    "Access point not found",
 			"hostname": errMessage},
 			//"anomalies_struct": client.SliceAnomalies},
-			"client.html")
+			"ap.html")
 	}
 }
 
@@ -83,3 +85,9 @@ func (fok *Fokusov) getClientFok(c *gin.Context) {
 			"client.html")
 	}
 }*/
+
+func (fok *Fokusov) showApRequestPage(c *gin.Context) {
+	// Call the render function with the name of the template to render
+	render(c, gin.H{
+		"title": "Ap Request Page"}, "ap.html")
+}

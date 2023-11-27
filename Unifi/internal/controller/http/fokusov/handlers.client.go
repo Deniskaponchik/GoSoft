@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 /*
@@ -43,12 +44,13 @@ func (fok *Fokusov) getClient(c *gin.Context) {
 		clientHostname = c.Param("client_hostname")
 		fmt.Println("Client взят из метода GET")
 	}
+	clientHostname = strings.ToUpper(clientHostname)
 	fmt.Println(clientHostname)
 
 	// Check if the client exists
 	//if client, err := getArticleByID(articleID); err == nil {
 	client := fok.UnifiUC.GetClientForRest(clientHostname)
-	//fok.UnifiClient = fok.UnifiUC.GetClientForRest(clientHostname)
+	//client := fok.Rest.GetClientForRest(clientHostname)
 
 	if client != nil {
 		fmt.Println("клиент найден в мапе клиентов")
@@ -111,3 +113,9 @@ func (fok *Fokusov) getClientFok(c *gin.Context) {
 			"client.html")
 	}
 }*/
+
+func (fok *Fokusov) showClientRequestPage(c *gin.Context) {
+	// Call the render function with the name of the template to render
+	render(c, gin.H{
+		"title": "Client Request Page"}, "client.html.html")
+}
