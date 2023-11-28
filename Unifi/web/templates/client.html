@@ -7,17 +7,19 @@
 
 <div class="panel panel-default col-sm-6">
     <div class="panel-body">
+
         <!--If there's an error, display the error-->
         {{ if .ErrorTitle}}
         <p class="bg-danger">
             {{.ErrorTitle}}: {{.ErrorMessage}}
         </p>
         {{end}}
+
         <!--Create a form that POSTs to the `/u/login` route-->
         <form class="form" action="/client/request" method="POST">
             <div class="form-group">
-                <label for="hostname">Notebook Hostname</label>
-                <input type="text" class="form-control" id="hostname" name="hostname" placeholder="Notebook Hostname">
+                <label for="cl_hostname">Notebook Hostname</label>
+                <input type="text" class="form-control" id="cl_hostname" name="cl_hostname" placeholder="Notebook Hostname">
             </div>
             <button type="submit" class="btn btn-primary">Get</button>
         </form>

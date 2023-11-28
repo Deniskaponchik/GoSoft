@@ -11,7 +11,7 @@ import (
 func (fok *Fokusov) getAP(c *gin.Context) {
 	// Check if the client hostname is valid
 	var apHostname string
-	apHostname = c.PostForm("hostname")
+	apHostname = c.PostForm("ap_hostname")
 	if apHostname == "" {
 		apHostname = c.Param("ap_hostname")
 		fmt.Println("Точка взята из метода GET")

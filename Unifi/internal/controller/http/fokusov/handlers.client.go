@@ -39,7 +39,7 @@ func (fok *Fokusov) postClient(c *gin.Context){
 func (fok *Fokusov) getClient(c *gin.Context) {
 	// Check if the client hostname is valid
 	var clientHostname string
-	clientHostname = c.PostForm("hostname")
+	clientHostname = c.PostForm("cl_hostname")
 	if clientHostname == "" {
 		clientHostname = c.Param("client_hostname")
 		fmt.Println("Client взят из метода GET")
@@ -117,5 +117,5 @@ func (fok *Fokusov) getClientFok(c *gin.Context) {
 func (fok *Fokusov) showClientRequestPage(c *gin.Context) {
 	// Call the render function with the name of the template to render
 	render(c, gin.H{
-		"title": "Client Request Page"}, "client.html.html")
+		"title": "Client Request Page"}, "client.html")
 }
