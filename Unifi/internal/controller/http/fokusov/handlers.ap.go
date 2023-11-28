@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"github.com/gin-gonic/gin"
+	"log"
 	"strings"
 )
 
 func (fok *Fokusov) getAP(c *gin.Context) {
+	log.Println("")
 	// Check if the client hostname is valid
 	var apHostname string
 	apHostname = c.PostForm("ap_hostname")
@@ -37,7 +39,7 @@ func (fok *Fokusov) getAP(c *gin.Context) {
 			"hostname": ap.Name,
 			//"anomalies_struct": client.SliceAnomalies},
 			"anomalies_struct": sliceAnomalies},
-			"client.html")
+			"ap.html")
 
 	} else {
 		fmt.Println("Точка НЕ найдена в мапе")

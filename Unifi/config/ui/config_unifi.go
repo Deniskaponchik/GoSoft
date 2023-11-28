@@ -91,6 +91,7 @@ func NewConfigUnifi() (*ConfigUi, error) {
 	//https://stackoverflow.com/questions/2707434/how-to-access-command-line-arguments-passed-to-a-go-program
 	//mode := "TEST"
 	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
+	db := flag.String("db", "it_support_db_3", "database for unifi tables")
 	//controller := flag.String("cntrl", "Rostov", "controller: Novosib, Rostov")
 	timezone := flag.Int("time", 100, "Time hour from Moscow") //100-заявки создаются минута в минуту без задержек по ночам
 	//port := flag.Int("port", 8081, "Port for web-server")
@@ -102,12 +103,12 @@ func NewConfigUnifi() (*ConfigUi, error) {
 	if *mode == "TEST" {
 		cfg.BpmUrl = cfg.BpmTest
 		cfg.SoapUrl = cfg.SoapTest
-		cfg.GlpiITsupport = cfg.GlpiITsupportProd
+		//cfg.GlpiITsupport = cfg.GlpiITsupportProd
 	} else {
 		// "PROD"
 		cfg.BpmUrl = cfg.BpmProd
 		cfg.SoapUrl = cfg.SoapProd
-		cfg.GlpiITsupport = cfg.GlpiITsupportTest
+		//cfg.GlpiITsupport = cfg.GlpiITsupportTest
 	}
 
 	/*controller = *controller //
@@ -121,6 +122,7 @@ func NewConfigUnifi() (*ConfigUi, error) {
 		cfg.Ubiquiti.UiContrlint = 2
 		cfg.App.EveryCodeMap = everyCodeSlice[12] //каждые 12 минут
 	}*/
+	cfg.GLPI.DB = *db
 	cfg.App.TimeZone = *timezone
 	cfg.HTTP.URL = *httpUrl
 	cfg.HTTP.Port = strings.Split(*httpUrl, ":")[1]
@@ -150,7 +152,6 @@ type (
 		//PG   `yaml:"postgres"`
 		//RMQ  `yaml:"rabbitmq"`
 	}
-
 	App struct {
 		Name         string `yaml:"name"`
 		Version      string `yaml:"version"`
@@ -182,10 +183,12 @@ type (
 		SoapTest string `env-required:"true" env:"SOAP_TEST"`
 	}
 	GLPI struct {
-		GlpiConnectStrGLPI string `env-required:"true"   env:"GLPI_CONNECT_STR_GLPI"`
-		GlpiITsupportProd  string `env-required:"true"   env:"GLPI_CONNECT_STR_ITSUP"`
-		GlpiITsupportTest  string `env-required:"true"   env:"GLPI_ITSUP_TEST"`
-		GlpiITsupport      string //`env-required:"false"`
+		GlpiConnectStr string `env-required:"true"   env:"GLPI_CONNECT_STR"` //строка подключения к серверу без указания БД
+		//GlpiConnectStrGLPI string `env-required:"true"   env:"GLPI_CONNECT_STR_GLPI"`
+		//GlpiITsupportProd  string `env-required:"true"   env:"GLPI_CONNECT_STR_ITSUP"`
+		//GlpiITsupportTest  string `env-required:"true"   env:"GLPI_ITSUP_TEST"`
+		//GlpiITsupport      string //`env-required:"false"`
+		DB string //имя базы данных для unifi таблиц. задаю аргументами командной строки
 	}
 
 	Log struct {

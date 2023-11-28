@@ -23,7 +23,8 @@ func PolyRun(cfg *poly.ConfigPoly) {
 	}
 	defer pg.Close()
 	*/
-	polyRepo, err := repo.NewPolyRepo(cfg.GLPI.GlpiITsupport)
+	//polyRepo, err := repo.NewPolyRepo(cfg.GLPI.GlpiITsupport)
+	polyRepo, err := repo.NewPolyRepo(cfg.GLPI.GlpiConnectStr, cfg.GLPI.DB)
 	if err != nil {
 		//если БД недоступна - останавливаем тут же
 		l.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))

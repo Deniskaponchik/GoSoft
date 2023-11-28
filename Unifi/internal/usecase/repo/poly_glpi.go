@@ -8,7 +8,6 @@ import (
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	_ "github.com/go-sql-driver/mysql"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -18,10 +17,10 @@ type PolyRepo struct {
 }
 
 // реализуем Инъекцию зависимостей DI. Используется в app
-func NewPolyRepo(d string) (*PolyRepo, error) {
+func NewPolyRepo(connectStr string, base string) (*PolyRepo, error) {
 	pr := &PolyRepo{
-		dataSource: d,
-		database:   strings.Split(d, "/")[1],
+		dataSource: connectStr + "/" + base, //d,
+		database:   base,                    //strings.Split(d, "/")[1],
 	}
 
 	if db, errSqlOpen := sql.Open("mysql", pr.dataSource); errSqlOpen == nil {

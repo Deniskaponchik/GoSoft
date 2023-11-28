@@ -14,8 +14,9 @@ import (
 )
 
 type PolySoap struct {
-	soapUrl string
-	bpmUrl  string
+	soapUrl    string
+	bpmUrl     string
+	httpClient *http.Client
 	//2 вариант
 	//usecase.PolyTicket
 	//3 вариант
@@ -27,6 +28,14 @@ func New(s string, b string) *PolySoap {
 	return &PolySoap{
 		soapUrl: s,
 		bpmUrl:  b,
+		httpClient: &http.Client{
+			Timeout: 300 * time.Second, //bpm часто лагает. при 120 выдаёт: (context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true,
+				},
+			},
+		},
 	}
 }
 
@@ -101,14 +110,17 @@ func (ps *PolySoap) CreatePolyTicketErr(ticket *entity.Ticket) (err error) { //(
 			//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 			req, errHttpReq := http.NewRequest("POST", ps.soapUrl, bytes.NewReader(payload))
 			if errHttpReq == nil {
-				client := &http.Client{
-					Transport: &http.Transport{
-						TLSClientConfig: &tls.Config{
-							InsecureSkipVerify: true,
+				/*
+					client := &http.Client{
+						Timeout: 120 * time.Second, //bpm часто лагает
+						Transport: &http.Transport{
+							TLSClientConfig: &tls.Config{
+								InsecureSkipVerify: true,
+							},
 						},
-					},
-				}
-				res, errClientDo := client.Do(req)
+					}
+					res, errClientDo := client.Do(req) */
+				res, errClientDo := ps.httpClient.Do(req)
 				if errClientDo == nil {
 					/*Посмотреть response Body, если понадобится
 					defer res.Body.Close()
@@ -239,14 +251,17 @@ func (ps *PolySoap) CheckTicketStatusErr(ticket *entity.Ticket) (err error) {
 		//req, errHttpReq := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, ps.soapUrl, bytes.NewReader(payload))
 		if errHttpReq == nil {
-			client := &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
+			/*
+				client := &http.Client{
+					Timeout: 120 * time.Second, //bpm часто лагает
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
 					},
-				},
-			}
-			res, errClientDo := client.Do(req)
+				}
+				res, errClientDo := client.Do(req) */
+			res, errClientDo := ps.httpClient.Do(req)
 			if errClientDo == nil {
 				/*Посмотреть response Body, если понадобится
 				defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
@@ -364,14 +379,17 @@ func (ps *PolySoap) ChangeStatusErr(ticket *entity.Ticket) (err error) {
 		//req, err := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, ps.soapUrl, bytes.NewReader(payload))
 		if errHttpReq == nil {
-			client := &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
+			/*
+				client := &http.Client{
+					Timeout: 120 * time.Second, //bpm часто лагает
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
 					},
-				},
-			}
-			res, errClientDo := client.Do(req)
+				}
+				res, errClientDo := client.Do(req) */
+			res, errClientDo := ps.httpClient.Do(req)
 			if errClientDo == nil {
 				/*Посмотреть response Body, если понадобится
 				defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
@@ -482,14 +500,17 @@ func (ps *PolySoap) AddCommentErr(ticket *entity.Ticket) (err error) {
 		//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, ps.soapUrl, bytes.NewReader(payload))
 		if errHttpReq == nil {
-			client := &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
+			/*
+				client := &http.Client{
+					Timeout: 120 * time.Second, //bpm часто лагает
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
 					},
-				},
-			}
-			res, errClientDo := client.Do(req)
+				}
+				res, errClientDo := client.Do(req) */
+			res, errClientDo := ps.httpClient.Do(req)
 			if errClientDo == nil {
 				/*Посмотреть response Body, если понадобится
 				defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти

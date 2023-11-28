@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"github.com/gin-gonic/gin"
+	"log"
 	"strings"
 )
 
@@ -37,6 +38,7 @@ func (fok *Fokusov) postClient(c *gin.Context){
 }*/
 
 func (fok *Fokusov) getClient(c *gin.Context) {
+	log.Println("")
 	// Check if the client hostname is valid
 	var clientHostname string
 	clientHostname = c.PostForm("cl_hostname")

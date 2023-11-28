@@ -77,6 +77,7 @@ func NewConfigPoly() (*ConfigPoly, error) {
 	//https://stackoverflow.com/questions/2707434/how-to-access-command-line-arguments-passed-to-a-go-program
 	//mode := "TEST"
 	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
+	db := flag.String("db", "it_support_db_3", "database for poly tables")
 	restart := flag.Int("restart", 7, "hour when codecs restart") //чтобы отключить ежедневную перезагрузку, указать 25 и выше
 	timezone := flag.Int("time", 100, "Time hour from Moscow")    //100-заявки создаются минута в минуту без задержек по ночам
 	flag.Parse()
@@ -85,15 +86,16 @@ func NewConfigPoly() (*ConfigPoly, error) {
 	if cfg.InnerVars.Mode == "TEST" {
 		cfg.BpmUrl = cfg.BpmTest
 		cfg.SoapUrl = cfg.SoapTest
-		cfg.GlpiITsupport = cfg.GlpiITsupportProd
+		//cfg.GlpiITsupport = cfg.GlpiITsupportProd
 		cfg.InnerVars.EveryCodeMap = everyCodeSlice[3] //каждые 3 минут
 	} else {
 		// "PROD"
 		cfg.BpmUrl = cfg.BpmProd
 		cfg.SoapUrl = cfg.SoapProd
-		cfg.GlpiITsupport = cfg.GlpiITsupportTest
+		//cfg.GlpiITsupport = cfg.GlpiITsupportTest
 		cfg.InnerVars.EveryCodeMap = everyCodeSlice[0] //каждые 20 минут, старт в 5 минут
 	}
+	cfg.GLPI.DB = *db
 	cfg.InnerVars.RestartHour = *restart //в 7 часов по времени сервера, где запущен скрипт
 	cfg.App.TimeZone = *timezone
 
@@ -119,8 +121,8 @@ type (
 		App  `yaml:"app"`
 		HTTP `yaml:"http"`
 		Log  `yaml:"logger"`
-		PG   `yaml:"postgres"`
-		RMQ  `yaml:"rabbitmq"`
+		//PG   `yaml:"postgres"`
+		//RMQ  `yaml:"rabbitmq"`
 	}
 	InnerVars struct {
 		Mode         string
@@ -152,10 +154,12 @@ type (
 		SoapTest string `env-required:"true" env:"SOAP_TEST"`
 	}
 	GLPI struct {
-		GlpiConnectStrGLPI string `env-required:"true"   env:"GLPI_CONNECT_STR_GLPI"`
-		GlpiITsupportProd  string `env-required:"true"   env:"GLPI_CONNECT_STR_ITSUP"`
-		GlpiITsupportTest  string `env-required:"true"   env:"GLPI_ITSUP_TEST"`
-		GlpiITsupport      string //`env-required:"false"`
+		GlpiConnectStr string `env-required:"true"   env:"GLPI_CONNECT_STR"` //строка подключения к серверу без указания БД
+		//GlpiConnectStrGLPI string `env-required:"true"   env:"GLPI_CONNECT_STR_GLPI"`
+		//GlpiITsupportProd  string `env-required:"true"   env:"GLPI_CONNECT_STR_ITSUP"`
+		//GlpiITsupportTest  string `env-required:"true"   env:"GLPI_ITSUP_TEST"`
+		//GlpiITsupport      string //`env-required:"false"`
+		DB string //имя базы данных для unifi таблиц. задаю аргументами командной строки
 	}
 
 	App struct {
@@ -168,14 +172,14 @@ type (
 	}
 	HTTP struct {
 		Port string `yaml:"port" env:"HTTP_PORT"`
-	}
-	PG struct {
-		PoolMax int `yaml:"pool_max" env:"PG_POOL_MAX"`
-		//URL     string `env-required:"true"                 env:"PG_URL"`
-	}
-	RMQ struct {
-		ServerExchange string `yaml:"rpc_server_exchange" env:"RMQ_RPC_SERVER"`
-		ClientExchange string `yaml:"rpc_client_exchange" env:"RMQ_RPC_CLIENT"`
-		//URL            string `env-required:"true"                            env:"RMQ_URL"`
-	}
+	} /*
+		PG struct {
+			PoolMax int `yaml:"pool_max" env:"PG_POOL_MAX"`
+			//URL     string `env-required:"true"                 env:"PG_URL"`
+		}
+		RMQ struct {
+			ServerExchange string `yaml:"rpc_server_exchange" env:"RMQ_RPC_SERVER"`
+			ClientExchange string `yaml:"rpc_client_exchange" env:"RMQ_RPC_CLIENT"`
+			//URL            string `env-required:"true"                            env:"RMQ_URL"`
+		}*/
 )

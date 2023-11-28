@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	_ "github.com/go-sql-driver/mysql"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -22,16 +23,16 @@ type UnifiRepo struct {
 }
 
 // реализуем Инъекцию зависимостей DI. Используется в app
-func NewUnifiRepo(i string, g string) (*UnifiRepo, error) { //, c int
-	fmt.Println(i)
-	fmt.Println(g)
+func NewUnifiRepo(connectStr string, base string) (*UnifiRepo, error) { //, c int
+	//fmt.Println(connectStr + "/" + db)
+	log.Println(connectStr + "/" + base)
 
 	pr := &UnifiRepo{
-		dataSourceITsup: i,
-		databaseITsup:   strings.Split(i, "/")[1],
-		dataSourceGLPI:  g,
-		databaseGLPI:    strings.Split(g, "/")[1],
-		controller:      0, //c,
+		dataSourceITsup: connectStr + "/" + base, //i,
+		databaseITsup:   base,                    //strings.Split(i, "/")[1],
+		dataSourceGLPI:  connectStr + "/glpi_db", // g,
+		databaseGLPI:    "glpi_db",               //strings.Split(g, "/")[1],
+		controller:      0,                       //c,
 	}
 
 	if db, errSqlOpen := sql.Open("mysql", pr.dataSourceITsup); errSqlOpen == nil {

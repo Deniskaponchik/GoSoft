@@ -14,8 +14,9 @@ import (
 )
 
 type Soap struct {
-	soapUrl string
-	bpmUrl  string
+	soapUrl    string
+	bpmUrl     string
+	httpClient *http.Client
 	//2 вариант
 	//usecase.PolyTicket
 	//3 вариант
@@ -30,6 +31,14 @@ func NewSoap(s string, b string) *Soap {
 	return &Soap{
 		soapUrl: s,
 		bpmUrl:  b,
+		httpClient: &http.Client{
+			Timeout: 240 * time.Second, //bpm часто лагает. при 120 выдаёт: (context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true,
+				},
+			},
+		},
 	}
 }
 
@@ -107,14 +116,17 @@ func (ss *Soap) CreateTicketSmacWifi(ticket *entity.Ticket) (err error) { //(ent
 		//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest("POST", ss.soapUrl, bytes.NewReader(payload))
 		if errHttpReq == nil {
-			client := &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
+			/*
+				client := &http.Client{
+					Timeout: 120 * time.Second, //bpm часто лагает
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
 					},
-				},
-			}
-			res, errClientDo := client.Do(req)
+				}
+				res, errClientDo := client.Do(req) */
+			res, errClientDo := ss.httpClient.Do(req)
 			if errClientDo == nil {
 				/*Посмотреть response Body, если понадобится
 				defer res.Body.Close()
@@ -272,14 +284,17 @@ func (ss *Soap) CreateTicketSmacVcs(ticket *entity.Ticket) (err error) { //(enti
 		//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest("POST", ss.soapUrl, bytes.NewReader(payload))
 		if errHttpReq == nil {
-			client := &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
+			/*
+				client := &http.Client{
+					Timeout: 120 * time.Second, //bpm часто лагает
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
 					},
-				},
-			}
-			res, errClientDo := client.Do(req)
+				}
+				res, errClientDo := client.Do(req) */
+			res, errClientDo := ss.httpClient.Do(req)
 			if errClientDo == nil {
 				/*Посмотреть response Body, если понадобится
 				defer res.Body.Close()
@@ -396,14 +411,17 @@ func (ss *Soap) CheckTicketStatusErr(ticket *entity.Ticket) (err error) {
 		//req, errHttpReq := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, ss.soapUrl, bytes.NewReader(payload))
 		if errHttpReq == nil {
-			client := &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
+			/*
+				client := &http.Client{
+					Timeout: 120 * time.Second, //bpm часто лагает
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
 					},
-				},
-			}
-			res, errClientDo := client.Do(req)
+				}
+				res, errClientDo := client.Do(req) */
+			res, errClientDo := ss.httpClient.Do(req)
 			if errClientDo == nil {
 				/*Посмотреть response Body, если понадобится
 				defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти
@@ -517,14 +535,17 @@ func (ss *Soap) ChangeStatusErr(ticket *entity.Ticket) (err error) {
 		//req, err := http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, ss.soapUrl, bytes.NewReader(payload))
 		if errHttpReq == nil {
-			client := &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
+			/*
+				client := &http.Client{
+					Timeout: 120 * time.Second, //bpm часто лагает
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
 					},
-				},
-			}
-			res, errClientDo := client.Do(req)
+				}
+				res, errClientDo := client.Do(req) */
+			res, errClientDo := ss.httpClient.Do(req)
 			if errClientDo == nil {
 
 				envelope := &Envelope{}
@@ -626,14 +647,17 @@ func (ss *Soap) AddCommentErr(ticket *entity.Ticket) (err error) {
 		//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
 		req, errHttpReq := http.NewRequest(httpMethod, ss.soapUrl, bytes.NewReader(payload))
 		if errHttpReq == nil {
-			client := &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
+			/*
+				client := &http.Client{
+					Timeout: 120 * time.Second, //bpm часто лагает
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
 					},
-				},
-			}
-			res, errClientDo := client.Do(req)
+				}
+				res, errClientDo := client.Do(req) */
+			res, errClientDo := ss.httpClient.Do(req)
 			if errClientDo == nil {
 				/*Посмотреть response Body, если понадобится
 				defer res.Body.Close() //ОСТОРОЖНЕЕ с этой штукой. Дальше могут данные не пойти

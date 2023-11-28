@@ -386,7 +386,7 @@ func (puc *PolyUseCase) TicketsCreating() error {
 		fmt.Println(k)
 
 		trueHour = timeNowP.Add(time.Duration(v[0].TimeZone-puc.timezone) * time.Hour).Hour()
-		if !sleepHoursUnifi[trueHour] || puc.timezone == 100 {
+		if !sleepHoursPoly[trueHour] || puc.timezone == 100 {
 
 			var vcsInfo []string
 
