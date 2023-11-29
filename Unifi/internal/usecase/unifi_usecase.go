@@ -100,10 +100,11 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 	//count12minute := 0
 	//count20minute := 0
 	countHourDBap := 0
-
-	countHourAnom := 0 //Здесь заложены 2 процесса, объединённых в 1 счётчик: получение аномалий с контроллера и выгрузка их в БД
+	//countHourAnom := 0 //Здесь заложены 2 процесса, объединённых в 1 счётчик: получение аномалий с контроллера и выгрузка их в БД
+	countHourAnom := [3]int{}
 	countDayDownloadMapsWithAnomalies := 0
 	countDayTicketCreateAnom := 0
+	//countDayTicketCreateAnom := [3]int{}
 	countDayUploadMachineToDB := 0
 	countDayDownlSiteApCutName := time.Now().Day()
 
@@ -134,8 +135,6 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 		6:  true,
 	}
 
-	//apMyMap := DownloadMapFromDBapsErr(wifiConf.GlpiConnectStringITsupport, bdController)
-	//mac_Ap, err = uuc.repo.DownloadMapFromDBapsErr()
 	mac_Ap, uuc.hostnameAp, err = uuc.repo.Download2MapFromDBaps()
 	if err != nil {
 		//fmt.Println("мапа точек доступа не смогла загрузиться из БД")
@@ -143,8 +142,6 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 		log.Fatalf("мапа точек доступа не смогла загрузиться из БД")
 	}
 
-	//siteApCutNameLogin := DownloadMapFromDBerr(wifiConf.GlpiConnectStringITsupport)
-	//siteApCutName_Login, err = uuc.repo.DownloadMapFromDBerr()
 	siteApCutName_Office, err = uuc.repo.DownloadMapOffice()
 	if err != nil {
 		//fmt.Println("мапа соответствия сайта и логина ответственного сотрудника не загрузилась")
@@ -153,8 +150,6 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 	}
 
 	uuc.mx.Lock() //блокируем на всю загрузку из БД мютекс у hostnameClient
-	//machineMyMap := DownloadMapFromDBmachinesErr(wifiConf.GlpiConnectStringITsupport, bdController)
-	//mac_Client, err = uuc.repo.DownloadMapFromDBmachinesErr()
 	mac_Client, uuc.hostnameClient, err = uuc.repo.Download2MapFromDBclient()
 	if err != nil {
 		//fmt.Println("мапа машин не смогла загрузиться из БД")
@@ -164,7 +159,6 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 	uuc.mx.Unlock()
 	//for k, v := range mac_Client {fmt.Println(k, v.Mac, v.Controller, v.Exception, v.ApMac, v.Modified, v.Hostname, v.SrID)}
 
-	//Удобно для тестирования, но не удобно в проде. закомментировать
 	timeNowU = time.Now()
 	before30days = timeNowU.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
 	timeNowU = time.Now()
@@ -190,8 +184,6 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 				uuc.repo.ChangeCntrlNumber(2)
 			}
 
-			//Снятие показаний с контроллера раз в 12 минут. Промежутки разные для контроллеров
-			//if timeNowU.Minute() != 0 && every12start[timeNowU.Minute()] && timeNowU.Minute() != count12minute {
 			//if uuc.everyCodeMap[timeNowU.Minute()] { //актуально для ИЛИ условия: timeNowU.Minute() != 0 || timeNowU.Minute() != count12minute
 			//count12minute = timeNowU.Minute()
 			fmt.Println(timeNowU.Format("02 January, 15:04:05"))
@@ -199,10 +191,11 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 			//err = uuc.ui.GetSites() //в uuc *UnifiUseCase подгружаются Sites
 			err = ui.GetSites() //в uuc *UnifiUseCase подгружаются Sites
 			if err == nil {
+
 				//обработка точек
-				//err = uuc.ui.AddAps(mac_Ap) //для загрузки требуются Sites. Берутся из ui
-				//err = ui.AddAps(mac_Ap) //для загрузки требуются Sites. Берутся из ui
+				uuc.mx.Lock()
 				err = ui.AddAps2Maps(mac_Ap, uuc.hostnameAp) //для загрузки требуются Sites. Берутся из ui
+				uuc.mx.Unlock()
 				if err == nil {
 					siteNameApCutName_Ap, errHandlAps := uuc.HandlingAps()
 					if errHandlAps == nil {
@@ -224,25 +217,22 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 						}
 					}
 
-					//Загрузка Клиентов с контроллера и обновление мапы Клиентов mac_Client
+					//Загрузка Клиентов с контроллера и обновление двух мап Клиентов
 					uuc.mx.Lock() //блокируем на всю загрузку из БД мютекс у hostnameClient
-					//err = ui.Update2MapClientsWithoutApMap(mac_Client, uuc.hostnameClient, timeNowU.Format("2006-01-02"))
 					err = ui.UpdateClients2MapWithoutApMap(mac_Client, uuc.hostnameClient, timeNowU.Format("2006-01-02"))
 					if err != nil {
 						fmt.Println(err.Error())
 						fmt.Println("Клиенты НЕ загрузились с контроллера")
 					}
 					uuc.mx.Unlock()
-					/*fmt.Println("вывод мапы после AddClients")
-					for k, v := range mac_Client {fmt.Println(k, v.Mac, v.Controller, v.Exception, v.ApMac, v.Modified, v.Hostname, v.SrID)}					}
-					time.Sleep(6000000 * time.Second)*/
 
 				} else {
 					fmt.Println(err.Error())
 					fmt.Println("точки доступа НЕ загрузились с контроллера")
 				}
 
-				if timeNowU.Hour() != countHourAnom {
+				//if timeNowU.Hour() != countHourAnom {
+				if timeNowU.Hour() != countHourAnom[uuc.controllerInt] {
 					fmt.Println("")
 					fmt.Println("Ежечасовое получение и занесение аномалий в БД")
 
@@ -256,7 +246,8 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 							fmt.Println(err.Error())
 						} else {
 							//Успешное прохождение Получения аномалий с контроллера + выгрузка их БД
-							countHourAnom = timeNowU.Hour()
+							//countHourAnom = timeNowU.Hour()
+							countHourAnom[uuc.controllerInt] = timeNowU.Hour()
 						}
 					}
 				}
@@ -579,6 +570,31 @@ func (uuc *UnifiUseCase) TicketsCreatingAps(siteNameApCutName_Ap map[string][]*e
 		} else {
 			fmt.Println("в мапе siteApCutName_Office нет соответствующего бакета офиса:")
 			fmt.Println(k)
+
+			ticket := &entity.Ticket{
+				//UserLogin:    siteApCutName_Login[k],
+				UserLogin:    "denis.tirskikh",
+				IncidentType: "Недоступна точка доступа",
+				Region:       "БиДВ",
+				Description: "Не создано соответствие Сайт_ИмяТочки и ответственного сотрудника по офису:" + "\n" +
+					k + "\n" +
+					"" + "\n",
+			}
+
+			err = uuc.soap.CreateTicketSmacWifi(ticket)
+			if err == nil {
+				fmt.Println(ticket.Url) //srTicketSlice[2])
+				//После создания снова пробегаемся по всему массиву точек и прописываем SrID
+				for _, ap := range v {
+					ap.SrID = ticket.ID
+					ap.CountAttempts = 0
+				}
+				//Удаляем запись в мапе. По новой логике, где мапа ДляТикета обновляется каждые 12 минут это не нужно
+				//delete(siteNameApCutName_Ap, k)
+			} else {
+				fmt.Println("тикет НЕ был создан. В точках srID НЕ был прописан")
+			}
+
 		}
 		fmt.Println("")
 	}
@@ -710,6 +726,9 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 						//беру последнюю добавленную аномалию в массив
 						anomalyStruct = client.SliceAnomalies[lenAnomStructSlice-1]
 						date = strings.Split(anomalyStruct.DateHour, " ")[0] //обрезаю только Date
+
+						log.Println("yesterday date    = " + yesterday)
+						log.Println("last anomaly date = " + date)
 
 						if yesterday == date {
 							//если за прошедшие сутки были аномалии

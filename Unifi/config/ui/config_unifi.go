@@ -75,7 +75,7 @@ func NewConfigUnifi() (*ConfigUi, error) {
 		55: true,
 	}
 
-	cfg.App.EveryCodeMap = map[int]int{
+	cfg.App.EveryCodeMap = map[int]int{ //[минута]номер контроллера
 		2:  2, // в начале часа различные выгрузки/загрузки в БД. нужно больше времени
 		9:  1,
 		15: 2,
