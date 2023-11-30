@@ -58,7 +58,12 @@ func (fok *Fokusov) getClient(c *gin.Context) {
 		fmt.Println("клиент найден в мапе клиентов")
 		fmt.Println(client.Hostname)
 		sliceAnomalies := []*entity.Anomaly{}
-		sliceAnomalies = client.SliceAnomalies
+
+		//sliceAnomalies = client.SliceAnomalies
+		//пересобираем массив в обратную сторону
+		for i := len(client.SliceAnomalies) - 1; i > -1; i-- {
+			sliceAnomalies = append(sliceAnomalies, client.SliceAnomalies[i])
+		}
 
 		// Call the render function with the title, article and the name of the
 		// template

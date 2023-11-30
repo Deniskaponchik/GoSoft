@@ -30,7 +30,11 @@ func (fok *Fokusov) getAP(c *gin.Context) {
 		fmt.Println("точка найдена в мапе")
 		fmt.Println(ap.Name)
 		sliceAnomalies := []*entity.Anomaly{}
-		sliceAnomalies = ap.SliceAnomalies
+
+		//пересобираем массив в обратную сторону
+		for i := len(ap.SliceAnomalies) - 1; i > -1; i-- {
+			sliceAnomalies = append(sliceAnomalies, ap.SliceAnomalies[i])
+		}
 
 		// Call the render function with the title, article and the name of the
 		// template
