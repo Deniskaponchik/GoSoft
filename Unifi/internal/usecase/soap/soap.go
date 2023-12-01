@@ -33,6 +33,7 @@ func NewSoap(s string, b string) *Soap {
 		bpmUrl:  b,
 		httpClient: &http.Client{
 			Timeout: 240 * time.Second, //bpm часто лагает. при 120 выдаёт: (context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
 					InsecureSkipVerify: true,

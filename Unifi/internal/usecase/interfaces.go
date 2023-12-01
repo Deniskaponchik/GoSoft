@@ -36,20 +36,20 @@ type (
 )
 
 type (
-	/*
-		Rest interface {
-			GetClientForRest(string) *entity.Client
-			GetApForRest(string) *entity.Ap
-		}*/
-	UnifiInterface interface {
-		GetClientForRest(string) *entity.Client //, error) //context.Context
-		InfinityProcessingUnifi()               //error
-		HandlingAps() (map[string][]*entity.Ap, error)
-		TicketsCreatingAps(map[string][]*entity.Ap) error
-		TicketsCreatingClientsWithAnomalySlice(map[string]*entity.Client) error
-		//TicketsCreatingMacClients(map[string]*entity.Client) error
-		//TicketsCreatingAnomalies(map[string][]*entity.Client) error
+	//implement usecase methods to web
+	UnifiRest interface {
+		GetClientForRest(string) *entity.Client
+		GetApForRest(string) *entity.Ap
 	}
+	/*
+		UnifiInterface interface {
+			GetClientForRest(string) *entity.Client //, error) //context.Context
+			GetApForRest(string) *entity.Ap
+			//InfinityProcessingUnifi()               //error
+			//HandlingAps() (map[string][]*entity.Ap, error)
+			//TicketsCreatingAps(map[string][]*entity.Ap) error
+			//TicketsCreatingClientsWithAnomalySlice(map[string]*entity.Client) error
+		}*/
 	UnifiRepo interface {
 		ChangeCntrlNumber(int)
 

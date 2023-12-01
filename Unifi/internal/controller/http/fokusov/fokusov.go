@@ -12,19 +12,20 @@ var router *gin.Engine
 
 type Fokusov struct {
 	//Router    *gin.Engine
+	Port string
+
 	UnifiUC *usecase.UnifiUseCase
 	//Rest 		*usecase.Rest  //interface
-	//UnifiClient *entity.Client
-	Port string
 }
 
 func New(uuc *usecase.UnifiUseCase, port string) *Fokusov { //router *gin.Engine,rest *usecase.Rest
 	return &Fokusov{
+		Port: port,
 		//Router: router,
 		//Router:  *gin.Engine,
+
 		UnifiUC: uuc,
-		//Rest:    rest,
-		Port: port,
+		//Rest:      uuc,
 	}
 }
 

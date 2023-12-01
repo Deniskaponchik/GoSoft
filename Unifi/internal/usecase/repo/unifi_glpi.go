@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" //для установки драйвера mysql. Сам пакет как бы не используется явно в коде
 	"log"
 	"strconv"
 	"strings"
@@ -23,7 +23,7 @@ type UnifiRepo struct {
 }
 
 // реализуем Инъекцию зависимостей DI. Используется в app
-func NewUnifiRepo(connectStr string, base string) (*UnifiRepo, error) { //, c int
+func NewUnifiRepo(connectStr string, base string) (*UnifiRepo, error) {
 	//fmt.Println(connectStr + "/" + db)
 	log.Println(connectStr + "/" + base)
 
@@ -1302,3 +1302,5 @@ func (ur *UnifiRepo) GetLoginPCerr(client *entity.Client) (err error) { //(entit
 	} //sql.Open
 	return nil //result
 }
+
+func (ur *UnifiRepo) Hidden() {}

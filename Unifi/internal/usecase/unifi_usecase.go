@@ -13,15 +13,17 @@ import (
 )
 
 type UnifiUseCase struct {
-	repo UnifiRepo //interface
+	repo UnifiRepo //interface. НЕ ИСПОЛЬЗОВАТЬ *
 	//repoRostov  UnifiRepo //interface
 	//repoNovosib UnifiRepo //interface
-	soap UnifiSoap
+
+	soap UnifiSoap //interface. НЕ ИСПОЛЬЗОВАТЬ *
 	//soapTest    UnifiSoap //interface
 	//soapProd    UnifiSoap //interface
+
 	//uint		    Ui
-	uiRostov  Ui //interface
-	uiNovosib Ui //interface
+	uiRostov  Ui //interface. НЕ ИСПОЛЬЗОВАТЬ *
+	uiNovosib Ui //interface. НЕ ИСПОЛЬЗОВАТЬ *
 
 	everyCodeMap   map[int]int //map[int]bool
 	controllerInt  int
@@ -37,10 +39,10 @@ type UnifiUseCase struct {
 func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, everyCodeInt map[int]int, timezone int, httpUrl string) *UnifiUseCase {
 	return &UnifiUseCase{
 		//Мы можем передать сюда ЛЮБОЙ репозиторий (pg, s3 и т.д.) НО КОД НЕ ПОМЕНЯЕТСЯ! В этом смысл DI
-		repo: r,
+		repo: r, //interface
 		//repoRostov:   rr,
 		//repoNovosib:	rn,
-		soap: s,
+		soap: s, //interface
 		//soapTest:     st,
 		//soapProd: 	sp,
 		uiRostov:       uiRostov,
@@ -719,12 +721,14 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 
 					webView := "http://" + uuc.httpUrl + "/client/view/" + client.Hostname
 
+					//https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring
+					//https://wiki.tele2.ru/pages/viewpage.action?pageId=168680976#id-[HelpdeskIT]SystemMonitoring-Аномалии
 					ticket.Description = "На ноутбуке:" + "\n" +
 						client.Hostname + "\n" + "" + "\n" +
 						"За последние 30 дней зафиксировано более 10 дней с Аномалиями качества работы Wi-Fi сети Tele2Corp" + "\n" +
 						"" + "\n" +
 						"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
-						"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+						"https://wiki.tele2.ru/pages/viewpage.action?pageId=168680976#id-[HelpdeskIT]SystemMonitoring-Аномалии" + "\n" +
 						"" + "\n" +
 						"Не нужно закрывать обращение, если кол-во дней с аномалиями за последние 30 дн. больше 10" + "\n" +
 						"!!! Создастся новый тикет !!!" + "\n" +

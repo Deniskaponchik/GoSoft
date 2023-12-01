@@ -17,7 +17,8 @@ type Ap struct {
 	SliceAnomalies []*Anomaly //Аномалии точки за 30 дней
 	Date30count    int        `example:"27"` //Используется в DownloadClientsWithAnomalySlice
 	//SliceClients   []*Client           //Аномалии точки за 30 дней
-	Ticket *Ticket
+	Ticket       *Ticket
+	CountAnomaly int //кол-во аномалий за последние 30 дней
 }
 
 type Client struct {
@@ -38,6 +39,7 @@ type Client struct {
 	Date30count             int                 `example:"27"` //Используется в DownloadClientsWithAnomalySlice
 	SliceAnomalies          []*Anomaly          //Аномалии клиента за 30 дней
 	Date_Anomaly            map[string]*Anomaly //Аномалии клиента за 30 дней. Вроде, не должна больше использоваться
+	CountAnomaly            int                 //кол-во аномалий за последние 30 дней
 }
 
 // Структура должна обнуляться каждый час и при выгрузке раз в сутки

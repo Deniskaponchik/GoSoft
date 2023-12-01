@@ -3,7 +3,8 @@ package app
 import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/config/ui"
-	"github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/fokusov"
+	//"github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/fokusov"
+	fokInterface "github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/fokInterface"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/soap"
@@ -23,9 +24,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	//log.SetOutput()
 	log.Println("")
 
-	//Zerro Log
-	//l := logger.New(cfg.Log.Level)
-	//l.Info("")
+	//Zerro Log  	//l := logger.New(cfg.Log.Level)   //l.Info("")
 
 	/* Repository
 	pg, err := postgres.New(cfg.PG.URL, postgres.MaxPoolSize(cfg.PG.PoolMax))
@@ -49,7 +48,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 
 	unifiUseCase := usecase.NewUnifiUC(
 		//repo.New(cfg.GLPI.GlpiConnectStrITsupport),
-		unifiRepo,
+		unifiRepo,                             //вставляем объект, который удовлетворяет интерфейсу UnifiRepo
 		soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
 		//ubiq.NewUbiq(unpoller),                //cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword),
 		//ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlstr),
@@ -79,14 +78,14 @@ func RunUnifi(cfg *ui.ConfigUi) {
 
 	//FOKUSOV
 	//router := *gin.Engine
-	httpFokusov := fokusov.New(
+	//httpFokusov := fokusov.New(
+	httpFokusov := fokInterface.New(
 		//gin.Engine,
 		unifiUseCase,
 		//usecase.Rest(),
 		cfg.HTTP.Port,
 	)
 	httpFokusov.Start()
-	//fmt.Println("HTTP Fokusov отправился в горутину")
 
 	/* EVRONE
 	handler := gin.New()
