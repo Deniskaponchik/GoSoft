@@ -1,6 +1,6 @@
 <div align="left">
-  <img src="https://github.com/Deniskaponchik/GoSoft/tree/main/Unifi/web/png/client.png" width="100"/>
-  <img src="https://github.com/Deniskaponchik/GoSoft/tree/main/Unifi/web/png/ap.png" width="100"/>
+  <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/Unifi/web/png/client.png" width="100"/>
+  <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/Unifi/web/png/ap.png" width="100"/>
 </div>
 
 # [Main]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/main/Unifi))
