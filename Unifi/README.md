@@ -1,3 +1,8 @@
+# Описание проекта
+Приложение подключается по API к Wi-Fi контроллеру на базу Unifi. <br/>
+Обрабатывает полученную информацию и создаёт обращение в корпоративной тикет-системе через SOAP, упорядочивает данные в БД MySQL или по запросу отображает клиентов и точек через web-интерфейс благодаря GIN-фреймворку. 
+
+# Внешний вид
 <div align="left">
   <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/Unifi/web/png/client.png" width="600"/>
 </div>
@@ -6,33 +11,33 @@
 </div>
 
 # [Main]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/main/Unifi))
-|                |                                                                                                                                                                                                            |
-|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| version        | 3.5                                                                                                                                                                                                        |
-| Code Structure | https://www.github.com/golang-standards/project-layout <br /> https://www.youtube.com/watch?v=V6lQG6d5LgU                                                                                                  |
-| ORM            | https://www.github.com/jinzhu/gorm                                                                                                                                                                         |
-| Web server     | https://www.github.com/gin-gonic/gin                                                                                                                                                                       |
-| Arguments      | -mode : TEST or PROD <br/> -time : server time zone <br/> -httpUrl : server url for created ticket <br/> -db : db name                                                                                     |
-| Unifi          | Оба контроллера обрабатываются в одном приложении                                                                                                                                                          |
-| Aps            | тикеты создаются со второй попытки (через 24 минуты)                                                                                                                                                       |
-| Clients        | При обработке каждого клиента информция заносится в 2 мапы: по маку и по имени машины.                                                                                                                     |
+|                |                                                                                                                                                                                                           |
+|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| version        | 3.5                                                                                                                                                                                                       |
+| Code Structure | https://www.github.com/golang-standards/project-layout <br/> https://www.youtube.com/watch?v=V6lQG6d5LgU                                                                                                  |
+| ORM            | https://www.github.com/jinzhu/gorm                                                                                                                                                                        |
+| Web server     | https://www.github.com/gin-gonic/gin                                                                                                                                                                      |
+| Arguments      | -mode : TEST or PROD <br/> -time : server time zone <br/> -httpUrl : server url for created ticket <br/> -db : db name                                                                                    |
+| Unifi          | Оба контроллера обрабатываются в одном приложении                                                                                                                                                         |
+| Aps            | тикеты создаются со второй попытки (через 24 минуты)                                                                                                                                                      |
+| Clients        | При обработке каждого клиента информция заносится в 2 мапы: по маку и по имени машины.                                                                                                                    |
 | Anomalies      | ЧАС. Информация заносится клиенту в МАССИВ аномалий. <br/> СУТКИ. Пробегаемся по МАПЕ клиентов, а не делаем запрос к БД. <br/> МЕСЯЦ. Дропаем массив аномалий у клиентов и загружаем снова из БД за 30 дн. |
-| Poly           | с перезагрузками, без отдельного web-интерфейса                                                                                                                                                            |
+| Poly           | с перезагрузками, без отдельного web-интерфейса                                                                                                                                                           |
 
 
 # [Dev3]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev3/Unifi))
-|               |                                                                                                                                                                                                            |
-|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| version       | 3.5                                                                                                                                                                                                        |
-| Code Structure | https://www.github.com/golang-standards/project-layout <br /> https://www.youtube.com/watch?v=V6lQG6d5LgU                                                                                                  |
-| ORM           | https://www.github.com/jinzhu/gorm                                                                                                                                                                         |
-| Web server    | https://www.github.com/gin-gonic/gin                                                                                                                                                                       |
-| Log           |                                                                                                                                                                                                            |
-| Unifi         | Оба контроллера обрабатываются в одном приложении                                                                                                                                                          |
-| Aps           | тикеты создаются со второй попытки (через 24 минуты)                                                                                                                                                       |
-| Clients       | При обработке каждого клиента информция заносится в 2 мапы: по маку и по имени машины.                                                                                                                     |
+|               |                                                                                                                                                                                                           |
+|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| version       | 3.5                                                                                                                                                                                                       |
+| Code Structure | https://www.github.com/golang-standards/project-layout <br/> https://www.youtube.com/watch?v=V6lQG6d5LgU                                                                                                  |
+| ORM           | https://www.github.com/jinzhu/gorm                                                                                                                                                                        |
+| Web server    | https://www.github.com/gin-gonic/gin                                                                                                                                                                      |
+| Log           |                                                                                                                                                                                                           |
+| Unifi         | Оба контроллера обрабатываются в одном приложении                                                                                                                                                         |
+| Aps           | тикеты создаются со второй попытки (через 24 минуты)                                                                                                                                                      |
+| Clients       | При обработке каждого клиента информция заносится в 2 мапы: по маку и по имени машины.                                                                                                                    |
 | Anomalies     | ЧАС. Информация заносится клиенту в МАССИВ аномалий. <br/> СУТКИ. Пробегаемся по МАПЕ клиентов, а не делаем запрос к БД. <br/> МЕСЯЦ. Дропаем массив аномалий у клиентов и загружаем снова из БД за 30 дн. |
-| Poly          | с перезагрузками, без отдельного web-интерфейса                                                                                                                                                            |
+| Poly          | с перезагрузками, без отдельного web-интерфейса                                                                                                                                                           |
 
 
 # [Dev2]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/dev2/Unifi))
