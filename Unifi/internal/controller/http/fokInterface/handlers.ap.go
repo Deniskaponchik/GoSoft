@@ -40,6 +40,10 @@ func (fok *Fokusov) getAP(c *gin.Context) {
 			anomalyTempMap[date] = date
 		}
 		ap.CountAnomaly = len(anomalyTempMap)
+		redMarker := false
+		if ap.CountAnomaly > 9 {
+			redMarker = true
+		}
 
 		// Call the render function with the title, article and the name of the
 		// template
@@ -47,6 +51,7 @@ func (fok *Fokusov) getAP(c *gin.Context) {
 			"title":        ap.Name,
 			"hostname":     ap.Name,
 			"countanomaly": ap.CountAnomaly,
+			"redmarker":    redMarker,
 			//"anomalies_struct": client.SliceAnomalies},
 			"anomalies_struct": sliceAnomalies},
 			"ap.html")

@@ -37,12 +37,8 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	unifiRepo, err := repo.NewUnifiRepo(cfg.GLPI.GlpiConnectStr, cfg.GLPI.DB)
 	//repoRostov, err := repo.NewUnifiRepo(cfg.GLPI.GlpiITsupport, cfg.GLPI.GlpiConnectStrGLPI, cfg.)
 	if err != nil {
-		//если БД недоступна - останавливаем тут же
-		//l.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))
 		log.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))
 	} else {
-		//fmt.Println("Проверка подключения к БД прошла успешно")
-		//l.Warn("Проверка подключения к БД прошла успешно")
 		log.Println("Проверка подключения к БД прошла успешно")
 	}
 

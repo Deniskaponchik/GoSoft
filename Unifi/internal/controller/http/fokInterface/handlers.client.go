@@ -69,6 +69,10 @@ func (fok *Fokusov) getClient(c *gin.Context) {
 			anomalyTempMap[date] = date
 		}
 		client.CountAnomaly = len(anomalyTempMap)
+		redMarker := false
+		if client.CountAnomaly > 9 {
+			redMarker = true
+		}
 
 		// Call the render function with the title, article and the name of the
 		// template
@@ -76,6 +80,7 @@ func (fok *Fokusov) getClient(c *gin.Context) {
 			"title":        client.Hostname,
 			"hostname":     client.Hostname,
 			"countanomaly": client.CountAnomaly,
+			"redmarker":    redMarker,
 			//"anomalies_struct": client.SliceAnomalies},
 			"anomalies_struct": sliceAnomalies},
 			"client.html")
