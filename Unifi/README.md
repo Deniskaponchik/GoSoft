@@ -1,8 +1,8 @@
 <div align="left">
-  <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/Unifi/web/png/client.png" width="0100"/>
+  <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/Unifi/web/png/client.png" width="600"/>
 </div>
 <div align="left">
-  <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/Unifi/web/png/ap.png" width="1000"/>
+  <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/Unifi/web/png/ap.png" width=600"/>
 </div>
 
 # [Main]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/main/Unifi))
