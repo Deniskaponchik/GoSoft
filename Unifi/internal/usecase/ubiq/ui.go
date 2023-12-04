@@ -421,15 +421,18 @@ func (ui *Ui) GetHourAnomaliesAddSlice(mac_Client map[string]*entity.Client, mac
 		}
 
 		for macClient, anomalyStruct := range mac_Anomaly {
-			client, exisClient := mac_Client[macClient]
-			if exisClient {
-				//мак клиента есть в мапе
-				client.SliceAnomalies = append(client.SliceAnomalies, anomalyStruct)
-			} else {
-				//мака клиента из ряда аномалии нет в мапе Клиентов
-				mac_Client[macClient] = &entity.Client{
-					Mac:            macClient,
-					SliceAnomalies: []*entity.Anomaly{anomalyStruct},
+			if len(anomalyStruct.SliceAnomStr) > 1 {
+				client, exisClient := mac_Client[macClient]
+				if exisClient {
+					//мак клиента есть в мапе
+					client.SliceAnomalies = append(client.SliceAnomalies, anomalyStruct)
+				} else {
+					/*мака клиента из ряда аномалии нет в мапе Клиентов
+					//Не имеешь права создавать структуру клиента в мапе macClient, не продублировав эту же запись в мапу hostnameClient
+					mac_Client[macClient] = &entity.Client{
+						Mac:            macClient,
+						SliceAnomalies: []*entity.Anomaly{anomalyStruct},
+					}*/
 				}
 			}
 		}
