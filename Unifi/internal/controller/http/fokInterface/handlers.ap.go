@@ -2,32 +2,30 @@
 package fokusov
 
 import (
-	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"github.com/gin-gonic/gin"
-	"log"
 	"strings"
 )
 
 func (fok *Fokusov) getAP(c *gin.Context) {
-	log.Println("")
+	fok.Logger.Println("")
 	// Check if the client hostname is valid
 	var apHostname string
 	apHostname = c.PostForm("ap_hostname")
 	if apHostname == "" {
 		apHostname = c.Param("ap_hostname")
-		fmt.Println("Точка взята из метода GET")
+		fok.Logger.Println("Точка взята из метода GET")
 	}
 	apHostname = strings.ToUpper(apHostname)
-	fmt.Println(apHostname)
+	fok.Logger.Println(apHostname)
 
 	//if client, err := getArticleByID(articleID); err == nil {
 	//ap := fok.UnifiUC.GetApForRest(apHostname)
 	ap := fok.Urest.GetApForRest(apHostname)
 
 	if ap != nil {
-		fmt.Println("точка найдена в мапе")
-		fmt.Println(ap.Name)
+		fok.Logger.Println("точка найдена в мапе")
+		//fmt.Println(ap.Name)
 		//sliceAnomalies := []*entity.Anomaly{}
 
 		var date string
@@ -64,7 +62,7 @@ func (fok *Fokusov) getAP(c *gin.Context) {
 			"ap.html")
 
 	} else {
-		fmt.Println("Точка НЕ найдена в мапе")
+		fok.Logger.Println("Точка НЕ найдена в мапе")
 		errMessage := "Access point not found: " + apHostname
 		// If the client is not found, abort with an error
 		//c.AbortWithError(http.StatusNotFound, err)

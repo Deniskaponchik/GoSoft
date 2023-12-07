@@ -17,7 +17,7 @@ func main() {
 
 	//https://stackoverflow.com/questions/48629988/remove-timestamp-prefix-from-go-logger
 	//time.Now().Format("2006-01-02 15:04:05")
-	FileNameUnifi := "log_Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
+	FileNameUnifi := "Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
 	fileLogUnifi, err := os.OpenFile(FileNameUnifi, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		log.Fatal(err)

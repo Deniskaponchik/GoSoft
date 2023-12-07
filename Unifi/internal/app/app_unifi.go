@@ -2,6 +2,8 @@ package app
 
 import (
 	"github.com/deniskaponchik/GoSoft/Unifi/config/ui"
+	"time"
+
 	//"github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/fokusov"
 	fokInterface "github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/fokInterface"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
@@ -66,14 +68,14 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	//err = unifiUseCase.InfinityProcessingUnifi() //cfg.BpmUrl, cfg.SoapUrl)
 	//if err != nil {		l.Fatal(log.Errorf("app - Run - InfinityUnifiProcessing: %w", err))	}
 
+	//
 	//FOKUSOV
-	//router := *gin.Engine
-	//httpFokusov := fokusov.New(
 	httpFokusov := fokInterface.New(
 		//gin.Engine,
 		unifiUseCase,
 		//usecase.Rest(),
 		cfg.HTTP.Port,
+		"Unifi_Gin_"+time.Now().Format("2006-01-02_15.04.05")+".log",
 	)
 	httpFokusov.Start()
 

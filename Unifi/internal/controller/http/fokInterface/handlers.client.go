@@ -2,10 +2,8 @@
 package fokusov
 
 import (
-	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"github.com/gin-gonic/gin"
-	"log"
 	"strings"
 )
 
@@ -38,24 +36,24 @@ func (fok *Fokusov) postClient(c *gin.Context){
 }*/
 
 func (fok *Fokusov) getClient(c *gin.Context) {
-	log.Println("")
+	fok.Logger.Println("")
 	// Check if the client hostname is valid
 	var clientHostname string
 	clientHostname = c.PostForm("cl_hostname")
 	if clientHostname == "" {
 		clientHostname = c.Param("client_hostname")
-		fmt.Println("Client взят из метода GET")
+		fok.Logger.Println("Client взят из метода GET")
 	}
 	clientHostname = strings.ToUpper(clientHostname)
-	fmt.Println(clientHostname)
+	fok.Logger.Println(clientHostname)
 
 	//if client, err := getArticleByID(articleID); err == nil {
 	//client := fok.UnifiUC.GetClientForRest(clientHostname)
 	client := fok.Urest.GetClientForRest(clientHostname)
 
 	if client != nil {
-		fmt.Println("клиент найден в мапе клиентов")
-		fmt.Println(client.Hostname)
+		fok.Logger.Println("клиент найден в мапе клиентов")
+		//fmt.Println(client.Hostname)
 		//sliceAnomalies := []*entity.Anomaly{}
 
 		j := 0
@@ -92,7 +90,7 @@ func (fok *Fokusov) getClient(c *gin.Context) {
 			"client.html")
 
 	} else {
-		fmt.Println("клиент НЕ найден в мапе клиентов")
+		fok.Logger.Println("клиент НЕ найден в мапе клиентов")
 		errMessage := "Client not found: " + clientHostname
 		// If the client is not found, abort with an error
 		//c.AbortWithError(http.StatusNotFound, err)

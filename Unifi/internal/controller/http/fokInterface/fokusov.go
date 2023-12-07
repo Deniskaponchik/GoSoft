@@ -1,11 +1,13 @@
 package fokusov
 
 import (
-	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
 	"github.com/gin-gonic/gin"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	//"time"
 )
 
 var router *gin.Engine
@@ -15,23 +17,37 @@ type Fokusov struct {
 	Port string
 
 	//UnifiUC *usecase.UnifiUseCase
-	Urest usecase.UnifiRest //interface. НЕ ИСПОЛЬЗОВАТЬ *
+	Urest       usecase.UnifiRest //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
+	LogFileName string
+	Logger      *log.Logger
 }
 
-func New(uuc *usecase.UnifiUseCase, port string) *Fokusov { //router *gin.Engine,rest *usecase.Rest
+func New(uuc *usecase.UnifiUseCase, port string, logFileName string) *Fokusov { //router *gin.Engine,rest *usecase.Rest
 	return &Fokusov{
 		Port: port,
 		//Router: router,
 		//Router:  *gin.Engine,
 
 		//UnifiUC: uuc,
-		Urest: uuc, //использовать структуру, реализующие методы интерфейса usecase.UnifiRest
+		Urest:       uuc, //использовать структуру, реализующие методы интерфейса usecase.UnifiRest
+		LogFileName: logFileName,
 	}
 }
 
 func (fok *Fokusov) Start() {
-	// Set Gin to production mode
-	gin.SetMode(gin.ReleaseMode)
+
+	//FileNameGin := "Unifi_Gin_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
+	fileLogGin, err := os.OpenFile(fok.LogFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	multiWriter := io.MultiWriter(os.Stdout, fileLogGin)
+
+	gin.DefaultWriter = multiWriter
+	gin.DefaultErrorWriter = multiWriter
+	fok.Logger = log.New(multiWriter, "", 0)
+
+	gin.SetMode(gin.ReleaseMode) // Set Gin to production mode
 
 	// Set the router as the default one provided by Gin
 	router = gin.Default()
@@ -75,11 +91,12 @@ func (fok *Fokusov) Start() {
 		apRoutes.GET("/view/:ap_hostname", fok.getAP)
 	}
 
-	// Start serving the application
 	//port := ":" + fok.Port
-	fmt.Println(fok.Port)
+	//fmt.Println(fok.Port)
+	fok.Logger.Println(fok.Port)
+	//gin.Context{}.String()
 	//router.Run(":8081")
-	err := router.Run(":" + fok.Port)
+	err = router.Run(":" + fok.Port)
 	//fok.Router.Run()
 	if err != nil {
 		log.Fatalf(err.Error())
