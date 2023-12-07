@@ -1,3 +1,18 @@
+### IntelliJ IDEA ###
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+target/
+.idea/
+.idea
+.repository/
+*.iml
+*.iws
+*.info
+*.properties
+*.xml
+
+### APP ###
 *.log
 *.txt
 *.bat
