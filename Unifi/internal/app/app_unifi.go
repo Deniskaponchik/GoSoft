@@ -3,6 +3,9 @@ package app
 import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/config/ui"
+	"os"
+	"time"
+
 	//"github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/fokusov"
 	fokInterface "github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/fokInterface"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
@@ -17,13 +20,17 @@ import (
 func RunUnifi(cfg *ui.ConfigUi) {
 	//fmt.Println("")
 
-	//удалить префикс времени в логах
 	//https://stackoverflow.com/questions/48629988/remove-timestamp-prefix-from-go-logger
-	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
-	log.SetFlags(0)
-	//log.SetOutput()
+	//time.Now().Format("2006-01-02 15:04:05")
+	FileNameUnifi := "log_Unifi_" + time.Now().Format("2006-01-02 15:04:05") + ".txt"
+	fileLogUnifi, err := os.OpenFile(FileNameUnifi, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.SetOutput(fileLogUnifi)
+	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime)) //удалить префикс времени в логах
+	log.SetFlags(0)                                      //удалить префикс времени в логах
 	log.Println("")
-
 	//Zerro Log  	//l := logger.New(cfg.Log.Level)   //l.Info("")
 
 	/* Repository
@@ -53,6 +60,10 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		cfg.App.EveryCodeMap,
 		cfg.App.TimeZone,
 		cfg.HTTP.URL,
+
+		cfg.Ubiquiti.Daily,
+		cfg.Ubiquiti.H1,
+		cfg.Ubiquiti.H2,
 	)
 
 	go unifiUseCase.InfinityProcessingUnifi()

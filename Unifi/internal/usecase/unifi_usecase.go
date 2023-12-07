@@ -25,7 +25,10 @@ type UnifiUseCase struct {
 	uiRostov  Ui //interface. НЕ ИСПОЛЬЗОВАТЬ *
 	uiNovosib Ui //interface. НЕ ИСПОЛЬЗОВАТЬ *
 
-	everyCodeMap   map[int]int //map[int]bool
+	everyCodeMap             map[int]int //map[int]bool
+	countDayTicketCreateAnom int
+	countHourAnom            [3]int
+
 	controllerInt  int
 	timezone       int
 	httpUrl        string
@@ -36,7 +39,8 @@ type UnifiUseCase struct {
 
 // реализуем Инъекцию зависимостей DI. Используется в app
 // rr UnifiRepo, rn UnifiRepo, st UnifiSoap, sp UnifiSoap, uiRostov Ui, uiNovosib Ui,
-func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, everyCodeInt map[int]int, timezone int, httpUrl string) *UnifiUseCase {
+func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, everyCodeInt map[int]int, timezone int, httpUrl string,
+	countDayTicketCreateAnom int, h1 int, h2 int) *UnifiUseCase {
 	return &UnifiUseCase{
 		//Мы можем передать сюда ЛЮБОЙ репозиторий (pg, s3 и т.д.) НО КОД НЕ ПОМЕНЯЕТСЯ! В этом смысл DI
 		repo: r, //interface
@@ -45,13 +49,15 @@ func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, everyCodeIn
 		soap: s, //interface
 		//soapTest:     st,
 		//soapProd: 	sp,
-		uiRostov:       uiRostov,
-		uiNovosib:      uiNovosib,
-		everyCodeMap:   everyCodeInt,
-		timezone:       timezone,
-		httpUrl:        httpUrl,
-		hostnameClient: make(map[string]*entity.Client),
-		hostnameAp:     make(map[string]*entity.Ap),
+		uiRostov:                 uiRostov,
+		uiNovosib:                uiNovosib,
+		everyCodeMap:             everyCodeInt,
+		timezone:                 timezone,
+		httpUrl:                  httpUrl,
+		hostnameClient:           make(map[string]*entity.Client),
+		hostnameAp:               make(map[string]*entity.Ap),
+		countDayTicketCreateAnom: countDayTicketCreateAnom,
+		countHourAnom:            [3]int{0, h1, h2},
 	}
 }
 
@@ -96,17 +102,17 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 
 	//удалить префикс времени в логах
 	//https://stackoverflow.com/questions/48629988/remove-timestamp-prefix-from-go-logger
-	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
-	log.SetFlags(0)
+	//log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+	//log.SetFlags(0)
 
 	//count12minute := 0
 	//count20minute := 0
 	countHourDBap := 0
 	//countHourAnom := 0 //Здесь заложены 2 процесса, объединённых в 1 счётчик: получение аномалий с контроллера и выгрузка их в БД
-	countHourAnom := [3]int{}
+	//countHourAnom := [3]int{} //перенёс в uuc
 	countDayDownloadMapsWithAnomalies := 0
-	countDayTicketCreateAnom := 0
-	//countDayTicketCreateAnom := [3]int{}
+	//countDayTicketCreateAnom := 0 //перенёс в uuc
+
 	countDayUploadMachineToDB := 0
 	countDayDownlSiteApCutName := time.Now().Day()
 
@@ -139,14 +145,14 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 
 	mac_Ap, uuc.hostnameAp, err = uuc.repo.Download2MapFromDBaps()
 	if err != nil {
-		//fmt.Println("мапа точек доступа не смогла загрузиться из БД")
+		//log.Println("мапа точек доступа не смогла загрузиться из БД")
 		//return err //прекращаем работу скрипта
 		log.Fatalf("мапа точек доступа не смогла загрузиться из БД")
 	}
 
 	siteApCutName_Office, err = uuc.repo.DownloadMapOffice()
 	if err != nil {
-		//fmt.Println("мапа соответствия сайта и логина ответственного сотрудника не загрузилась")
+		//log.Println("мапа соответствия сайта и логина ответственного сотрудника не загрузилась")
 		//return err //прекращаем работу скрипта
 		log.Fatalf("мапа ответсвенных за офис не смогла загрузиться из БД")
 	}
@@ -154,12 +160,12 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 	uuc.mx.Lock() //блокируем на всю загрузку из БД мютекс у hostnameClient
 	mac_Client, uuc.hostnameClient, err = uuc.repo.Download2MapFromDBclient()
 	if err != nil {
-		//fmt.Println("мапа машин не смогла загрузиться из БД")
+		//log.Println("мапа машин не смогла загрузиться из БД")
 		//return err //прекращаем работу скрипта
 		log.Fatalf("мапа машин не смогла загрузиться из БД")
 	}
 	uuc.mx.Unlock()
-	//for k, v := range mac_Client {fmt.Println(k, v.Mac, v.Controller, v.Exception, v.ApMac, v.Modified, v.Hostname, v.SrID)}
+	//for k, v := range mac_Client {log.Println(k, v.Mac, v.Controller, v.Exception, v.ApMac, v.Modified, v.Hostname, v.SrID)}
 
 	timeNowU = time.Now()
 	before30days = timeNowU.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
@@ -234,7 +240,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 				}
 
 				//if timeNowU.Hour() != countHourAnom {
-				if timeNowU.Hour() != countHourAnom[uuc.controllerInt] {
+				if timeNowU.Hour() != uuc.countHourAnom[uuc.controllerInt] {
 					fmt.Println("")
 					fmt.Println("Ежечасовое получение и занесение аномалий в БД")
 
@@ -249,7 +255,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 						} else {
 							//Успешное прохождение Получения аномалий с контроллера + выгрузка их БД
 							//countHourAnom = timeNowU.Hour()
-							countHourAnom[uuc.controllerInt] = timeNowU.Hour()
+							uuc.countHourAnom[uuc.controllerInt] = timeNowU.Hour()
 						}
 					}
 				}
@@ -259,7 +265,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 				fmt.Println("sites НЕ загрузились с контроллера")
 			}
 
-			if timeNowU.Day() != countDayTicketCreateAnom {
+			if timeNowU.Day() != uuc.countDayTicketCreateAnom {
 				fmt.Println("")
 				fmt.Println("Ежесуточное создание заявок по аномалиям")
 
@@ -284,7 +290,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 						fmt.Println("Создание заявок на основании аномалий за 30 дней завершилось ошибкой")
 						fmt.Println(err.Error())
 					} else {
-						countDayTicketCreateAnom = timeNowU.Day()
+						uuc.countDayTicketCreateAnom = timeNowU.Day()
 					}
 				}
 			}

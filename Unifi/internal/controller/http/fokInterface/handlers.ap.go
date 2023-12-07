@@ -28,13 +28,20 @@ func (fok *Fokusov) getAP(c *gin.Context) {
 	if ap != nil {
 		fmt.Println("точка найдена в мапе")
 		fmt.Println(ap.Name)
-		sliceAnomalies := []*entity.Anomaly{}
+		//sliceAnomalies := []*entity.Anomaly{}
 
 		var date string
+		j := 0
 		anomalyTempMap := make(map[string]string)
+
 		//пересобираем массив в обратную сторону
-		for i := len(ap.SliceAnomalies) - 1; i > -1; i-- {
-			sliceAnomalies = append(sliceAnomalies, ap.SliceAnomalies[i])
+		lenApSliceAnom := len(ap.SliceAnomalies)
+		sliceAnomalies := make([]*entity.Anomaly, int(lenApSliceAnom))
+		//for i := len(ap.SliceAnomalies) - 1; i > -1; i-- {
+		for i := lenApSliceAnom - 1; i > -1; i-- {
+			//sliceAnomalies = append(sliceAnomalies, ap.SliceAnomalies[i])
+			sliceAnomalies[j] = ap.SliceAnomalies[i]
+			j++
 
 			date = strings.Split(ap.SliceAnomalies[i].DateHour, " ")[0]
 			anomalyTempMap[date] = date

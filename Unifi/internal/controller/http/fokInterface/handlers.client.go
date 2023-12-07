@@ -56,14 +56,20 @@ func (fok *Fokusov) getClient(c *gin.Context) {
 	if client != nil {
 		fmt.Println("клиент найден в мапе клиентов")
 		fmt.Println(client.Hostname)
-		sliceAnomalies := []*entity.Anomaly{}
+		//sliceAnomalies := []*entity.Anomaly{}
 
+		j := 0
 		var date string
 		anomalyTempMap := make(map[string]string)
-		//sliceAnomalies = client.SliceAnomalies
+
 		//пересобираем массив в обратную сторону
-		for i := len(client.SliceAnomalies) - 1; i > -1; i-- {
-			sliceAnomalies = append(sliceAnomalies, client.SliceAnomalies[i])
+		lenClSliceAnom := len(client.SliceAnomalies)
+		sliceAnomalies := make([]*entity.Anomaly, int(lenClSliceAnom))
+		//for i := len(client.SliceAnomalies) - 1; i > -1; i-- {
+		for i := lenClSliceAnom - 1; i > -1; i-- {
+			//sliceAnomalies = append(sliceAnomalies, client.SliceAnomalies[i])
+			sliceAnomalies[j] = client.SliceAnomalies[i]
+			j++
 
 			date = strings.Split(client.SliceAnomalies[i].DateHour, " ")[0]
 			anomalyTempMap[date] = date

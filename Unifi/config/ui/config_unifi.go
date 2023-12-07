@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
 	"strings"
+	"time"
 )
 
 func NewConfigUnifi() (*ConfigUi, error) {
@@ -75,28 +76,41 @@ func NewConfigUnifi() (*ConfigUi, error) {
 		55: true,
 	}
 
+	/*
+		cfg.App.EveryCodeMap = map[int]int{ //[минута]номер контроллера
+			2:  2, // в начале часа различные выгрузки/загрузки в БД. нужно больше времени
+			9:  1,
+			15: 2,
+			21: 1,
+			27: 2,
+			33: 1,
+			39: 2,
+			45: 1,
+			51: 2,
+			57: 1,
+		}*/
 	cfg.App.EveryCodeMap = map[int]int{ //[минута]номер контроллера
-		2:  2, // в начале часа различные выгрузки/загрузки в БД. нужно больше времени
-		9:  1,
-		15: 2,
-		21: 1,
-		27: 2,
-		33: 1,
-		39: 2,
-		45: 1,
-		51: 2,
-		57: 1,
+		2:  1, // в начале часа различные выгрузки/загрузки в БД. нужно больше времени
+		9:  2,
+		15: 1,
+		21: 2,
+		27: 1,
+		33: 2,
+		39: 1,
+		45: 2,
+		51: 1,
+		57: 2,
 	}
 
 	//https://stackoverflow.com/questions/2707434/how-to-access-command-line-arguments-passed-to-a-go-program
-	//mode := "TEST"
 	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
 	db := flag.String("db", "it_support_db_3", "database for unifi tables")
 	//controller := flag.String("cntrl", "Rostov", "controller: Novosib, Rostov")
 	timezone := flag.Int("time", 100, "Time hour from Moscow") //100-заявки создаются минута в минуту без задержек по ночам
-	//port := flag.Int("port", 8081, "Port for web-server")
-	//port := flag.String("port", "8081", "Port for web-server")
 	httpUrl := flag.String("httpUrl", "wsir-it-03:8081", "url of web-server")
+	daily := flag.Int("daily", time.Now().Day(), "To do daily anomaly creating tickets")
+	h1 := flag.Int("h1", time.Now().Hour(), "To do hourly anomaly downloading to DB")
+	h2 := flag.Int("h2", time.Now().Hour(), "To do hourly anomaly downloading to DB")
 	flag.Parse()
 
 	//cfg.InnerVars.Mode = *mode
@@ -126,7 +140,13 @@ func NewConfigUnifi() (*ConfigUi, error) {
 	cfg.App.TimeZone = *timezone
 	cfg.HTTP.URL = *httpUrl
 	cfg.HTTP.Port = strings.Split(*httpUrl, ":")[1]
-	//cfg.HTTP.Port = *port
+	cfg.Ubiquiti.Daily = *daily
+	cfg.Ubiquiti.H1 = *h1
+	if cfg.Ubiquiti.H1 == 0 {
+		cfg.Ubiquiti.H2 = 0
+	} else {
+		cfg.Ubiquiti.H2 = *h2
+	}
 
 	fmt.Println("Mode: ", *mode) //cfg.InnerVars.Mode)
 	//fmt.Println("Controller: ", cfg.Ubiquiti.UiContrlstr)
@@ -171,6 +191,9 @@ type (
 		UiContrlNovosib string `env-required:"true" yaml:"contrl_novosib"  env:"UNIFI_CONTROLLER_NOVOSIB"`
 		//UiContrlstr     string
 		//UiContrlint     int //для совместного приложения двух контроллеров не должен приходить с конфигом
+		Daily int
+		H1    int
+		H2    int
 	}
 	Bpm struct {
 		BpmUrl  string //`env-required:"false"`
