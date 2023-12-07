@@ -5,7 +5,6 @@ package repo
 import (
 	"bytes"
 	"database/sql"
-	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	_ "github.com/go-sql-driver/mysql" //для установки драйвера mysql. Сам пакет как бы не используется явно в коде
 	"log"
@@ -24,7 +23,7 @@ type UnifiRepo struct {
 
 // реализуем Инъекцию зависимостей DI. Используется в app
 func NewUnifiRepo(connectStr string, base string) (*UnifiRepo, error) {
-	//fmt.Println(connectStr + "/" + db)
+	//log.Println(connectStr + "/" + db)
 	log.Println(connectStr + "/" + base)
 
 	pr := &UnifiRepo{
@@ -40,14 +39,14 @@ func NewUnifiRepo(connectStr string, base string) (*UnifiRepo, error) {
 		if errDBping == nil {
 			return pr, nil
 		} else {
-			fmt.Println("db.Ping failed:", errDBping)
-			fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+			log.Println("db.Ping failed:", errDBping)
+			log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
 			return nil, errDBping
 		}
 	} else {
-		fmt.Println("Error creating DB:", errSqlOpen)
-		fmt.Println("To verify, db is:", db)
-		fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+		log.Println("Error creating DB:", errSqlOpen)
+		log.Println("To verify, db is:", db)
+		log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
 		return nil, errSqlOpen
 	}
 	//return pr, nil
@@ -84,14 +83,14 @@ func (ur *UnifiRepo) UpdateDbAnomaly(mac_Anomaly map[string]*entity.Anomaly) (er
 	if last := len(query) - 1; last >= 0 && query[last] == ',' {
 		query = query[:last]
 	}
-	fmt.Println(query)
+	log.Println(query)
 	if countB1 != 0 {
 		//UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
 		err = ur.UploadMapsToDBerr(query)
 	} else {
-		fmt.Println("Передана пустая карта. Запрос не выполнен")
+		log.Println("Передана пустая карта. Запрос не выполнен")
 	}
-	fmt.Println("")
+	log.Println("")
 
 	return nil
 }
@@ -131,15 +130,15 @@ func (ur *UnifiRepo) UpdateDbClient(mac_Client map[string]*entity.Client) (err e
 		}
 	}
 	query = b1.String()
-	fmt.Println(query)
+	log.Println(query)
 	if count != 0 {
 		//UploadMapsToDBstring("it_support_db", query)
 		//UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
 		ur.UploadMapsToDBerr(query)
 	} else {
-		fmt.Println("Передана пустая карта. Запрос не выполнен")
+		log.Println("Передана пустая карта. Запрос не выполнен")
 	}
-	fmt.Println("")
+	log.Println("")
 	return nil
 }
 
@@ -173,15 +172,15 @@ func (ur *UnifiRepo) UpdateDbAp(mapAp map[string]*entity.Ap) (err error) {
 		}
 	}
 	query = b1.String()
-	fmt.Println(query)
+	log.Println(query)
 	if count != 0 {
 		//UploadMapsToDBstring("it_support_db", query)
 		//UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
 		ur.UploadMapsToDBerr(query)
 	} else {
-		fmt.Println("Передана пустая карта. Запрос не выполнен")
+		log.Println("Передана пустая карта. Запрос не выполнен")
 	}
-	fmt.Println("")
+	log.Println("")
 
 	return nil
 }
@@ -201,33 +200,33 @@ func (ur *UnifiRepo) UploadMapsToDBerr(query string) (err error) {
 					myError = 0
 					return nil
 					/*
-						fmt.Println("Вывод мапы ВНУТРИ функции")
+						log.Println("Вывод мапы ВНУТРИ функции")
 						for k, v := range m {
-							fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+							log.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
 						}*/
 				} else {
 					//panic(errQuery.Error()) // proper error handling instead of panic in your app
-					fmt.Println(errQuery.Error())
-					fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
-					//fmt.Println("Будет предпринята новая попытка через 1 минут")
+					log.Println(errQuery.Error())
+					log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+					//log.Println("Будет предпринята новая попытка через 1 минут")
 					//time.Sleep(60 * time.Second)
 					myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
 					err = errQuery
 				}
 			} else {
-				fmt.Println("db.Ping failed:", errDBping)
-				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				myError++
 				err = errDBping
 			}
 		} else {
 			//log.Print(errSqlOpen.Error())
-			fmt.Println("Error creating DB:", errSqlOpen)
-			fmt.Println("To verify, db is:", db)
-			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			myError++
 			err = errSqlOpen
@@ -258,7 +257,7 @@ func (ur *UnifiRepo) DownloadMacMapsClientApWithAnomaly(macClient map[string]*en
 				//queryAfter := "SELECT * FROM it_support_db.anomalies WHERE controller = " + strconv.Itoa(int(bdController))
 				//queryAfter := "SELECT * FROM " + ur.databaseITsup + ".anomaly WHERE date_hour >= '" + beforeDays + "' AND controller = " + strconv.Itoa(int(ur.controller)) + " AND exception = 0 order by date_hour DESC"
 				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".anomaly WHERE date_hour >= '" + beforeDays + "' AND exception = 0 order by date_hour"
-				fmt.Println(queryAfter)
+				log.Println(queryAfter)
 
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)
@@ -334,57 +333,57 @@ func (ur *UnifiRepo) DownloadMacMapsClientApWithAnomaly(macClient map[string]*en
 								//}
 							} else {
 								//panic(errScan.Error()) // proper error handling instead of panic in your app
-								fmt.Println(errScan.Error())
-								fmt.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
-								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								log.Println(errScan.Error())
+								log.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
+								log.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
 								myError = 0
 								//break
 							}
 						}
 						if errRowsNext := results.Err(); errRowsNext != nil {
-							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							log.Println("Цикл прохода по результирующим рядам завершился не корректно")
 							//если есть ошибка прохода по строкам, отправляем на перезапрос
 							myError = 0
 						}
 						if myError != 1 {
 							//results.Close()
 							if errRowsClose := results.Close(); errRowsClose != nil {
-								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+								log.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
 							}
 							//db.Close()
 							if errDBclose := db.Close(); errDBclose != nil {
-								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+								log.Println("Закрытие подключения к БД завершилось не корректно")
 							}
 							myError = 0
 
 						} else {
-							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//log.Println("Будет предпринята новая попытка запроса через 1 минут")
 							//time.Sleep(60 * time.Second)
 							myError = 0
 						}
 					} else {
 						//panic(errQuery.Error()) // proper error handling instead of panic in your app
-						fmt.Println(errQuery.Error())
-						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
-						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						log.Println(errQuery.Error())
+						log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//log.Println("Будет предпринята новая попытка через 1 минут")
 						//time.Sleep(60 * time.Second)
 						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
 					}
 				} //db.Query
 			} else {
-				fmt.Println("db.Ping failed:", errDBping)
-				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				//myError = 1
 				myError++
 			}
 		} else {
 			//log.Print(errSqlOpen.Error())
-			fmt.Println("Error creating DB:", errSqlOpen)
-			fmt.Println("To verify, db is:", db)
-			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			//myError = 1
 			myError++
@@ -414,7 +413,7 @@ func (ur *UnifiRepo) DownloadClientsWithAnomalySlice(mac_Client map[string]*enti
 				//queryAfter := "SELECT * FROM it_support_db.anomalies WHERE controller = " + strconv.Itoa(int(bdController))
 				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".anomaly WHERE date_hour >= '" + beforeDays + "' AND controller = " +
 					strconv.Itoa(int(ur.controller)) + " AND exception = 0 order by date_hour DESC"
-				fmt.Println(queryAfter)
+				log.Println(queryAfter)
 
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)
@@ -467,57 +466,57 @@ func (ur *UnifiRepo) DownloadClientsWithAnomalySlice(mac_Client map[string]*enti
 								//}
 							} else {
 								//panic(errScan.Error()) // proper error handling instead of panic in your app
-								fmt.Println(errScan.Error())
-								fmt.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
-								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								log.Println(errScan.Error())
+								log.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
+								log.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
 								myError = 0
 								//break
 							}
 						}
 						if errRowsNext := results.Err(); errRowsNext != nil {
-							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							log.Println("Цикл прохода по результирующим рядам завершился не корректно")
 							//если есть ошибка прохода по строкам, отправляем на перезапрос
 							myError = 0
 						}
 						if myError != 1 {
 							//results.Close()
 							if errRowsClose := results.Close(); errRowsClose != nil {
-								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+								log.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
 							}
 							//db.Close()
 							if errDBclose := db.Close(); errDBclose != nil {
-								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+								log.Println("Закрытие подключения к БД завершилось не корректно")
 							}
 							myError = 0
 
 						} else {
-							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//log.Println("Будет предпринята новая попытка запроса через 1 минут")
 							//time.Sleep(60 * time.Second)
 							myError = 0
 						}
 					} else {
 						//panic(errQuery.Error()) // proper error handling instead of panic in your app
-						fmt.Println(errQuery.Error())
-						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
-						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						log.Println(errQuery.Error())
+						log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//log.Println("Будет предпринята новая попытка через 1 минут")
 						//time.Sleep(60 * time.Second)
 						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
 					}
 				} //db.Query
 			} else {
-				fmt.Println("db.Ping failed:", errDBping)
-				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				//myError = 1
 				myError++
 			}
 		} else {
 			//log.Print(errSqlOpen.Error())
-			fmt.Println("Error creating DB:", errSqlOpen)
-			fmt.Println("To verify, db is:", db)
-			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			//myError = 1
 			myError++
@@ -546,7 +545,7 @@ func (ur *UnifiRepo) DownloadMacClientsWithAnomalies(mac_Client map[string]*enti
 				//queryAfter := "SELECT * FROM it_support_db.anomalies WHERE controller = " + strconv.Itoa(int(bdController))
 				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".anomaly WHERE date_hour >= '" + beforeDays +
 					"' AND controller = " + strconv.Itoa(int(ur.controller)) + " AND exception = 0"
-				fmt.Println(queryAfter)
+				log.Println(queryAfter)
 
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)
@@ -580,7 +579,7 @@ func (ur *UnifiRepo) DownloadMacClientsWithAnomalies(mac_Client map[string]*enti
 
 								client, exisMacClient := mac_Client[tag.ClientMac]
 								if !exisMacClient {
-									//fmt.Println(tag.ClientMac + " не был создан в мапе Клиентов. СОЗДАНИЕ клиента")
+									//log.Println(tag.ClientMac + " не был создан в мапе Клиентов. СОЗДАНИЕ клиента")
 
 									date_Anomaly := make(map[string]*entity.Anomaly) //date == 2023-09-01
 									date_Anomaly[date] = entityAnomaly
@@ -597,7 +596,7 @@ func (ur *UnifiRepo) DownloadMacClientsWithAnomalies(mac_Client map[string]*enti
 
 									if client.DateTicketCreateAttempt != timeNow.Day() {
 										//если заходов на создание мапы аномалий сегодня ещё не было
-										//fmt.Println(tag.ClientMac + "заходов на создание мапы сегодня ещё не было. СОЗДАНИЕ мапы")
+										//log.Println(tag.ClientMac + "заходов на создание мапы сегодня ещё не было. СОЗДАНИЕ мапы")
 
 										client.DateTicketCreateAttempt = timeNow.Day()
 
@@ -608,7 +607,7 @@ func (ur *UnifiRepo) DownloadMacClientsWithAnomalies(mac_Client map[string]*enti
 
 									} else {
 										//если новая мапа аномалий сегодня уже была создана
-										//fmt.Println(tag.ClientMac + "мапа аномалий сегодня уже создана. ОБНОВЛЕНИЕ мапы")
+										//log.Println(tag.ClientMac + "мапа аномалий сегодня уже создана. ОБНОВЛЕНИЕ мапы")
 										//создаём новый бакет
 										//client.Date_Anomaly[date] = entityAnomaly
 										client.Date_Anomaly[date] = &entity.Anomaly{
@@ -627,57 +626,57 @@ func (ur *UnifiRepo) DownloadMacClientsWithAnomalies(mac_Client map[string]*enti
 								//} //if len(anomSlice) > 2 {
 							} else {
 								//panic(errScan.Error()) // proper error handling instead of panic in your app
-								fmt.Println(errScan.Error())
-								fmt.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
-								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								log.Println(errScan.Error())
+								log.Println("Сканирование строки и занесение в переменные структуры завершилось ошибкой")
+								log.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
 								myError = 0
 								//break
 							}
 						}
 						if errRowsNext := results.Err(); errRowsNext != nil {
-							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							log.Println("Цикл прохода по результирующим рядам завершился не корректно")
 							//если есть ошибка прохода по строкам, отправляем на перезапрос
 							myError = 0
 						}
 						if myError != 1 {
 							//results.Close()
 							if errRowsClose := results.Close(); errRowsClose != nil {
-								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+								log.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
 							}
 							//db.Close()
 							if errDBclose := db.Close(); errDBclose != nil {
-								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+								log.Println("Закрытие подключения к БД завершилось не корректно")
 							}
 							myError = 0
 
 						} else {
-							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//log.Println("Будет предпринята новая попытка запроса через 1 минут")
 							//time.Sleep(60 * time.Second)
 							myError = 0
 						}
 					} else {
 						//panic(errQuery.Error()) // proper error handling instead of panic in your app
-						fmt.Println(errQuery.Error())
-						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
-						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						log.Println(errQuery.Error())
+						log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//log.Println("Будет предпринята новая попытка через 1 минут")
 						//time.Sleep(60 * time.Second)
 						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
 					}
 				} //db.Query
 			} else {
-				fmt.Println("db.Ping failed:", errDBping)
-				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				//myError = 1
 				myError++
 			}
 		} else {
 			//log.Print(errSqlOpen.Error())
-			fmt.Println("Error creating DB:", errSqlOpen)
-			fmt.Println("To verify, db is:", db)
-			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			//myError = 1
 			myError++
@@ -707,7 +706,7 @@ func (ur *UnifiRepo) Download2MapFromDBclient() (map[string]*entity.Client, map[
 				//queryAfter := "SELECT * FROM it_support_db.machine WHERE controller = " + strconv.Itoa(int(bdController))
 				//queryAfter := "SELECT * FROM " + ur.databaseITsup + ".client WHERE controller = " + strconv.Itoa(int(ur.controller))
 				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".client" // WHERE controller = " + strconv.Itoa(int(ur.controller))
-				fmt.Println(queryAfter)
+				log.Println(queryAfter)
 
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)
@@ -719,7 +718,7 @@ func (ur *UnifiRepo) Download2MapFromDBclient() (map[string]*entity.Client, map[
 							errScan := results.Scan(&tag.Mac, &tag.Hostname, &tag.Controller, &tag.Exception, &tag.SrID,
 								&tag.ApName, &tag.ApMac, &tag.Modified)
 							if errScan == nil {
-								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
+								//log.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
 								//machineMap[tag.Mac] = &tag
 
 								upperCaseHostName = strings.ToUpper(tag.Hostname)
@@ -739,48 +738,48 @@ func (ur *UnifiRepo) Download2MapFromDBclient() (map[string]*entity.Client, map[
 								hostnameClient[upperCaseHostName] = clPointer
 
 							} else {
-								fmt.Println(errScan.Error())
-								fmt.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
-								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								log.Println(errScan.Error())
+								log.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
+								log.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
 								myError = 0
 							}
 						}
 						if errRowsNext := results.Err(); errRowsNext != nil {
-							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							log.Println("Цикл прохода по результирующим рядам завершился не корректно")
 							//если есть ошибка прохода по строкам, отправляем на перезапрос
 							myError = 0
 						}
 						if myError != 1 {
 							//results.Close()
 							if errRowsClose := results.Close(); errRowsClose != nil {
-								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+								log.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
 							}
 							//db.Close()
 							if errDBclose := db.Close(); errDBclose != nil {
-								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+								log.Println("Закрытие подключения к БД завершилось не корректно")
 							}
 							myError = 0
 							/*
-								fmt.Println("Вывод мапы ВНУТРИ функции")
+								log.Println("Вывод мапы ВНУТРИ функции")
 								for k, v := range m {
-									fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+									log.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
 								}*/
 						} else {
-							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//log.Println("Будет предпринята новая попытка запроса через 1 минут")
 							//time.Sleep(60 * time.Second)
 							myError = 0
 						}
 					} else {
-						fmt.Println(errQuery.Error())
-						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						log.Println(errQuery.Error())
+						log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
 						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
 						err = errQuery
 					}
 				} //db.Query
 			} else {
-				fmt.Println("db.Ping failed:", errDBping)
-				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				//myError = 1
 				myError++
@@ -789,10 +788,10 @@ func (ur *UnifiRepo) Download2MapFromDBclient() (map[string]*entity.Client, map[
 				//if myError == 300 { 	myError = 0				}
 			}
 		} else {
-			fmt.Println("Error creating DB:", errSqlOpen)
-			fmt.Println("To verify, db is:", db)
-			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			//myError = 1
 			myError++
@@ -819,7 +818,7 @@ func (ur *UnifiRepo) DownloadMapFromDBmachinesErr() (map[string]*entity.Client, 
 				defer db.Close() // defer the close till after the main function has finished
 				//queryAfter := "SELECT * FROM it_support_db.machine WHERE controller = " + strconv.Itoa(int(bdController))
 				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".client WHERE controller = " + strconv.Itoa(int(ur.controller))
-				fmt.Println(queryAfter)
+				log.Println(queryAfter)
 
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)
@@ -831,7 +830,7 @@ func (ur *UnifiRepo) DownloadMapFromDBmachinesErr() (map[string]*entity.Client, 
 							errScan := results.Scan(&tag.Mac, &tag.Hostname, &tag.Controller, &tag.Exception, &tag.SrID,
 								&tag.ApName, &tag.ApMac, &tag.Modified)
 							if errScan == nil {
-								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
+								//log.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
 								//machineMap[tag.Mac] = &tag
 								machineMap[tag.Mac] = &entity.Client{
 									Mac:        tag.Mac,
@@ -845,48 +844,48 @@ func (ur *UnifiRepo) DownloadMapFromDBmachinesErr() (map[string]*entity.Client, 
 								}
 
 							} else {
-								fmt.Println(errScan.Error())
-								fmt.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
-								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								log.Println(errScan.Error())
+								log.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
+								log.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
 								myError = 0
 							}
 						}
 						if errRowsNext := results.Err(); errRowsNext != nil {
-							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							log.Println("Цикл прохода по результирующим рядам завершился не корректно")
 							//если есть ошибка прохода по строкам, отправляем на перезапрос
 							myError = 0
 						}
 						if myError != 1 {
 							//results.Close()
 							if errRowsClose := results.Close(); errRowsClose != nil {
-								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+								log.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
 							}
 							//db.Close()
 							if errDBclose := db.Close(); errDBclose != nil {
-								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+								log.Println("Закрытие подключения к БД завершилось не корректно")
 							}
 							myError = 0
 							/*
-								fmt.Println("Вывод мапы ВНУТРИ функции")
+								log.Println("Вывод мапы ВНУТРИ функции")
 								for k, v := range m {
-									fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+									log.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
 								}*/
 						} else {
-							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//log.Println("Будет предпринята новая попытка запроса через 1 минут")
 							//time.Sleep(60 * time.Second)
 							myError = 0
 						}
 					} else {
-						fmt.Println(errQuery.Error())
-						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						log.Println(errQuery.Error())
+						log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
 						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
 						err = errQuery
 					}
 				} //db.Query
 			} else {
-				fmt.Println("db.Ping failed:", errDBping)
-				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				//myError = 1
 				myError++
@@ -895,10 +894,10 @@ func (ur *UnifiRepo) DownloadMapFromDBmachinesErr() (map[string]*entity.Client, 
 				//if myError == 300 { 	myError = 0				}
 			}
 		} else {
-			fmt.Println("Error creating DB:", errSqlOpen)
-			fmt.Println("To verify, db is:", db)
-			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			//myError = 1
 			myError++
@@ -930,7 +929,7 @@ func (ur *UnifiRepo) Download2MapFromDBaps() (map[string]*entity.Ap, map[string]
 				defer db.Close() // defer the close till after the main function has finished
 				//queryAfter := "SELECT * FROM " + ur.databaseITsup + ".ap WHERE controller = " + strconv.Itoa(int(ur.controller))
 				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".ap" // WHERE controller = " + strconv.Itoa(int(ur.controller))
-				fmt.Println(queryAfter)
+				log.Println(queryAfter)
 
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)
@@ -942,7 +941,7 @@ func (ur *UnifiRepo) Download2MapFromDBaps() (map[string]*entity.Ap, map[string]
 							errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
 							//errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.SrID)
 							if errScan == nil {
-								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
+								//log.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
 
 								/*если буду вкладывать сущность Тикета, а не srID
 								if tag.SrID != "" {
@@ -965,47 +964,47 @@ func (ur *UnifiRepo) Download2MapFromDBaps() (map[string]*entity.Ap, map[string]
 								hostnameAp[upperCaseHostName] = apPointer
 
 							} else {
-								fmt.Println(errScan.Error())
-								fmt.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
-								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								log.Println(errScan.Error())
+								log.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
+								log.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
 								myError = 0
 							}
 						}
 						if errRowsNext := results.Err(); errRowsNext != nil {
-							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							log.Println("Цикл прохода по результирующим рядам завершился не корректно")
 							//если есть ошибка прохода по строкам, отправляем на перезапрос
 							myError = 0
 						}
 						if myError != 1 {
 							//results.Close()
 							if errRowsClose := results.Close(); errRowsClose != nil {
-								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+								log.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
 							}
 							//db.Close()
 							if errDBclose := db.Close(); errDBclose != nil {
-								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+								log.Println("Закрытие подключения к БД завершилось не корректно")
 							}
 							myError = 0
 
 						} else {
-							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//log.Println("Будет предпринята новая попытка запроса через 1 минут")
 							//time.Sleep(60 * time.Second)
 							myError = 0
 						}
 					} else {
 						//panic(errQuery.Error()) // proper error handling instead of panic in your app
-						fmt.Println(errQuery.Error())
-						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
-						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						log.Println(errQuery.Error())
+						log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//log.Println("Будет предпринята новая попытка через 1 минут")
 						//time.Sleep(60 * time.Second)
 						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
 						err = errQuery
 					}
 				} //db.Query
 			} else {
-				fmt.Println("db.Ping failed:", errDBping)
-				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				//myError = 1
 				myError++
@@ -1014,10 +1013,10 @@ func (ur *UnifiRepo) Download2MapFromDBaps() (map[string]*entity.Ap, map[string]
 				//if myError == 300 { 	myError = 0				}
 			}
 		} else {
-			fmt.Println("Error creating DB:", errSqlOpen)
-			fmt.Println("To verify, db is:", db)
-			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			//myError = 1
 			myError++
@@ -1045,7 +1044,7 @@ func (ur *UnifiRepo) DownloadMapFromDBapsErr() (map[string]*entity.Ap, error) {
 				//queryAfter := "SELECT * FROM " + ur.database + ".poly"
 				//queryAfter := "SELECT * FROM it_support_db.ap WHERE controller = " + strconv.Itoa(int(bdController))
 				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".ap WHERE controller = " + strconv.Itoa(int(ur.controller))
-				fmt.Println(queryAfter)
+				log.Println(queryAfter)
 
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)
@@ -1057,7 +1056,7 @@ func (ur *UnifiRepo) DownloadMapFromDBapsErr() (map[string]*entity.Ap, error) {
 							errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.Exception, &tag.SrID)
 							//errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.SrID)
 							if errScan == nil {
-								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
+								//log.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
 
 								//тоже рабочее
 								//var ap entity.Ap
@@ -1073,47 +1072,47 @@ func (ur *UnifiRepo) DownloadMapFromDBapsErr() (map[string]*entity.Ap, error) {
 								}
 
 							} else {
-								fmt.Println(errScan.Error())
-								fmt.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
-								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								log.Println(errScan.Error())
+								log.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
+								log.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
 								myError = 0
 							}
 						}
 						if errRowsNext := results.Err(); errRowsNext != nil {
-							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							log.Println("Цикл прохода по результирующим рядам завершился не корректно")
 							//если есть ошибка прохода по строкам, отправляем на перезапрос
 							myError = 0
 						}
 						if myError != 1 {
 							//results.Close()
 							if errRowsClose := results.Close(); errRowsClose != nil {
-								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+								log.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
 							}
 							//db.Close()
 							if errDBclose := db.Close(); errDBclose != nil {
-								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+								log.Println("Закрытие подключения к БД завершилось не корректно")
 							}
 							myError = 0
 
 						} else {
-							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//log.Println("Будет предпринята новая попытка запроса через 1 минут")
 							//time.Sleep(60 * time.Second)
 							myError = 0
 						}
 					} else {
 						//panic(errQuery.Error()) // proper error handling instead of panic in your app
-						fmt.Println(errQuery.Error())
-						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
-						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						log.Println(errQuery.Error())
+						log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//log.Println("Будет предпринята новая попытка через 1 минут")
 						//time.Sleep(60 * time.Second)
 						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
 						err = errQuery
 					}
 				} //db.Query
 			} else {
-				fmt.Println("db.Ping failed:", errDBping)
-				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				//myError = 1
 				myError++
@@ -1122,10 +1121,10 @@ func (ur *UnifiRepo) DownloadMapFromDBapsErr() (map[string]*entity.Ap, error) {
 				//if myError == 300 { 	myError = 0				}
 			}
 		} else {
-			fmt.Println("Error creating DB:", errSqlOpen)
-			fmt.Println("To verify, db is:", db)
-			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			//myError = 1
 			myError++
@@ -1153,7 +1152,7 @@ func (ur *UnifiRepo) DownloadMapOffice() (map[string]*entity.Office, error) {
 				//queryAfter := "SELECT * FROM " + ur.database + ".poly"
 				//queryAfter := "SELECT * FROM it_support_db.ap WHERE controller = " + strconv.Itoa(int(bdController))
 				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".site_apcut_login"
-				fmt.Println(queryAfter)
+				log.Println(queryAfter)
 
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)
@@ -1165,7 +1164,7 @@ func (ur *UnifiRepo) DownloadMapOffice() (map[string]*entity.Office, error) {
 							errScan := results.Scan(&tag.Site_ApCutName, &tag.UserLogin, &tag.TimeZone)
 							//errScan := results.Scan(&tag.Mac, &tag.Name, &tag.Controller, &tag.SrID)
 							if errScan == nil {
-								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
+								//log.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
 
 								//тоже рабочее
 								//var ap entity.Ap
@@ -1179,47 +1178,47 @@ func (ur *UnifiRepo) DownloadMapOffice() (map[string]*entity.Office, error) {
 								}
 
 							} else {
-								fmt.Println(errScan.Error())
-								fmt.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
-								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								log.Println(errScan.Error())
+								log.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
+								log.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
 								myError = 0
 							}
 						}
 						if errRowsNext := results.Err(); errRowsNext != nil {
-							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							log.Println("Цикл прохода по результирующим рядам завершился не корректно")
 							//если есть ошибка прохода по строкам, отправляем на перезапрос
 							myError = 0
 						}
 						if myError != 1 {
 							//results.Close()
 							if errRowsClose := results.Close(); errRowsClose != nil {
-								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+								log.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
 							}
 							//db.Close()
 							if errDBclose := db.Close(); errDBclose != nil {
-								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+								log.Println("Закрытие подключения к БД завершилось не корректно")
 							}
 							myError = 0
 
 						} else {
-							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//log.Println("Будет предпринята новая попытка запроса через 1 минут")
 							//time.Sleep(60 * time.Second)
 							myError = 0
 						}
 					} else {
 						//panic(errQuery.Error()) // proper error handling instead of panic in your app
-						fmt.Println(errQuery.Error())
-						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
-						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						log.Println(errQuery.Error())
+						log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//log.Println("Будет предпринята новая попытка через 1 минут")
 						//time.Sleep(60 * time.Second)
 						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
 						err = errQuery
 					}
 				} //db.Query
 			} else {
-				fmt.Println("db.Ping failed:", errDBping)
-				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				//myError = 1
 				myError++
@@ -1228,10 +1227,10 @@ func (ur *UnifiRepo) DownloadMapOffice() (map[string]*entity.Office, error) {
 				//if myError == 300 { 	myError = 0				}
 			}
 		} else {
-			fmt.Println("Error creating DB:", errSqlOpen)
-			fmt.Println("To verify, db is:", db)
-			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			//myError = 1
 			myError++
@@ -1267,17 +1266,17 @@ func (ur *UnifiRepo) GetLoginPCerr(client *entity.Client) (err error) { //(entit
 					//Если изменилась имя или структура таблицы, то нет смысла зацикливать на 5 минут SELECT
 					return nil
 				} else {
-					fmt.Println(errQuery.Error())
-					//fmt.Println("В БД нет доступного соответствия имени ПК и логина")
+					log.Println(errQuery.Error())
+					//log.Println("В БД нет доступного соответствия имени ПК и логина")
 					//client.UserLogin = "denis.tirskikh"
 					return errQuery
 				}
 				myError = 0
 				//db.Close()
 			} else {
-				fmt.Println("db.Ping failed:", errDBping)
-				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				myError++
 				err = errDBping
@@ -1285,10 +1284,10 @@ func (ur *UnifiRepo) GetLoginPCerr(client *entity.Client) (err error) { //(entit
 		} else {
 			//По факту подключения к БД НЕ происходит на этом этапе
 			//https://stackoverflow.com/questions/32345124/why-does-sql-open-return-nil-as-error-when-it-should-not
-			fmt.Println("Error creating DB:", errSqlOpen)
-			fmt.Println("To verify, db is:", db)
-			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			//myError = 1
 			myError++

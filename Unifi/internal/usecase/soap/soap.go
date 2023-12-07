@@ -5,9 +5,9 @@ import (
 	"crypto/tls"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -25,8 +25,8 @@ type Soap struct {
 }
 
 func NewSoap(s string, b string) *Soap {
-	fmt.Println(s)
-	fmt.Println(b)
+	log.Println(s)
+	log.Println(b)
 
 	return &Soap{
 		soapUrl: s,
@@ -88,7 +88,7 @@ func (ss *Soap) CreateTicketSmacWifi(ticket *entity.Ticket) (err error) { //(ent
 	replacer := strings.NewReplacer("Description", ticket.Description, "UserLogin", ticket.UserLogin, "Reason", ticket.Reason,
 		"Region", ticket.Region, "Monitoring", ticket.Monitoring, "incidentType", ticket.IncidentType)
 	strAfter := replacer.Replace(strBefore)
-	//fmt.Println(strAfter)
+	//log.Println(strAfter)
 	payload := []byte(strAfter)
 	//os.Exit(0)
 
@@ -135,7 +135,7 @@ func (ss *Soap) CreateTicketSmacWifi(ticket *entity.Ticket) (err error) { //(ent
 				if err != nil {
 					log.Fatalln(err)
 				}
-				fmt.Println(string(b))
+				log.Println(string(b))
 				//os.Exit(0)
 				*/
 
@@ -146,17 +146,17 @@ func (ss *Soap) CreateTicketSmacWifi(ticket *entity.Ticket) (err error) { //(ent
 					errXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 					if errXmlUnmarshal == nil {
 						if envelope.Body.CreateRequestResponse.Code != 0 || envelope.Body.CreateRequestResponse.ID == "" {
-							fmt.Println(envelope.Body.CreateRequestResponse.Description)
-							//fmt.Println(envelope.Body.CreateRequestResponse.Code)
-							//fmt.Println(envelope.Body.CreateRequestResponse.Text)
-							fmt.Println("Заявка НЕ создалась на ФИНАЛЬНОМ этапе")
-							fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
-							fmt.Println("SOAP-сервер: " + ss.soapUrl)
-							fmt.Println("User login: " + ticket.UserLogin)
-							fmt.Println("Регион: " + ticket.Region)
-							fmt.Println("Тип инцидента: " + ticket.IncidentType)
-							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-							fmt.Println("")
+							log.Println(envelope.Body.CreateRequestResponse.Description)
+							//log.Println(envelope.Body.CreateRequestResponse.Code)
+							//log.Println(envelope.Body.CreateRequestResponse.Text)
+							log.Println("Заявка НЕ создалась на ФИНАЛЬНОМ этапе")
+							log.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
+							log.Println("SOAP-сервер: " + ss.soapUrl)
+							log.Println("User login: " + ticket.UserLogin)
+							log.Println("Регион: " + ticket.Region)
+							log.Println("Тип инцидента: " + ticket.IncidentType)
+							log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							log.Println("")
 							time.Sleep(30 * time.Second)
 							myError = 6
 							err = errors.New("заявка не создалась на финальном этапе")
@@ -170,40 +170,40 @@ func (ss *Soap) CreateTicketSmacWifi(ticket *entity.Ticket) (err error) { //(ent
 							return nil //ticket, nil
 						}
 					} else {
-						fmt.Println(errXmlUnmarshal.Error())
-						fmt.Println("Ошибка перекодировки ответа в xml")
-						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+						log.Println(errXmlUnmarshal.Error())
+						log.Println("Ошибка перекодировки ответа в xml")
+						log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 						time.Sleep(30 * time.Second)
 						myError++
 						err = errXmlUnmarshal
 					}
 				} else {
-					fmt.Println(errIOread.Error())
-					fmt.Println("Ошибка чтения байтов из ответа")
-					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+					log.Println(errIOread.Error())
+					log.Println("Ошибка чтения байтов из ответа")
+					log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 					time.Sleep(30 * time.Second)
 					myError++
 					err = errIOread
 				}
 			} else {
-				fmt.Println(errClientDo.Error())
-				fmt.Println("Ошибка отправки запроса")
-				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+				log.Println(errClientDo.Error())
+				log.Println("Ошибка отправки запроса")
+				log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 				time.Sleep(30 * time.Second)
 				myError++
 				err = errClientDo
 			}
 		} else {
-			fmt.Println(errHttpReq.Error())
-			fmt.Println("Ошибка создания объекта запроса")
-			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+			log.Println(errHttpReq.Error())
+			log.Println("Ошибка создания объекта запроса")
+			log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 			time.Sleep(30 * time.Second)
 			myError++
 			err = errHttpReq
 		}
 		if myError == 6 {
 			myError = 0
-			fmt.Println("После 6 неудачных попыток идём дальше. Заявка не была создана")
+			log.Println("После 6 неудачных попыток идём дальше. Заявка не была создана")
 			//nil в ticket использовать не рекомендую, потому что значения теоретически потом пойдут в БД
 			return err
 		}
@@ -256,7 +256,7 @@ func (ss *Soap) CreateTicketSmacVcs(ticket *entity.Ticket) (err error) { //(enti
 	replacer := strings.NewReplacer("Description", ticket.Description, "UserLogin", ticket.UserLogin, "Reason", ticket.Reason,
 		"Region", ticket.Region, "Monitoring", ticket.Monitoring, "incidentType", ticket.IncidentType)
 	strAfter := replacer.Replace(strBefore)
-	//fmt.Println(strAfter)
+	//log.Println(strAfter)
 	payload := []byte(strAfter)
 	//os.Exit(0)
 
@@ -303,7 +303,7 @@ func (ss *Soap) CreateTicketSmacVcs(ticket *entity.Ticket) (err error) { //(enti
 				if err != nil {
 					log.Fatalln(err)
 				}
-				fmt.Println(string(b))
+				log.Println(string(b))
 				//os.Exit(0)
 				*/
 
@@ -314,17 +314,17 @@ func (ss *Soap) CreateTicketSmacVcs(ticket *entity.Ticket) (err error) { //(enti
 					errXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 					if errXmlUnmarshal == nil {
 						if envelope.Body.CreateRequestResponse.Code != 0 || envelope.Body.CreateRequestResponse.ID == "" {
-							fmt.Println(envelope.Body.CreateRequestResponse.Description)
-							//fmt.Println(envelope.Body.CreateRequestResponse.Code)
-							//fmt.Println(envelope.Body.CreateRequestResponse.Text)
-							fmt.Println("Заявка НЕ создалась на ФИНАЛЬНОМ этапе")
-							fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
-							fmt.Println("SOAP-сервер: " + ss.soapUrl)
-							fmt.Println("User login: " + ticket.UserLogin)
-							fmt.Println("Регион: " + ticket.Region)
-							fmt.Println("Тип инцидента: " + ticket.IncidentType)
-							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-							fmt.Println("")
+							log.Println(envelope.Body.CreateRequestResponse.Description)
+							//log.Println(envelope.Body.CreateRequestResponse.Code)
+							//log.Println(envelope.Body.CreateRequestResponse.Text)
+							log.Println("Заявка НЕ создалась на ФИНАЛЬНОМ этапе")
+							log.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
+							log.Println("SOAP-сервер: " + ss.soapUrl)
+							log.Println("User login: " + ticket.UserLogin)
+							log.Println("Регион: " + ticket.Region)
+							log.Println("Тип инцидента: " + ticket.IncidentType)
+							log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							log.Println("")
 							time.Sleep(30 * time.Second)
 							myError = 6
 							err = errors.New("заявка не создалась на финальном этапе")
@@ -338,40 +338,40 @@ func (ss *Soap) CreateTicketSmacVcs(ticket *entity.Ticket) (err error) { //(enti
 							return nil
 						}
 					} else {
-						fmt.Println(errXmlUnmarshal.Error())
-						fmt.Println("Ошибка перекодировки ответа в xml")
-						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+						log.Println(errXmlUnmarshal.Error())
+						log.Println("Ошибка перекодировки ответа в xml")
+						log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 						time.Sleep(30 * time.Second)
 						myError++
 						err = errXmlUnmarshal
 					}
 				} else {
-					fmt.Println(errIOread.Error())
-					fmt.Println("Ошибка чтения байтов из ответа")
-					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+					log.Println(errIOread.Error())
+					log.Println("Ошибка чтения байтов из ответа")
+					log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 					time.Sleep(30 * time.Second)
 					myError++
 					err = errIOread
 				}
 			} else {
-				fmt.Println(errClientDo.Error())
-				fmt.Println("Ошибка отправки запроса")
-				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+				log.Println(errClientDo.Error())
+				log.Println("Ошибка отправки запроса")
+				log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 				time.Sleep(30 * time.Second)
 				myError++
 				err = errClientDo
 			}
 		} else {
-			fmt.Println(errHttpReq.Error())
-			fmt.Println("Ошибка создания объекта запроса")
-			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+			log.Println(errHttpReq.Error())
+			log.Println("Ошибка создания объекта запроса")
+			log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 			time.Sleep(30 * time.Second)
 			myError++
 			err = errHttpReq
 		}
 		if myError == 6 {
 			myError = 0
-			fmt.Println("После 6 неудачных попыток идём дальше. Заявка не была создана")
+			log.Println("После 6 неудачных попыток идём дальше. Заявка не была создана")
 			return err
 		}
 	}
@@ -430,7 +430,7 @@ func (ss *Soap) CheckTicketStatusErr(ticket *entity.Ticket) (err error) {
 				if err != nil {
 					log.Fatalln(err)
 				}
-				fmt.Println(string(b))
+				log.Println(string(b))
 				//os.Exit(0)*/
 
 				envelope := &Envelope{}
@@ -440,13 +440,13 @@ func (ss *Soap) CheckTicketStatusErr(ticket *entity.Ticket) (err error) {
 					if errXmlUnmarshal == nil {
 						//if envelope.Body.GetStatusResponse.Code == 0 || envelope.Body.GetStatusResponse.StatisId != "" { //не решился пока что поменять if и else местами
 						if envelope.Body.GetStatusResponse.Code != 0 || envelope.Body.GetStatusResponse.StatisId == "" {
-							fmt.Println(envelope.Body.GetStatusResponse.Description)
-							fmt.Println("Попытка получения Статуса обращения оборвалась на ПОСЛЕДНЕМ этапе")
-							fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
-							fmt.Println("SOAP-сервер: " + ss.soapUrl)
-							fmt.Println("SR id: " + ticket.ID)
-							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-							fmt.Println("")
+							log.Println(envelope.Body.GetStatusResponse.Description)
+							log.Println("Попытка получения Статуса обращения оборвалась на ПОСЛЕДНЕМ этапе")
+							log.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
+							log.Println("SOAP-сервер: " + ss.soapUrl)
+							log.Println("SR id: " + ticket.ID)
+							log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							log.Println("")
 							time.Sleep(30 * time.Second)
 							myError++
 							err = errors.New("не удалось проверить статус на финальном этапе")
@@ -458,25 +458,25 @@ func (ss *Soap) CheckTicketStatusErr(ticket *entity.Ticket) (err error) {
 							return nil
 						}
 					} else {
-						fmt.Println("Ошибка перекодировки ответа в xml")
-						fmt.Println(errXmlUnmarshal.Error())
-						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+						log.Println("Ошибка перекодировки ответа в xml")
+						log.Println(errXmlUnmarshal.Error())
+						log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 						time.Sleep(30 * time.Second)
 						myError++
 						err = errXmlUnmarshal
 					}
 				} else {
-					fmt.Println("Ошибка чтения байтов из ответа")
-					fmt.Println(errIOread.Error())
-					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+					log.Println("Ошибка чтения байтов из ответа")
+					log.Println(errIOread.Error())
+					log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 					time.Sleep(30 * time.Second)
 					myError++
 					err = errIOread
 				}
 			} else {
-				fmt.Println("Ошибка отправки запроса")
-				fmt.Println(errClientDo.Error())
-				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+				log.Println("Ошибка отправки запроса")
+				log.Println(errClientDo.Error())
+				log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 				time.Sleep(30 * time.Second)
 				myError++
 				err = errClientDo
@@ -484,9 +484,9 @@ func (ss *Soap) CheckTicketStatusErr(ticket *entity.Ticket) (err error) {
 				//if myError == 300 { 					myError = 0				}
 			}
 		} else {
-			fmt.Println("Ошибка создания объекта запроса")
-			fmt.Println(errHttpReq.Error())
-			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+			log.Println("Ошибка создания объекта запроса")
+			log.Println(errHttpReq.Error())
+			log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 			time.Sleep(30 * time.Second)
 			myError++
 			err = errHttpReq
@@ -495,7 +495,7 @@ func (ss *Soap) CheckTicketStatusErr(ticket *entity.Ticket) (err error) {
 		}
 		if myError == 6 {
 			myError = 0
-			fmt.Println("После 6 неудачных попыток идём дальше. Статус заявки НЕ был уточнён")
+			log.Println("После 6 неудачных попыток идём дальше. Статус заявки НЕ был уточнён")
 			//ticketOut.Status = ""
 			return err
 		}
@@ -555,59 +555,59 @@ func (ss *Soap) ChangeStatusErr(ticket *entity.Ticket) (err error) {
 					errXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 					if errXmlUnmarshal == nil {
 						if envelope.Body.ChangeCaseStatusResponse.Code != 0 || envelope.Body.ChangeCaseStatusResponse.NewStatusId == "" {
-							fmt.Println(envelope.Body.ChangeCaseStatusResponse.Description)
-							fmt.Println("НЕ УДАЛОСЬ изменить статус обращения на " + ticket.Status)
-							fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
-							fmt.Println("SOAP-сервер: " + ss.soapUrl)
-							fmt.Println("SR id: " + ticket.ID)
-							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							log.Println(envelope.Body.ChangeCaseStatusResponse.Description)
+							log.Println("НЕ УДАЛОСЬ изменить статус обращения на " + ticket.Status)
+							log.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
+							log.Println("SOAP-сервер: " + ss.soapUrl)
+							log.Println("SR id: " + ticket.ID)
+							log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 							time.Sleep(30 * time.Second)
-							fmt.Println("")
+							log.Println("")
 							myError++
 							err = errors.New("не удалось изменить статус на финальном этапе")
 						} else {
 							//Успешное завершение функции
 							srDateChange := envelope.Body.ChangeCaseStatusResponse.ModifyOn
 							//ticket.Status = envelope.Body.ChangeCaseStatusResponse.NewStatusId
-							fmt.Println("Статус обращения изменён на " + ticket.Status + " в: " + srDateChange)
+							log.Println("Статус обращения изменён на " + ticket.Status + " в: " + srDateChange)
 							myError = 0
 							return nil
 						}
 					} else {
-						fmt.Println("Ошибка перекодировки ответа в xml")
-						fmt.Println(errXmlUnmarshal.Error())
-						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+						log.Println("Ошибка перекодировки ответа в xml")
+						log.Println(errXmlUnmarshal.Error())
+						log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 						time.Sleep(30 * time.Second)
 						myError++
 						err = errXmlUnmarshal
 					}
 				} else {
-					fmt.Println("Ошибка чтения байтов из ответа")
-					fmt.Println(errIOread.Error())
-					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+					log.Println("Ошибка чтения байтов из ответа")
+					log.Println(errIOread.Error())
+					log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 					time.Sleep(30 * time.Second)
 					myError++
 					err = errIOread
 				}
 			} else {
-				fmt.Println("Ошибка отправки запроса")
-				fmt.Println(errClientDo.Error())
-				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+				log.Println("Ошибка отправки запроса")
+				log.Println(errClientDo.Error())
+				log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 				time.Sleep(30 * time.Second)
 				myError++
 				err = errClientDo
 			}
 		} else {
-			fmt.Println("Ошибка создания объекта запроса")
-			fmt.Println(errHttpReq.Error())
-			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+			log.Println("Ошибка создания объекта запроса")
+			log.Println(errHttpReq.Error())
+			log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 			time.Sleep(30 * time.Second)
 			myError++
 			err = errHttpReq
 		}
 		if myError == 6 {
 			myError = 0
-			fmt.Println("После 6 неудачных попыток идём дальше. Статус заявки НЕ был изменён")
+			log.Println("После 6 неудачных попыток идём дальше. Статус заявки НЕ был изменён")
 			return err
 		}
 	}
@@ -621,7 +621,7 @@ func (ss *Soap) AddCommentErr(ticket *entity.Ticket) (err error) {
 	strBefore := "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body><createCommentRequest xmlns=\"http://www.bercut.com/specs/aoi/tele2/bpm\"><CaseId>srID</CaseId><Message>myComment</Message><Author>userLogin</Author></createCommentRequest></Body></Envelope>"
 	replacer := strings.NewReplacer("srID", ticket.ID, "myComment", ticket.Comment, "userLogin", userLogin)
 	strAfter := replacer.Replace(strBefore)
-	//fmt.Println(strAfter)
+	//log.Println(strAfter)
 	payload := []byte(strAfter)
 	httpMethod := "POST" // GET запрос не срабатывает
 
@@ -666,7 +666,7 @@ func (ss *Soap) AddCommentErr(ticket *entity.Ticket) (err error) {
 				if err != nil {
 					log.Fatalln(err)
 				}
-				fmt.Println(string(b))
+				log.Println(string(b))
 				os.Exit(0)*/
 
 				envelope := &Envelope{}
@@ -675,60 +675,60 @@ func (ss *Soap) AddCommentErr(ticket *entity.Ticket) (err error) {
 					errXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
 					if errXmlUnmarshal == nil {
 						if envelope.Body.CreateCommentResponse.Code != 0 || envelope.Body.CreateCommentResponse.CreatedOn == "" {
-							fmt.Println(envelope.Body.CreateCommentResponse.Description)
-							fmt.Println("Попытка оставить комментарий ОБОРВАЛАСЬ на ПОСЛЕДНЕМ этапе")
-							fmt.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
-							fmt.Println("SOAP-сервер: " + ss.soapUrl)
-							fmt.Println("SR id: " + ticket.ID)
-							fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
-							fmt.Println("")
+							log.Println(envelope.Body.CreateCommentResponse.Description)
+							log.Println("Попытка оставить комментарий ОБОРВАЛАСЬ на ПОСЛЕДНЕМ этапе")
+							log.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
+							log.Println("SOAP-сервер: " + ss.soapUrl)
+							log.Println("SR id: " + ticket.ID)
+							log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							log.Println("")
 							time.Sleep(30 * time.Second)
 							myError++
 							err = errors.New("не удалось добавить комментарий на финальном этапе")
 						} else {
 							//srDateComment := envelope.Body.CreateCommentResponse.CreatedOn
 							//createdOn = envelope.Body.CreateCommentResponse.CreatedOn
-							fmt.Println("Оставлен комментарий в ")
-							fmt.Println(ss.bpmUrl + ticket.ID)
-							fmt.Println(envelope.Body.CreateCommentResponse.CreatedOn)
+							log.Println("Оставлен комментарий в ")
+							log.Println(ss.bpmUrl + ticket.ID)
+							log.Println(envelope.Body.CreateCommentResponse.CreatedOn)
 							myError = 0
 							return nil
 						}
 					} else {
-						fmt.Println("Ошибка перекодировки ответа в xml")
-						fmt.Println(errXmlUnmarshal.Error())
-						fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+						log.Println("Ошибка перекодировки ответа в xml")
+						log.Println(errXmlUnmarshal.Error())
+						log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 						time.Sleep(30 * time.Second)
 						myError++
 						err = errXmlUnmarshal
 					}
 				} else {
-					fmt.Println("Ошибка чтения байтов из ответа")
-					fmt.Println(errIOread.Error())
-					fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+					log.Println("Ошибка чтения байтов из ответа")
+					log.Println(errIOread.Error())
+					log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 					time.Sleep(30 * time.Second)
 					myError++
 					err = errIOread
 				}
 			} else {
-				fmt.Println("Ошибка отправки запроса")
-				fmt.Println(errClientDo.Error())
-				fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+				log.Println("Ошибка отправки запроса")
+				log.Println(errClientDo.Error())
+				log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 				time.Sleep(30 * time.Second)
 				myError++
 				err = errClientDo
 			}
 		} else {
-			fmt.Println("Ошибка создания объекта запроса")
-			fmt.Println(errHttpReq.Error())
-			fmt.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+			log.Println("Ошибка создания объекта запроса")
+			log.Println(errHttpReq.Error())
+			log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
 			time.Sleep(30 * time.Second)
 			myError++
 			err = errHttpReq
 		}
 		if myError == 6 {
 			myError = 0
-			fmt.Println("После 6 неудачных попыток идём дальше. Комментарий не был оставлен")
+			log.Println("После 6 неудачных попыток идём дальше. Комментарий не был оставлен")
 			return err
 		}
 	}

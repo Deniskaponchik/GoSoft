@@ -4,9 +4,9 @@ package repo
 //https://github.com/evrone/go-clean-template/blob/master/internal/usecase/repo/translation_postgres.go
 import (
 	"database/sql"
-	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	_ "github.com/go-sql-driver/mysql"
+	"log"
 	"strconv"
 	"time"
 )
@@ -28,14 +28,14 @@ func NewPolyRepo(connectStr string, base string) (*PolyRepo, error) {
 		if errDBping == nil {
 			return pr, nil
 		} else {
-			fmt.Println("db.Ping failed:", errDBping)
-			fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+			log.Println("db.Ping failed:", errDBping)
+			log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
 			return nil, errDBping
 		}
 	} else {
-		fmt.Println("Error creating DB:", errSqlOpen)
-		fmt.Println("To verify, db is:", db)
-		fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+		log.Println("Error creating DB:", errSqlOpen)
+		log.Println("To verify, db is:", db)
+		log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
 		return nil, errSqlOpen
 	}
 	//return pr, nil
@@ -58,40 +58,40 @@ func (pr *PolyRepo) UpdateMapsToDBerr(polyMap map[string]entity.PolyStruct) (err
 				defer db.Close() // defer the close till after the main function has finished
 
 				for _, query := range queries {
-					fmt.Println(query)
+					log.Println(query)
 					_, errQuery := db.Exec(query)
 					if errQuery != nil {
-						fmt.Println(errQuery.Error())
-						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						log.Println(errQuery.Error())
+						log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
 						//myError = 0
 						//err = errQuery //ошибка не критическая. запросов много и не все будут не корректными
 					}
 				}
 				if errDBclose := db.Close(); errDBclose != nil {
-					fmt.Println("Закрытие подключения к БД завершилось не корректно")
+					log.Println("Закрытие подключения к БД завершилось не корректно")
 					//return errDBclose //ошибка не критическая
 				}
 				return nil
 			} else {
-				fmt.Println("db.Ping failed:", errDBping)
-				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				myError++
 				err = errDBping
 			}
 		} else {
-			fmt.Println("Error creating DB:", errSqlOpen)
-			fmt.Println("To verify, db is:", db)
-			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			myError++
 			err = errSqlOpen
 		}
 		if myError == 5 {
 			myError = 0
-			fmt.Println("После 5 неудачных попыток идём дальше. Подключение к БД не удалось")
+			log.Println("После 5 неудачных попыток идём дальше. Подключение к БД не удалось")
 			return err //errors.New("подключение к бд не удалось")
 		}
 	} //sql.Open
@@ -125,7 +125,7 @@ func (pr *PolyRepo) DownloadMapFromDBvcsErr(marker int) (map[string]entity.PolyS
 				queryAfter := "SELECT * FROM " + pr.database + ".poly"
 				//queryAfter := "SELECT * FROM it_support_db.poly" // WHERE type = " + strconv.Itoa(int(polyType))
 				//queryAfter := "SELECT * FROM it_support_db.a WHERE controller = " + strconv.Itoa(int(bdController))
-				fmt.Println(queryAfter)
+				log.Println(queryAfter)
 
 				for myError != 0 { //зацикливание выполнения запроса
 					results, errQuery := db.Query(queryAfter)
@@ -137,7 +137,7 @@ func (pr *PolyRepo) DownloadMapFromDBvcsErr(marker int) (map[string]entity.PolyS
 							errScan := results.Scan(&tag.Mac, &tag.IP, &tag.Region, &tag.RoomName, &tag.Login, &tag.SrID, &tag.PolyType,
 								&tag.Comment, &tag.Exception, &tag.TimeZone)
 							if errScan == nil {
-								//fmt.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
+								//log.Println(tag.Mac, tag.Name, tag.Controller, tag.Exception, tag.SrID)
 								polyMap[tag.Mac] = entity.PolyStruct{
 									tag.Mac,
 									tag.IP,
@@ -153,51 +153,51 @@ func (pr *PolyRepo) DownloadMapFromDBvcsErr(marker int) (map[string]entity.PolyS
 								}
 							} else {
 								//panic(errScan.Error()) // proper error handling instead of panic in your app
-								fmt.Println(errScan.Error())
-								fmt.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
-								fmt.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
+								log.Println(errScan.Error())
+								log.Println("Сканирование СТРОКИ и занесение в переменные структуры завершилось ошибкой")
+								log.Println("Проверь, что не изменилась структура таблицы и кол-во полей")
 								myError = 0
 							}
 						}
 						if errRowsNext := results.Err(); errRowsNext != nil {
-							fmt.Println("Цикл прохода по результирующим рядам завершился не корректно")
+							log.Println("Цикл прохода по результирующим рядам завершился не корректно")
 							//если есть ошибка прохода по строкам, отправляем на перезапрос
 							myError = 0
 						}
 						if myError != 1 {
 							//results.Close()
 							if errRowsClose := results.Close(); errRowsClose != nil {
-								fmt.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
+								log.Println("Закрытие процесса прохода по результирующим полям завершилось не корректно")
 							}
 							//db.Close()
 							if errDBclose := db.Close(); errDBclose != nil {
-								fmt.Println("Закрытие подключения к БД завершилось не корректно")
+								log.Println("Закрытие подключения к БД завершилось не корректно")
 							}
 							myError = 0
 							/*
-								fmt.Println("Вывод мапы ВНУТРИ функции")
+								log.Println("Вывод мапы ВНУТРИ функции")
 								for k, v := range m {
-									fmt.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
+									log.Println("innerMap "+k, v.Name, v.Exception, v.SrID)
 								}*/
 						} else {
-							//fmt.Println("Будет предпринята новая попытка запроса через 1 минут")
+							//log.Println("Будет предпринята новая попытка запроса через 1 минут")
 							//time.Sleep(60 * time.Second)
 							myError = 0
 						}
 					} else {
 						//panic(errQuery.Error()) // proper error handling instead of panic in your app
-						fmt.Println(errQuery.Error())
-						fmt.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
-						//fmt.Println("Будет предпринята новая попытка через 1 минут")
+						log.Println(errQuery.Error())
+						log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+						//log.Println("Будет предпринята новая попытка через 1 минут")
 						//time.Sleep(60 * time.Second)
 						myError = 0 //если такой таблицы нет в БД, то что она появится через 5 минут?
 						err = errQuery
 					}
 				} //db.Query
 			} else {
-				fmt.Println("db.Ping failed:", errDBping)
-				fmt.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-				fmt.Println("Будет предпринята новая попытка через 1 минут")
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
 				time.Sleep(60 * time.Second)
 				//myError = 1
 				myError++
@@ -206,10 +206,10 @@ func (pr *PolyRepo) DownloadMapFromDBvcsErr(marker int) (map[string]entity.PolyS
 				//if myError == 300 { 	myError = 0				}
 			}
 		} else {
-			fmt.Println("Error creating DB:", errSqlOpen)
-			fmt.Println("To verify, db is:", db)
-			fmt.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-			fmt.Println("Будет предпринята новая попытка через 1 минут")
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
 			time.Sleep(60 * time.Second)
 			//myError = 1
 			myError++

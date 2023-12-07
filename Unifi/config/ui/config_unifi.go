@@ -2,8 +2,8 @@ package ui
 
 import (
 	"flag"
-	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
+	"log"
 	"strings"
 	"time"
 )
@@ -15,7 +15,7 @@ func NewConfigUnifi() (*ConfigUi, error) {
 	//err := cleanenv.ReadConfig("./config/config.yml", cfg) // в оригинале
 	//err := cleanenv.ReadConfig("./config.yml", cfg)  //для тестирования
 	//err := cleanenv.ReadConfig("../../../config.yml", cfg) // Unifi/cmd/poly/bin/Poly_v1.0
-	//if err != nil {		return nil, fmt.Errorf("read config error: %w", err)	}
+	//if err != nil {		return nil, log.Errorf("read config error: %w", err)	}
 	err := cleanenv.ReadEnv(cfg)
 	if err != nil {
 		return nil, err
@@ -148,11 +148,11 @@ func NewConfigUnifi() (*ConfigUi, error) {
 		cfg.Ubiquiti.H2 = *h2
 	}
 
-	fmt.Println("Mode: ", *mode) //cfg.InnerVars.Mode)
-	//fmt.Println("Controller: ", cfg.Ubiquiti.UiContrlstr)
-	fmt.Println("Every Code Map: ", cfg.App.EveryCodeMap)
-	fmt.Println("Timezone: ", cfg.App.TimeZone)
-	fmt.Println("HTTP URL: ", cfg.HTTP.URL)
+	log.Println("Mode: ", *mode) //cfg.InnerVars.Mode)
+	//log.Println("Controller: ", cfg.Ubiquiti.UiContrlstr)
+	log.Println("Every Code Map: ", cfg.App.EveryCodeMap)
+	log.Println("Timezone: ", cfg.App.TimeZone)
+	log.Println("HTTP URL: ", cfg.HTTP.URL)
 	//time.Sleep(1000 * time.Second)
 
 	return cfg, nil

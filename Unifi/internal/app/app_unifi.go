@@ -1,11 +1,7 @@
 package app
 
 import (
-	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/config/ui"
-	"os"
-	"time"
-
 	//"github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/fokusov"
 	fokInterface "github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/fokInterface"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
@@ -18,25 +14,11 @@ import (
 
 // Run creates objects via constructors.
 func RunUnifi(cfg *ui.ConfigUi) {
-	//fmt.Println("")
-
-	//https://stackoverflow.com/questions/48629988/remove-timestamp-prefix-from-go-logger
-	//time.Now().Format("2006-01-02 15:04:05")
-	FileNameUnifi := "log_Unifi_" + time.Now().Format("2006-01-02 15:04:05") + ".txt"
-	fileLogUnifi, err := os.OpenFile(FileNameUnifi, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.SetOutput(fileLogUnifi)
-	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime)) //удалить префикс времени в логах
-	log.SetFlags(0)                                      //удалить префикс времени в логах
-	log.Println("")
-	//Zerro Log  	//l := logger.New(cfg.Log.Level)   //l.Info("")
 
 	/* Repository
 	pg, err := postgres.New(cfg.PG.URL, postgres.MaxPoolSize(cfg.PG.PoolMax))
 	if err != nil {
-		l.Fatal(fmt.Errorf("app - Run - postgres.New: %w", err))
+		l.Fatal(log.Errorf("app - Run - postgres.New: %w", err))
 	}
 	defer pg.Close()
 	*/
@@ -44,7 +26,8 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	unifiRepo, err := repo.NewUnifiRepo(cfg.GLPI.GlpiConnectStr, cfg.GLPI.DB)
 	//repoRostov, err := repo.NewUnifiRepo(cfg.GLPI.GlpiITsupport, cfg.GLPI.GlpiConnectStrGLPI, cfg.)
 	if err != nil {
-		log.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))
+		//fmt.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))
+		log.Fatalf("app - Run - glpi.New: %w", err)
 	} else {
 		log.Println("Проверка подключения к БД прошла успешно")
 	}
@@ -81,7 +64,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	*/
 	//первоначальная версия:
 	//err = unifiUseCase.InfinityProcessingUnifi() //cfg.BpmUrl, cfg.SoapUrl)
-	//if err != nil {		l.Fatal(fmt.Errorf("app - Run - InfinityUnifiProcessing: %w", err))	}
+	//if err != nil {		l.Fatal(log.Errorf("app - Run - InfinityUnifiProcessing: %w", err))	}
 
 	//FOKUSOV
 	//router := *gin.Engine
@@ -107,12 +90,12 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	case s := <-interrupt:
 		l.Info("app - Run - signal: " + s.String())
 	case err = <-httpServer.Notify():
-		l.Error(fmt.Errorf("app - Run - httpServer.Notify: %w", err))
+		l.Error(log.Errorf("app - Run - httpServer.Notify: %w", err))
 	}
 
 	// Shutdown
 	err = httpServer.Shutdown()
 	if err != nil {
-		l.Error(fmt.Errorf("app - Run - httpServer.Shutdown: %w", err))
+		l.Error(log.Errorf("app - Run - httpServer.Shutdown: %w", err))
 	}*/
 }
