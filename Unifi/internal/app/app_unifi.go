@@ -2,15 +2,13 @@ package app
 
 import (
 	"github.com/deniskaponchik/GoSoft/Unifi/config/ui"
-	"time"
-
-	//"github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/fokusov"
 	fokInterface "github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/fokInterface"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/soap"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/ubiq"
 	"log"
+	"time"
 	//"github.com/deniskaponchik/GoSoft/Unifi/pkg/logger"
 )
 
@@ -52,7 +50,6 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	)
 
 	go unifiUseCase.InfinityProcessingUnifi()
-	//l.Info("InfinityProcessingUnifi отправился в горутину")
 	log.Println("InfinityProcessingUnifi отправился в горутину")
 	/*https://stackoverflow.com/questions/25142016/how-to-return-a-error-from-a-goroutine-through-channels
 	errors := make(chan error, 0)

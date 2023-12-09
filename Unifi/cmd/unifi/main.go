@@ -1,33 +1,29 @@
 package main
 
 import (
+	"github.com/deniskaponchik/GoSoft/Unifi/config/ui"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/app"
 	"io"
 	"log"
 	"os"
 	"time"
-
-	//"../config"
-	//"../internal/app"
-	"github.com/deniskaponchik/GoSoft/Unifi/config/ui"
-	"github.com/deniskaponchik/GoSoft/Unifi/internal/app"
 )
 
 func main() {
-	log.Println("")
 
-	//https://stackoverflow.com/questions/48629988/remove-timestamp-prefix-from-go-logger
-	//time.Now().Format("2006-01-02 15:04:05")
-	FileNameUnifi := "Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
-	fileLogUnifi, err := os.OpenFile(FileNameUnifi, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	//
+	//STANDARD LOG
+	fileNameUnifi := "Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
+	fileLogUnifi, err := os.OpenFile(fileNameUnifi, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		log.Fatal(err)
+	} else {
+		multiWriter := io.MultiWriter(os.Stdout, fileLogUnifi)
+		log.SetOutput(multiWriter)
 	}
-	multiWriter := io.MultiWriter(os.Stdout, fileLogUnifi)
-	log.SetOutput(multiWriter)                           //(fileLogUnifi)
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime)) //удалить префикс времени в логах
 	log.SetFlags(0)                                      //удалить префикс времени в логах
 	log.Println("")
-	//Zerro Log  	//l := logger.New(cfg.Log.Level)   //l.Info("")
 
 	//
 	//CONFIG
@@ -39,6 +35,11 @@ func main() {
 	} else {
 		log.Fatalf("Config error: %s", err)
 	}
+
+	//
+	//Zerro Log
+	//zl := logger.New(cfg.Log.LevelCmd)
+	//zl.Info("")
 
 	//
 	// app.Run(cfg)

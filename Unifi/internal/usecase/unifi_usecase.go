@@ -2,6 +2,9 @@ package usecase
 
 import (
 	"bytes"
+	"io"
+	"os"
+
 	//"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"log"
@@ -115,6 +118,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 
 	countDayUploadMachineToDB := 0
 	countDayDownlSiteApCutName := time.Now().Day()
+	countDayChangeLogFile := time.Now().Day()
 
 	srStatusCodesForNewTicket = map[string]bool{
 		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
@@ -319,6 +323,22 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 				} else {
 					log.Println(err.Error())
 					log.Println("Ежесуточное обновление мапы контактных лиц в офисах по точкам завершилось ошибкой")
+				}
+			}
+
+			if timeNowU.Day() != countDayChangeLogFile {
+				log.Println("")
+				log.Println("Ежесуточное изменение файла лога для Unifi")
+
+				fileNameUnifi := "Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
+				fileLogUnifi, errCreateFile := os.OpenFile(fileNameUnifi, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+				if errCreateFile != nil {
+					log.Println(errCreateFile.Error())
+					log.Println("Ежесуточное изменение файла лога Unifi usecase завершилось ошибкой")
+				} else {
+					multiWriter := io.MultiWriter(os.Stdout, fileLogUnifi)
+					log.SetOutput(multiWriter)
+					countDayChangeLogFile = timeNowU.Day()
 				}
 			}
 

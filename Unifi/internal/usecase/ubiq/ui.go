@@ -1,7 +1,6 @@
 package ubiq
 
 import (
-	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"github.com/unpoller/unifi"
 	"log"
@@ -18,7 +17,7 @@ type Ui struct {
 }
 
 func NewUi(u string, p string, url string, cntrlInt int) *Ui {
-	fmt.Println(url)
+	log.Println(url)
 
 	unfConf := unifi.Config{
 		User:     u,
@@ -36,19 +35,19 @@ func NewUi(u string, p string, url string, cntrlInt int) *Ui {
 func (ui *Ui) GetSites() (err error) { //unifi.Unifi, error){
 	uni, errNewUnifi := unifi.NewUnifi(&ui.Conf) //&c)
 	if errNewUnifi == nil {
-		fmt.Println("uni загрузился")
+		log.Println("uni загрузился")
 		ui.Uni = uni
 		sites, errGetSites := uni.GetSites()
 		if errGetSites == nil {
-			fmt.Println("sites загрузились")
+			log.Println("sites загрузились")
 			ui.Sites = sites
 			return nil
 		} else {
-			fmt.Println("sites НЕ загрузились")
+			log.Println("sites НЕ загрузились")
 			return errGetSites
 		}
 	} else {
-		fmt.Println("uni НЕ загрузился")
+		log.Println("uni НЕ загрузился")
 		return errNewUnifi
 	}
 	//return nil
@@ -60,8 +59,8 @@ func (ui *Ui) AddAps2Maps(macAp map[string]*entity.Ap, hostnameAp map[string]*en
 	//devices, errGetDevices := uni.GetDevices(sites) //devices = APs
 	devices, errGetDevices := ui.Uni.GetDevices(ui.Sites) //devices = APs
 	if errGetDevices == nil {
-		fmt.Println("devices загрузились")
-		fmt.Println("")
+		log.Println("devices загрузились")
+		log.Println("")
 
 		var apPointer *entity.Ap //точка создаётся при каждом взятии из массива
 		var ap1 *entity.Ap       //точка из мапы macAp
@@ -132,7 +131,7 @@ func (ui *Ui) AddAps2Maps(macAp map[string]*entity.Ap, hostnameAp map[string]*en
 
 		return nil //return mapAp, nil
 	} else {
-		fmt.Println("devices НЕ загрузились")
+		log.Println("devices НЕ загрузились")
 		//return mapAp, errGetDevices
 		return errGetDevices
 	}
@@ -143,8 +142,8 @@ func (ui *Ui) AddAps(mapAp map[string]*entity.Ap) error {
 	//devices, errGetDevices := uni.GetDevices(sites) //devices = APs
 	devices, errGetDevices := ui.Uni.GetDevices(ui.Sites) //devices = APs
 	if errGetDevices == nil {
-		fmt.Println("devices загрузились")
-		fmt.Println("")
+		log.Println("devices загрузились")
+		log.Println("")
 		for _, ap := range devices.UAPs {
 			siteID := ap.SiteID
 			//if !sitesException[siteID] { // НЕ Резерв/Склад
@@ -160,9 +159,9 @@ func (ui *Ui) AddAps(mapAp map[string]*entity.Ap) error {
 
 			kap, exis := mapAp[ap.Mac]
 			if exis {
-				//fmt.Println(kap.Mac + " kap есть в мапе. Обновление данных")
-				//fmt.Println(ap.Mac + " ap есть в мапе. Обновление данных")
-				//fmt.Println(ap.Name, ap.SiteName, ap.State.Int())
+				//log.Println(kap.Mac + " kap есть в мапе. Обновление данных")
+				//log.Println(ap.Mac + " ap есть в мапе. Обновление данных")
+				//log.Println(ap.Name, ap.SiteName, ap.State.Int())
 				kap.Name = ap.Name
 				kap.SiteName = siteName
 				kap.SiteID = siteID
@@ -171,8 +170,8 @@ func (ui *Ui) AddAps(mapAp map[string]*entity.Ap) error {
 				//Подгрузка единичек исключений по точкам из БД реализована пока что только в самом начале скрипта
 				//Периодического обновления из БД пока что нет
 			} else {
-				//fmt.Println(ap.Mac + "в мапе нет. Создание новой сущности")
-				//fmt.Println(ap.Name, ap.SiteName, ap.State.Int())
+				//log.Println(ap.Mac + "в мапе нет. Создание новой сущности")
+				//log.Println(ap.Name, ap.SiteName, ap.State.Int())
 				mapAp[ap.Mac] = &entity.Ap{
 					Mac:          ap.Mac,
 					SiteName:     siteName,
@@ -189,7 +188,7 @@ func (ui *Ui) AddAps(mapAp map[string]*entity.Ap) error {
 		//return mapAp, nil
 		return nil
 	} else {
-		fmt.Println("devices НЕ загрузились")
+		log.Println("devices НЕ загрузились")
 		//return mapAp, errGetDevices
 		return errGetDevices
 	}
@@ -202,8 +201,8 @@ func (ui *Ui) UpdateClients2MapWithoutApMap(macClient map[string]*entity.Client,
 	//clients, errGetClients := uni.GetClients(sites) //client = Notebook or Mobile = machine
 	clients, errGetClients := ui.Uni.GetClients(ui.Sites) //client = Notebook or Mobile = machine
 	if errGetClients == nil {
-		fmt.Println("clients загрузились")
-		fmt.Println("")
+		log.Println("clients загрузились")
+		log.Println("")
 
 		var clExInt int
 		var clPointer *entity.Client //клиент создаётся при каждом взятии из массива
@@ -276,7 +275,7 @@ func (ui *Ui) UpdateClients2MapWithoutApMap(macClient map[string]*entity.Client,
 		//return mapClient, nil
 		return nil
 	} else {
-		fmt.Println("clients НЕ загрузились")
+		log.Println("clients НЕ загрузились")
 		//return mapClient, errGetClients
 		return errGetClients
 	}
@@ -290,8 +289,8 @@ func (ui *Ui) UpdateClientsWithoutApMap(mapClient map[string]*entity.Client, dat
 	//clients, errGetClients := uni.GetClients(sites) //client = Notebook or Mobile = machine
 	clients, errGetClients := ui.Uni.GetClients(ui.Sites) //client = Notebook or Mobile = machine
 	if errGetClients == nil {
-		fmt.Println("clients загрузились")
-		fmt.Println("")
+		log.Println("clients загрузились")
+		log.Println("")
 		var clExInt int
 
 		for _, client0 := range clients {
@@ -333,7 +332,7 @@ func (ui *Ui) UpdateClientsWithoutApMap(mapClient map[string]*entity.Client, dat
 		//return mapClient, nil
 		return nil
 	} else {
-		fmt.Println("clients НЕ загрузились")
+		log.Println("clients НЕ загрузились")
 		//return mapClient, errGetClients
 		return errGetClients
 	}
@@ -356,8 +355,8 @@ func (ui *Ui) GetHourAnomaliesAddSlice(mac_Client map[string]*entity.Client, mac
 		then,
 	)
 	if errGetAnomalies == nil {
-		fmt.Println("anomalies загрузились")
-		fmt.Println("")
+		log.Println("anomalies загрузились")
+		log.Println("")
 		var noutMac string
 		var siteNameCut string
 		//var hourAnomalySlice map[string][]string
@@ -439,7 +438,7 @@ func (ui *Ui) GetHourAnomaliesAddSlice(mac_Client map[string]*entity.Client, mac
 
 		return mac_Anomaly, nil
 	} else {
-		fmt.Println("anomalies НЕ загрузились")
+		log.Println("anomalies НЕ загрузились")
 		return nil, errGetAnomalies
 	}
 	//return
@@ -460,8 +459,8 @@ func (ui *Ui) GetHourAnomalies(mac_Client map[string]*entity.Client, mac_Ap map[
 	mac_Anomaly = make(map[string]*entity.Anomaly) //panic: assignment to entry in nil map
 
 	if errGetAnomalies == nil {
-		fmt.Println("anomalies загрузились")
-		fmt.Println("")
+		log.Println("anomalies загрузились")
+		log.Println("")
 		var noutMac string
 		var siteNameCut string
 		//var hourAnomalySlice map[string][]string
@@ -518,7 +517,7 @@ func (ui *Ui) GetHourAnomalies(mac_Client map[string]*entity.Client, mac_Ap map[
 		}
 		return mac_Anomaly, nil
 	} else {
-		fmt.Println("anomalies НЕ загрузились")
+		log.Println("anomalies НЕ загрузились")
 		return nil, errGetAnomalies
 	}
 	//return
