@@ -108,17 +108,17 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 	//log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 	//log.SetFlags(0)
 
-	//count12minute := 0
-	//count20minute := 0
+	count2 := 2
 	countHourDBap := 0
+	countHourDBmachine := 0
 	//countHourAnom := 0 //Здесь заложены 2 процесса, объединённых в 1 счётчик: получение аномалий с контроллера и выгрузка их в БД
 	//countHourAnom := [3]int{} //перенёс в uuc
+
 	countDayDownloadMapsWithAnomalies := 0
 	//countDayTicketCreateAnom := 0 //перенёс в uuc
-
-	countDayUploadMachineToDB := 0
-	countDayDownlSiteApCutName := time.Now().Day()
 	countDayChangeLogFile := time.Now().Day()
+	//countDayUploadMachineToDB := 0
+	//countDayDownlSiteApCutName := time.Now().Day()
 
 	srStatusCodesForNewTicket = map[string]bool{
 		"Отменено":     true, //Cancel  6e5f4218-f46b-1410-fe9a-0050ba5d6c38
@@ -203,6 +203,9 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 			//err = uuc.ui.GetSites() //в uuc *UnifiUseCase подгружаются Sites
 			err = ui.GetSites() //в uuc *UnifiUseCase подгружаются Sites
 			if err == nil {
+				if count2 != 0 {
+					count2--
+				}
 
 				//обработка точек
 				uuc.mx.Lock()
@@ -218,8 +221,9 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 						}
 					}
 
-					//Обновление БД ap раз в час.
-					if timeNowU.Hour() != countHourDBap {
+					//Обновление БД ap раз в час И после прогрузки обоих контроллеров при старте
+					//if timeNowU.Hour() != countHourDBap {
+					if timeNowU.Hour() != countHourDBap && count2 == 0 {
 						log.Println("Ежечасовая выгрузка точек в БД")
 						countHourDBap = timeNowU.Hour()
 						err = uuc.repo.UpdateDbAp(mac_Ap)
@@ -229,14 +233,30 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 						}
 					}
 
+					//
 					//Загрузка Клиентов с контроллера и обновление двух мап Клиентов
 					uuc.mx.Lock() //блокируем на всю загрузку из БД мютекс у hostnameClient
-					err = ui.UpdateClients2MapWithoutApMap(mac_Client, uuc.hostnameClient, timeNowU.Format("2006-01-02"))
-					if err != nil {
-						log.Println(err.Error())
+					errUpdateClients := ui.UpdateClients2MapWithoutApMap(mac_Client, uuc.hostnameClient, timeNowU.Format("2006-01-02"))
+					if errUpdateClients != nil {
+						log.Println(errUpdateClients.Error())
 						log.Println("Клиенты НЕ загрузились с контроллера")
 					}
 					uuc.mx.Unlock()
+
+					//if timeNowU.Day() != countDayUploadMachineToDB {
+					if timeNowU.Hour() != countHourDBmachine && count2 == 0 { //&& errUpdateClients == nil ошибка может быть только на Ростове, а не выгружаться не сможет и Новосиб
+						log.Println("")
+						log.Println("Ежечасовая выгрузка мапы клиентов в БД")
+
+						err = uuc.repo.UpdateDbClient(mac_Client)
+						if err == nil {
+							//countDayUploadMachineToDB = timeNowU.Day()
+							countHourDBmachine = timeNowU.Hour()
+						} else {
+							log.Println(err.Error())
+							log.Println("Ежесуточная выгрузка мапы клиентов в БД завершилось ошибкой")
+						}
+					}
 
 				} else {
 					log.Println(err.Error())
@@ -269,7 +289,9 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 				log.Println("sites НЕ загрузились с контроллера")
 			}
 
-			if timeNowU.Day() != uuc.countDayTicketCreateAnom {
+			//без аргументов командной строки код считает, что создание заявок по аномалиям сегодня уже было
+			//Ждём при старте кода, когда прогрузятся оба контроллера, и потом создаём тикеты по аномалиям
+			if timeNowU.Day() != uuc.countDayTicketCreateAnom && count2 == 0 {
 				log.Println("")
 				log.Println("Ежесуточное создание заявок по аномалиям")
 
@@ -299,33 +321,6 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 				}
 			}
 
-			if timeNowU.Day() != countDayUploadMachineToDB {
-				log.Println("")
-				log.Println("Ежесуточная выгрузка мапы клиентов в БД")
-
-				err = uuc.repo.UpdateDbClient(mac_Client)
-				if err == nil {
-					countDayUploadMachineToDB = timeNowU.Day()
-				} else {
-					log.Println(err.Error())
-					log.Println("Ежесуточная выгрузка мапы клиентов в БД завершилось ошибкой")
-				}
-			}
-
-			if timeNowU.Day() != countDayDownlSiteApCutName {
-				log.Println("")
-				log.Println("Ежесуточное обновление мапы контактных лиц в офисах по точкам")
-
-				//siteApCutName_Login, err = uuc.repo.DownloadMapFromDBerr()
-				siteApCutName_Office, err = uuc.repo.DownloadMapOffice()
-				if err == nil {
-					countDayDownlSiteApCutName = timeNowU.Day()
-				} else {
-					log.Println(err.Error())
-					log.Println("Ежесуточное обновление мапы контактных лиц в офисах по точкам завершилось ошибкой")
-				}
-			}
-
 			if timeNowU.Day() != countDayChangeLogFile {
 				log.Println("")
 				log.Println("Ежесуточное изменение файла лога для Unifi")
@@ -342,12 +337,25 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 				}
 			}
 
+			/* Должно редактироваться черз web-админку
+			if timeNowU.Day() != countDayDownlSiteApCutName {
+				log.Println("")
+				log.Println("Ежесуточное обновление мапы контактных лиц в офисах по точкам")
+
+				//siteApCutName_Login, err = uuc.repo.DownloadMapFromDBerr()
+				siteApCutName_Office, err = uuc.repo.DownloadMapOffice()
+				if err == nil {
+					countDayDownlSiteApCutName = timeNowU.Day()
+				} else {
+					log.Println(err.Error())
+					log.Println("Ежесуточное обновление мапы контактных лиц в офисах по точкам завершилось ошибкой")
+				}
+			}*/
+
 			//} //every 12 minutes
 
 		} //if exis in every code map
 
-		//log.Println("Sleep 58s")
-		//log.Println("")
 		log.Println("Sleep 58s")
 		log.Println("")
 		time.Sleep(58 * time.Second)
