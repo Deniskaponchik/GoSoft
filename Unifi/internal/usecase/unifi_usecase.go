@@ -440,9 +440,9 @@ func (uuc *UnifiUseCase) HandlingAps() (siteNameApCutName_Ap map[string][]*entit
 										ap.SrID = ""
 										ap.CommentCount = 0
 									} else {
-										//Если НЕ удалось отменить заявку
-										//valueAp.SrID не зануляем, т.к. будет второй заход через 12 минут
-										//ap.CommentCount остаётся равным 2
+										log.Println("Не удалось отменить заявку. Обнуляем SR id и comment count")
+										ap.SrID = ""
+										ap.CommentCount = 0
 									}
 								} else {
 									//Если статус заявки В работе, Решено, Закрыто и т.д.
@@ -450,10 +450,14 @@ func (uuc *UnifiUseCase) HandlingAps() (siteNameApCutName_Ap map[string][]*entit
 									ap.CommentCount = 0
 								}
 							} else {
-								log.Println("Статус заявки получить не удалось.Никакие действия с заявкой не будут производиться")
+								log.Println("Статус заявки получить не удалось.")
+								log.Println("Т.к. точка всё равно доступна, обнуляем в структуре SR id и comment count")
+								//Случай с точкой VRN-SSC-FL3-CAPEX. Скрипт мцчился и не мог от неё избавиться.
+								ap.SrID = ""
+								ap.CommentCount = 0
 							}
 						} else {
-							//Если запись НЕ последняя, только удалить из мапы sr и comment, заодно и имя обновим
+							//Если запись НЕ последняя
 							ap.SrID = ""
 							ap.CommentCount = 0
 						}
