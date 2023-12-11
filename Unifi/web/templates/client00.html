@@ -1,0 +1,63 @@
+<!--Embed the header.html template at this location-->
+{{ template "header.html" .}}
+
+<p></p>
+<div class="container-fluid pb-3">
+<div class="d-grid gap-3" style="grid-template-columns: 1fr 1fr;">
+
+    <div class="bg-body-tertiary border rounded-3">
+
+    <form class="form" action="/client/request" method="POST">
+        <div class="form-group">
+            <label for="cl_hostname"></label>
+            <input type="text" class="form-control" id="cl_hostname" name="cl_hostname" placeholder="Notebook Hostname">
+        </div>
+        <button type="submit" class="btn btn-primary">Получить аномалии</button>
+        <p></p>
+    </form>
+
+
+    {{ if .hostname}}
+        <p></p>
+        {{ if .redmarker}}
+            <p style="color:red;">За 30 дн. у клиента {{.countanomaly}} дней с аномалиями</p>
+        {{else}}
+            <p style="color:green;">За 30 дн. у клиента {{.countanomaly}} дней с аномалиями</p>
+        {{end}}
+        <p></p>
+        <p>Минимальный шаг обновления - 1 час</p>
+        <p></p>
+        <p>Аномалии обновляются в течение первых 10 минут каждого часа</p>
+        <p></p>
+        <p>Аномалии берутся только для сети Tele2Corp</p>
+        <p></p>
+        <p>Время аномалий:</p>
+        <p>Для Урала, Сибири, Дальнего Востока - Новосибирское</p>
+        <p>Для всей остальной западной России - Московское</p>
+    {{end}}
+    </div>
+
+
+    <div class="bg-body-tertiary border rounded-3">
+        <p></p>
+    {{ if .hostname}}
+        <!--Display the title of the client -->
+        <h2>{{.hostname}}</h2>
+          <!--Loop over the `anomalies_struct` variable, which is the list of anomalies structure-->
+          {{range .anomalies_struct }}
+            <!--Display the content of the anomaly-->
+            <p>{{.ApName}}<br>{{.DateHour}}<br>
+                <!--Loop over the `anomalies_string` variable, which is the list of anomalies string-->
+                {{range .SliceAnomStr }}
+                  {{ . }}<br>
+                {{end}}
+            </p>
+          {{end}}
+    {{end}}
+    </div>
+
+</div>
+</div>
+
+<!--Embed the footer.html template at this location-->
+{{ template "footer.html" .}}

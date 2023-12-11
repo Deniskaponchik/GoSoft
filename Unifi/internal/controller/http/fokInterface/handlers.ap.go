@@ -53,6 +53,7 @@ func (fok *Fokusov) getAP(c *gin.Context) {
 		// Call the render function with the title, article and the name of the
 		// template
 		render(c, gin.H{
+			"page_ap":      true,
 			"title":        ap.Name,
 			"hostname":     ap.Name,
 			"countanomaly": ap.CountAnomaly,
@@ -111,5 +112,7 @@ func (fok *Fokusov) getClientFok(c *gin.Context) {
 func (fok *Fokusov) showApRequestPage(c *gin.Context) {
 	// Call the render function with the name of the template to render
 	render(c, gin.H{
-		"title": "Ap Request Page"}, "ap.html")
+		"page_ap": true,
+		"title":   "Ap Request Page"},
+		"ap.html")
 }

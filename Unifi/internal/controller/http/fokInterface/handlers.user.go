@@ -10,7 +10,8 @@ import (
 func showLoginPage(c *gin.Context) {
 	// Call the render function with the name of the template to render
 	render(c, gin.H{
-		"title": "Login",
+		"page_login": true,
+		"title":      "Login",
 	}, "login.html")
 }
 
@@ -21,9 +22,7 @@ func performLogin(c *gin.Context) {
 
 	var sameSiteCookie http.SameSite
 
-	// Check if the username/password combination is valid
 	if isUserValid(username, password) {
-		// If the username/password is valid set the token in a cookie
 		token := generateSessionToken()
 		c.SetSameSite(sameSiteCookie)
 		//c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true)
@@ -57,7 +56,6 @@ func logout(c *gin.Context) {
 	//c.SetCookie("token", "", -1, "", "", sameSiteCookie, false, true)
 	c.SetCookie("token", "", -1, "", "", false, true) //моё
 
-	// Redirect to the home page
 	//c.Redirect(http.StatusTemporaryRedirect, "/")
 	c.Redirect(http.StatusTemporaryRedirect, "/user/login")
 }
@@ -66,14 +64,17 @@ func showAdminkaPage(c *gin.Context) {
 	//based on showArticleCreationPage function
 	// Call the render function with the name of the template to render
 	render(c, gin.H{
-		"title": "Adminka"}, "adminka.html")
+		"page_adminka": true,
+		"title":        "Adminka"},
+		"adminka.html")
 }
 
 func showRegistrationPage(c *gin.Context) {
 	// Call the render function with the name of the template to render
 	render(c, gin.H{
 		//"title": "Register"}, "register.html")
-		"title": "Register"}, "register.html")
+		"title": "Register"},
+		"register.html")
 }
 
 func register(c *gin.Context) {

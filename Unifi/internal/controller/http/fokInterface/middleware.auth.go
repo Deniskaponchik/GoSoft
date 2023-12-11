@@ -13,7 +13,8 @@ func ensureLoggedIn() gin.HandlerFunc {
 		loggedIn := loggedInInterface.(bool)
 		if !loggedIn {
 			//if token, err := c.Cookie("token"); err != nil || token == "" {
-			c.AbortWithStatus(http.StatusUnauthorized)
+			//c.AbortWithStatus(http.StatusUnauthorized)
+			c.Redirect(http.StatusTemporaryRedirect, "/user/login")
 		}
 	}
 }
@@ -21,13 +22,13 @@ func ensureLoggedIn() gin.HandlerFunc {
 // This middleware ensures that a request will be aborted with an error if the user is already logged in
 func ensureNotLoggedIn() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// If there's no error or if the token is not empty
-		// the user is already logged in
+		// If there's no error or if the token is not empty the user is already logged in
 		loggedInInterface, _ := c.Get("is_logged_in")
 		loggedIn := loggedInInterface.(bool)
 		if loggedIn {
 			// if token, err := c.Cookie("token"); err == nil || token != "" {
-			c.AbortWithStatus(http.StatusUnauthorized)
+			//c.AbortWithStatus(http.StatusUnauthorized)
+			c.Redirect(http.StatusTemporaryRedirect, "/user/adminka")
 		}
 	}
 }

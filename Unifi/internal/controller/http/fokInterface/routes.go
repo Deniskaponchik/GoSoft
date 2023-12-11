@@ -6,14 +6,20 @@ func (fok *Fokusov) initializeRoutes() {
 	// Use the setUserStatus middleware for every route to set a flag indicating whether the request was from an authenticated user or not
 	router.Use(setUserStatus())
 
-	//router.GET("/", showIndexPage)	//router.GET("/", fok.showIndexPage)	//fok.Router.GET("/", fok.showIndexPage)
-	//clientRoutes := fok.Router.Group("/client")
 	userRoutes := router.Group("/user")
 	{
 		userRoutes.GET("/login", ensureNotLoggedIn(), showLoginPage)
 		userRoutes.POST("/login", ensureNotLoggedIn(), performLogin)
 		userRoutes.GET("/logout", ensureLoggedIn(), logout)
-		userRoutes.GET("/adminka", ensureNotLoggedIn(), showAdminkaPage)
+		userRoutes.GET("/adminka", ensureLoggedIn(), showAdminkaPage)
+		//redirect from POST performLogin
+		userRoutes.POST("/adminka", ensureLoggedIn(), showAdminkaPage)
+	}
+
+	testRoutes := router.Group("/test")
+	{
+		testRoutes.GET("/request", fok.showClientTest)
+		testRoutes.POST("/request", fok.getClientTest)
 	}
 
 	clientRoutes := router.Group("/client")
@@ -28,7 +34,20 @@ func (fok *Fokusov) initializeRoutes() {
 		apRoutes.GET("/request", fok.showApRequestPage)
 		apRoutes.POST("/request", fok.getAP)
 		apRoutes.GET("/view/:ap_hostname", fok.getAP)
+
+		//apRoutes.POST("/exception_add", fok.addException)
+		//apRoutes.POST("/exception_del", fok.delException)
 	}
+	/*
+		siteRoutes := router.Group("/site")
+		{
+			siteRoutes.POST("/sapcn_add", fok.addSapcn)
+			siteRoutes.POST("/sapcn_change", fok.changeSapcn)
+			siteRoutes.POST("/login_change", fok.changeLogin)
+
+			siteRoutes.POST("/exception_add", fok.addException)
+			siteRoutes.POST("/exception_del", fok.delException)
+		}*/
 
 	/*
 		// Use the setUserStatus middleware for every route to set a flag

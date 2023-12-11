@@ -81,6 +81,7 @@ func (fok *Fokusov) getClient(c *gin.Context) {
 		// Call the render function with the title, article and the name of the
 		// template
 		render(c, gin.H{
+			"page_client":  true,
 			"title":        client.Hostname,
 			"hostname":     client.Hostname,
 			"countanomaly": client.CountAnomaly,
@@ -139,5 +140,7 @@ func (fok *Fokusov) getClientFok(c *gin.Context) {
 func (fok *Fokusov) showClientRequestPage(c *gin.Context) {
 	// Call the render function with the name of the template to render
 	render(c, gin.H{
-		"title": "Client Request Page"}, "client.html")
+		"page_client": true,
+		"title":       "Client Request Page"},
+		"client.html")
 }

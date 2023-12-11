@@ -106,7 +106,7 @@ func (ui *Ui) AddAps2Maps(macAp map[string]*entity.Ap, hostnameAp map[string]*en
 					}
 
 				} else {
-					//если мак не бьётся, создаём нового клиента
+					//если мак не бьётся, создаём новую точку
 					apPointer = &entity.Ap{
 						Mac:          ap0.Mac,
 						SiteName:     siteName,
@@ -120,7 +120,7 @@ func (ui *Ui) AddAps2Maps(macAp map[string]*entity.Ap, hostnameAp map[string]*en
 					}
 
 					macAp[ap0.Mac] = apPointer
-					//если мак не бьётся, значит в hostname клиента не будет
+					//если мак не бьётся, значит в hostname точки не будет
 					hostnameAp[apNameUpperCase] = apPointer
 				}
 				//} //НЕ Резерв/Склад
