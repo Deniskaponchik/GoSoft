@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
-
+	"regexp"
 	//"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"log"
@@ -61,28 +61,6 @@ func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, everyCodeIn
 		hostnameAp:               make(map[string]*entity.Ap),
 		countDayTicketCreateAnom: countDayTicketCreateAnom,
 		countHourAnom:            [3]int{0, h1, h2},
-	}
-}
-
-func (uuc *UnifiUseCase) GetClientForRest(hostName string) *entity.Client { //c context.Context
-	uuc.mx.RLock()
-	defer uuc.mx.RUnlock()
-	client, exisHost := uuc.hostnameClient[hostName]
-	if exisHost {
-		return client
-	} else {
-		return nil
-	}
-}
-
-func (uuc *UnifiUseCase) GetApForRest(hostName string) *entity.Ap { //c context.Context
-	uuc.mx.RLock()
-	defer uuc.mx.RUnlock()
-	ap, exisHost := uuc.hostnameAp[hostName]
-	if exisHost {
-		return ap
-	} else {
-		return nil
 	}
 }
 
@@ -184,6 +162,22 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 
 	for true {
 		timeNowU = time.Now()
+
+		if timeNowU.Day() != countDayChangeLogFile {
+			log.Println("")
+			log.Println("Ежесуточное изменение файла лога для Unifi")
+
+			fileNameUnifi := "Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
+			fileLogUnifi, errCreateFile := os.OpenFile(fileNameUnifi, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+			if errCreateFile != nil {
+				log.Println(errCreateFile.Error())
+				log.Println("Ежесуточное изменение файла лога Unifi usecase завершилось ошибкой")
+			} else {
+				multiWriter := io.MultiWriter(os.Stdout, fileLogUnifi)
+				log.SetOutput(multiWriter)
+				countDayChangeLogFile = timeNowU.Day()
+			}
+		}
 
 		//intCodeController, exisCodeRun := uuc.everyCodeMap[timeNowU.Minute()]
 		uuc.controllerInt, exis = uuc.everyCodeMap[timeNowU.Minute()]
@@ -321,22 +315,6 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 				}
 			}
 
-			if timeNowU.Day() != countDayChangeLogFile {
-				log.Println("")
-				log.Println("Ежесуточное изменение файла лога для Unifi")
-
-				fileNameUnifi := "Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
-				fileLogUnifi, errCreateFile := os.OpenFile(fileNameUnifi, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-				if errCreateFile != nil {
-					log.Println(errCreateFile.Error())
-					log.Println("Ежесуточное изменение файла лога Unifi usecase завершилось ошибкой")
-				} else {
-					multiWriter := io.MultiWriter(os.Stdout, fileLogUnifi)
-					log.SetOutput(multiWriter)
-					countDayChangeLogFile = timeNowU.Day()
-				}
-			}
-
 			/* Должно редактироваться черз web-админку
 			if timeNowU.Day() != countDayDownlSiteApCutName {
 				log.Println("")
@@ -388,79 +366,89 @@ func (uuc *UnifiUseCase) HandlingAps() (siteNameApCutName_Ap map[string][]*entit
 						log.Println(ap.Name)
 						log.Println(ap.Mac)
 						log.Println("Точка доступна. Заявка есть")
-						//Оставляем коммент, ПЫТАЕМСЯ закрыть тикет, если на визировании, Очищаем запись в мапе,
-						ticket := &entity.Ticket{
-							ID: ap.SrID,
-						}
 
-						ticket.Comment = "Точка появилась в сети: " + ap.Name
-						if ap.CommentCount < 1 {
-							err = uuc.soap.AddCommentErr(ticket)
-							if err == nil {
-								ap.CommentCount = 1
+						correctSrid, _ := regexp.MatchString(`^.{8}-.{4}-.{4}-.{4}-.{12}$`, ap.SrID)
+						if correctSrid {
+							//Оставляем коммент, ПЫТАЕМСЯ закрыть тикет, если на визировании, Очищаем запись в мапе,
+							ticket := &entity.Ticket{
+								ID: ap.SrID,
 							}
-						}
 
-						//проверить, не последняя ли это запись в мапе в массиве
-						countOfIncident := 0
-						for _, v := range mac_Ap {
-							if v.SrID == ap.SrID {
-								countOfIncident++
-								//BREAK здесь НЕ нужен. Пробежаться нужно по всем
+							ticket.Comment = "Точка появилась в сети: " + ap.Name
+							if ap.CommentCount < 1 {
+								err = uuc.soap.AddCommentErr(ticket)
+								if err == nil {
+									ap.CommentCount = 1
+								}
 							}
-						}
 
-						if countOfIncident == 1 {
-							//если последняя запись, пробуем закрыть тикет
-							//status := CheckTicketStatusErr(soapServer, srID)
-							err = uuc.soap.CheckTicketStatusErr(ticket)
-							if err == nil {
-								log.Println(ticket.Status)
+							//проверить, не последняя ли это запись в мапе в массиве
+							countOfIncident := 0
+							for _, v := range mac_Ap {
+								if v.SrID == ap.SrID {
+									countOfIncident++
+									//BREAK здесь НЕ нужен. Пробежаться нужно по всем
+								}
+							}
 
-								if srStatusCodesForCancelTicket[ticket.Status] {
-									//Если статус заявки на Уточнении, Визирование, Назначено
-									if ap.CommentCount < 2 {
-										ticket.Comment = "Будет предпринята попытка отмены обращения, т.к. все точки из него появились в сети"
-										err = uuc.soap.AddCommentErr(ticket)
-										if err == nil {
-											ap.CommentCount = 2
+							if countOfIncident == 1 {
+								//если последняя запись, пробуем закрыть тикет
+								//status := CheckTicketStatusErr(soapServer, srID)
+								err = uuc.soap.CheckTicketStatusErr(ticket)
+								if err == nil {
+									log.Println(ticket.Status)
+
+									if srStatusCodesForCancelTicket[ticket.Status] {
+										//Если статус заявки на Уточнении, Визирование, Назначено
+										if ap.CommentCount < 2 {
+											ticket.Comment = "Будет предпринята попытка отмены обращения, т.к. все точки из него появились в сети"
+											err = uuc.soap.AddCommentErr(ticket)
+											if err == nil {
+												ap.CommentCount = 2
+											}
 										}
-									}
 
-									log.Println("Попытка изменить статус в На уточнении")
-									ticket.Status = "На уточнении"
-									err = uuc.soap.ChangeStatusErr(ticket)
-									//if error не делаю, т.к. лишним не будет при любом раскладе попытаться вернуть на уточнение
+										log.Println("Попытка изменить статус в На уточнении")
+										ticket.Status = "На уточнении"
+										err = uuc.soap.ChangeStatusErr(ticket)
+										//if error не делаю, т.к. лишним не будет при любом раскладе попытаться вернуть на уточнение
 
-									log.Println("Попытка изменить статус в Отменено")
-									ticket.Status = "Отменено"
-									err = uuc.soap.ChangeStatusErr(ticket)
-									if err == nil {
-										//Если отмена заявки прошла успешно
-										ap.SrID = ""
-										ap.CommentCount = 0
+										log.Println("Попытка изменить статус в Отменено")
+										ticket.Status = "Отменено"
+										err = uuc.soap.ChangeStatusErr(ticket)
+										if err == nil {
+											//Если отмена заявки прошла успешно
+											ap.SrID = ""
+											ap.CommentCount = 0
+										} else {
+											log.Println("Не удалось отменить заявку. Обнуляем SR id и comment count")
+											ap.SrID = ""
+											ap.CommentCount = 0
+										}
 									} else {
-										log.Println("Не удалось отменить заявку. Обнуляем SR id и comment count")
+										//Если статус заявки В работе, Решено, Закрыто и т.д.
 										ap.SrID = ""
 										ap.CommentCount = 0
 									}
 								} else {
-									//Если статус заявки В работе, Решено, Закрыто и т.д.
+									log.Println("Статус заявки получить не удалось.")
+									log.Println("Т.к. точка всё равно доступна, обнуляем в структуре SR id и comment count")
+									//Случай с точкой VRN-SSC-FL3-CAPEX. Скрипт мцчился и не мог от неё избавиться.
 									ap.SrID = ""
 									ap.CommentCount = 0
 								}
 							} else {
-								log.Println("Статус заявки получить не удалось.")
-								log.Println("Т.к. точка всё равно доступна, обнуляем в структуре SR id и comment count")
-								//Случай с точкой VRN-SSC-FL3-CAPEX. Скрипт мцчился и не мог от неё избавиться.
+								//Если запись НЕ последняя
 								ap.SrID = ""
 								ap.CommentCount = 0
 							}
 						} else {
-							//Если запись НЕ последняя
+							log.Println("SR id не корректен:")
+							log.Println(ap.SrID)
 							ap.SrID = ""
 							ap.CommentCount = 0
 						}
+
 						log.Println("")
 					}
 				} else { //Точка НЕ доступна
@@ -469,8 +457,11 @@ func (uuc *UnifiUseCase) HandlingAps() (siteNameApCutName_Ap map[string][]*entit
 					log.Println("Точка НЕ доступна")
 
 					ticket := &entity.Ticket{}
+
 					//Проверяем заявку на НЕ закрытость.
-					if ap.SrID != "" {
+					//if ap.SrID != "" {
+					correctSrid, _ := regexp.MatchString(`^.{8}-.{4}-.{4}-.{4}-.{12}$`, ap.SrID)
+					if correctSrid {
 						//status = CheckTicketStatusErr(soapServer, srID)
 						ticket.ID = ap.SrID
 						err = uuc.soap.CheckTicketStatusErr(ticket)
@@ -478,12 +469,15 @@ func (uuc *UnifiUseCase) HandlingAps() (siteNameApCutName_Ap map[string][]*entit
 						log.Println("Созданное обращение:")
 						log.Println(ticket.BpmServer + ap.SrID) //bpmUrl + srID)
 						log.Println(ticket.Status)              //checkSlice[1])
+					} else {
+						log.Println("SR id пустой или не корректен")
+						log.Println(ap.SrID)
 					}
 
-					//if srStatusCodesForNewTicket[checkSlice[1]] || srID == "" {
-					if srStatusCodesForNewTicket[ticket.Status] || ap.SrID == "" {
-						//Заявки нет
-						log.Println("Заявка Закрыта, Отменена, Отклонена или заявки НЕТ вовсе")
+					//if srStatusCodesForNewTicket[ticket.Status] || ap.SrID == "" {
+					if srStatusCodesForNewTicket[ticket.Status] || !correctSrid {
+
+						log.Println("Заявка Закрыта, Отменена, Отклонена, заявки НЕТ вовсе или SR id не корректен")
 
 						ap.SrID = "" //удаляем заявку
 						//ap.CountAttempts = 0
@@ -655,61 +649,72 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 
 		if client.SrID != "" {
 			log.Println(client.Hostname)
-			log.Println("Созданное обращение:")
 
-			ticket := &entity.Ticket{
-				ID: client.SrID,
-			}
-			//var errCheckStatus error
-			errCheckStatus := uuc.soap.CheckTicketStatusErr(ticket)
-			if errCheckStatus == nil {
-				log.Println(ticket.Url)
-				log.Println(ticket.Status)
+			correctSrid, _ := regexp.MatchString(`^.{8}-.{4}-.{4}-.{4}-.{12}$`, client.SrID)
+			if correctSrid {
+				log.Println("Созданное обращение:")
 
-				if srStatusCodesForNewTicket[ticket.Status] {
-					//Если заявка закрыта, отменена, удаляем запись srid
-					log.Println("Удаляем запись о заявке у клиента")
-					client.SrID = ""
-
-				} else {
-					//Если заявка в работе, визирование, назначено, добавляем комментарий
-					yesterday := timeNowU.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
-					var b1 bytes.Buffer
-
-					//беру последнюю добавленную аномалию в массив
-					//anomalyStruct = client.SliceAnomalies[lenAnomStructSlice-1]
-					anomalyStruct = client.SliceAnomalies[len(client.SliceAnomalies)-1]
-					date = strings.Split(anomalyStruct.DateHour, " ")[0] //обрезаю только Date
-
-					//log.Println("yesterday date    = " + yesterday)
-					log.Println("last anomaly date = " + date)
-
-					if yesterday == date {
-						//если за прошедшие сутки были аномалии
-						b1.WriteString(anomalyStruct.ApName + "\n")
-						for _, oneAnomaly := range anomalyStruct.SliceAnomStr {
-							b1.WriteString(oneAnomaly + "\n")
-						}
-						b1.WriteString("\n")
-					}
-
-					if b1.Len() != 0 {
-						ticket.Comment = "За последние сутки появились новые аномалии:" + "\n" +
-							b1.String() +
-							""
-						err = uuc.soap.AddCommentErr(ticket)
-						if err == nil {
-							log.Println("оставлен комментарий, что за последние сутки были новые аномалии")
-						} else {
-							log.Println("Комментарий не смог добавиться в обращение")
-							log.Println(err.Error())
-						}
-					}
+				ticket := &entity.Ticket{
+					ID: client.SrID,
 				}
+				//var errCheckStatus error
+				errCheckStatus := uuc.soap.CheckTicketStatusErr(ticket)
+				if errCheckStatus == nil {
+					log.Println(ticket.Url)
+					log.Println(ticket.Status)
+
+					if srStatusCodesForNewTicket[ticket.Status] {
+						//Если заявка закрыта, отменена, удаляем запись srid
+						log.Println("Удаляем запись о заявке у клиента")
+						client.SrID = ""
+
+					} else {
+						//Если заявка в работе, визирование, назначено, добавляем комментарий
+						yesterday := timeNowU.Add(time.Duration(-22) * time.Hour).Format("2006-01-02")
+						var b1 bytes.Buffer
+
+						//беру последнюю добавленную аномалию в массив
+						//anomalyStruct = client.SliceAnomalies[lenAnomStructSlice-1]
+						anomalyStruct = client.SliceAnomalies[len(client.SliceAnomalies)-1]
+						date = strings.Split(anomalyStruct.DateHour, " ")[0] //обрезаю только Date
+
+						//log.Println("yesterday date    = " + yesterday)
+						log.Println("last anomaly date = " + date)
+
+						if yesterday == date {
+							//если за прошедшие сутки были аномалии
+							b1.WriteString(anomalyStruct.ApName + "\n")
+							for _, oneAnomaly := range anomalyStruct.SliceAnomStr {
+								b1.WriteString(oneAnomaly + "\n")
+							}
+							b1.WriteString("\n")
+						}
+
+						if b1.Len() != 0 {
+							ticket.Comment = "За последние сутки появились новые аномалии:" + "\n" +
+								b1.String() +
+								""
+							err = uuc.soap.AddCommentErr(ticket)
+							if err == nil {
+								log.Println("оставлен комментарий, что за последние сутки были новые аномалии")
+							} else {
+								log.Println("Комментарий не смог добавиться в обращение")
+								log.Println(err.Error())
+							}
+						}
+					}
+				} //if errCheckStatus == nil
+
+			} else {
+				log.Println("SR id не корректен:")
+				log.Println(client.SrID)
+				client.SrID = ""
 			}
+
 			log.Println("")
 		}
 
+		//НЕ ELSE!!! на предыдущем этапе может обнуляться SR id
 		if client.SrID == "" {
 
 			//У каждого клиента проверить длину массива Аномалий. из бд взяты записи с Exception = 0

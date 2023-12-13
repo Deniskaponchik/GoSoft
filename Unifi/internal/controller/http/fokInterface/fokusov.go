@@ -20,6 +20,7 @@ type Fokusov struct {
 	Urest       usecase.UnifiRest //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
 	LogFileName string
 	Logger      *log.Logger
+	AdminkaArr  []string
 }
 
 func New(uuc *usecase.UnifiUseCase, port string, logFileName string) *Fokusov { //router *gin.Engine,rest *usecase.Rest
@@ -31,6 +32,7 @@ func New(uuc *usecase.UnifiUseCase, port string, logFileName string) *Fokusov { 
 		//UnifiUC: uuc,
 		Urest:       uuc, //использовать структуру, реализующие методы интерфейса usecase.UnifiRest
 		LogFileName: logFileName,
+		AdminkaArr:  make([]string, 10),
 	}
 }
 

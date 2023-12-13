@@ -38,6 +38,7 @@ type (
 type (
 	//implement usecase methods to web
 	UnifiRest interface {
+		GetSapcnSortSliceForAdminkaPage() []string
 		GetClientForRest(string) *entity.Client
 		GetApForRest(string) *entity.Ap
 	}

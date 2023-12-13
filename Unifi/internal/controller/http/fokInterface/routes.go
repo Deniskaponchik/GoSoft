@@ -11,9 +11,9 @@ func (fok *Fokusov) initializeRoutes() {
 		userRoutes.GET("/login", ensureNotLoggedIn(), showLoginPage)
 		userRoutes.POST("/login", ensureNotLoggedIn(), performLogin)
 		userRoutes.GET("/logout", ensureLoggedIn(), logout)
-		userRoutes.GET("/adminka", ensureLoggedIn(), showAdminkaPage)
+		userRoutes.GET("/adminka", ensureLoggedIn(), fok.showAdminkaPage)
 		//redirect from POST performLogin
-		userRoutes.POST("/adminka", ensureLoggedIn(), showAdminkaPage)
+		userRoutes.POST("/adminka", ensureLoggedIn(), fok.showAdminkaPage)
 	}
 
 	testRoutes := router.Group("/test")
@@ -38,16 +38,16 @@ func (fok *Fokusov) initializeRoutes() {
 		//apRoutes.POST("/exception_add", fok.addException)
 		//apRoutes.POST("/exception_del", fok.delException)
 	}
-	/*
-		siteRoutes := router.Group("/site")
-		{
-			siteRoutes.POST("/sapcn_add", fok.addSapcn)
-			siteRoutes.POST("/sapcn_change", fok.changeSapcn)
-			siteRoutes.POST("/login_change", fok.changeLogin)
 
-			siteRoutes.POST("/exception_add", fok.addException)
-			siteRoutes.POST("/exception_del", fok.delException)
-		}*/
+	siteRoutes := router.Group("/office")
+	{
+		//siteRoutes.POST("/sapcn_add", fok.addSapcn)
+		//siteRoutes.POST("/sapcn_change", fok.changeSapcn)
+		siteRoutes.POST("/login_change", fok.officeLoginChange)
+
+		//siteRoutes.POST("/exception_add", fok.addException)
+		//siteRoutes.POST("/exception_del", fok.delException)
+	}
 
 	/*
 		// Use the setUserStatus middleware for every route to set a flag

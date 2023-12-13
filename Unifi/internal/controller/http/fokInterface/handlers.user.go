@@ -7,6 +7,19 @@ import (
 	"strconv"
 )
 
+func (fok *Fokusov) showAdminkaPage(c *gin.Context) {
+	//based on showArticleCreationPage function
+	// Call the render function with the name of the template to render
+	//sapcnArr := [10]string{"БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK"}
+	sapcnArr := fok.Urest.GetSapcnSortSliceForAdminkaPage()
+	render(c, gin.H{
+		"page_adminka": true,
+		"sapcnArr":     sapcnArr,
+		"arr0":         fok.AdminkaArr[0],
+		"title":        "Adminka"},
+		"adminka.html")
+}
+
 func showLoginPage(c *gin.Context) {
 	// Call the render function with the name of the template to render
 	render(c, gin.H{
@@ -58,15 +71,6 @@ func logout(c *gin.Context) {
 
 	//c.Redirect(http.StatusTemporaryRedirect, "/")
 	c.Redirect(http.StatusTemporaryRedirect, "/user/login")
-}
-
-func showAdminkaPage(c *gin.Context) {
-	//based on showArticleCreationPage function
-	// Call the render function with the name of the template to render
-	render(c, gin.H{
-		"page_adminka": true,
-		"title":        "Adminka"},
-		"adminka.html")
 }
 
 func showRegistrationPage(c *gin.Context) {

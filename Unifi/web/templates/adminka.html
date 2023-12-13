@@ -9,30 +9,42 @@
         <h4 class="my-0 fw-normal">Site</h4>
       </div>
       <div class="card-body">
-        <form class="row g-3" action="/ap/sapcn_change" method="POST">
-          <div class="col-lg-auto">
-            <label for="Site_ApCutName1" class="visually-hidden">Site_ApCutName</label>
-            <input type="text" class="form-control" id="Site_ApCutName1" placeholder="Site_ApCutName">
+
+        <!-- change sapcn LOGIN -->
+        <form class="row g-3" action="/office/login_change" method="POST">
+          {{ if .arr0}}
+            <p> {{.arr0}} </p>
+          {{end}}
+          <!--div class="col-lg-auto"-->
+          <div class="col-md-4">
+            <label for="00_sapcn" class="visually-hidden">sapcn</label>
+            <select class="form-select" id="00_sapcn" name="00_sapcn" required>
+              <option selected disabled value="">Choose sapcn</option>
+              {{range .sapcnArr }}
+                <option>{{ . }}</option>
+              {{end}}
+            </select>
           </div>
-          <div class="col-lg-auto">
-            <label for="login1" class="visually-hidden">login</label>
-            <input type="text" class="form-control" id="login1" placeholder="login">
+          <div class="col-md-4">
+            <label for="00_login" class="visually-hidden">new login</label>
+            <input type="text" class="form-control" id="00_login" name="00_login" required placeholder="login">
           </div>
-          <div class="col-lg-auto">
-            <button type="submit" class="btn btn-primary mb-3">Change Login</button>
+          <div class="col-md-4">
+            <button type="submit" class="btn btn-primary">Change Login</button>
           </div>
         </form>
+        <p></p>
 
         <form class="row g-3" action="/ap/sapcn_change" method="POST">
-          <div class="col-lg-auto">
+          <div class="col-md-4">
             <label for="Site_ApCutName2" class="visually-hidden">Site_ApCutName</label>
             <input type="text" class="form-control" id="Site_ApCutName2" placeholder="Site_ApCutName">
           </div>
-          <div class="col-lg-auto">
+          <div class="col-md-4">
             <label for="sapcn_new1" class="visually-hidden">sapcn_new</label>
             <input type="text" class="form-control" id="sapcn_new1" placeholder="Site_ApCutName NEW">
           </div>
-          <div class="col-lg-auto">
+          <div class="col-md-4">
             <button type="submit" class="btn btn-primary mb-3">Change Name</button>
           </div>
         </form>

@@ -1,0 +1,189 @@
+<!--Adminka.html-->
+{{ template "header.html" .}}
+<h1>Adminka</h1>
+
+<div class="row row-cols-1 row-cols-md-2 mb-2 text-center">
+  <div class="col">
+    <div class="card mb-4 rounded-3 shadow-sm">
+      <div class="card-header py-3">
+        <h4 class="my-0 fw-normal">Site</h4>
+      </div>
+      <div class="card-body">
+        <form class="row g-3" action="/ap/sapcn_change" method="POST">
+          <div class="col-lg-auto">
+            <label for="Site_ApCutName1" class="visually-hidden">Site_ApCutName</label>
+            <input type="text" class="form-control" id="Site_ApCutName1" placeholder="Site_ApCutName">
+          </div>
+          <div class="col-lg-auto">
+            <label for="login1" class="visually-hidden">login</label>
+            <input type="text" class="form-control" id="login1" placeholder="login">
+          </div>
+          <div class="col-lg-auto">
+            <button type="submit" class="btn btn-primary mb-3">Change Login</button>
+          </div>
+        </form>
+
+        <form class="row g-3" action="/ap/sapcn_change" method="POST">
+          <div class="col-lg-auto">
+            <label for="Site_ApCutName2" class="visually-hidden">Site_ApCutName</label>
+            <input type="text" class="form-control" id="Site_ApCutName2" placeholder="Site_ApCutName">
+          </div>
+          <div class="col-lg-auto">
+            <label for="sapcn_new1" class="visually-hidden">sapcn_new</label>
+            <input type="text" class="form-control" id="sapcn_new1" placeholder="Site_ApCutName NEW">
+          </div>
+          <div class="col-lg-auto">
+            <button type="submit" class="btn btn-primary mb-3">Change Name</button>
+          </div>
+        </form>
+
+        <form class="row g-3" action="/ap/sapcn_change" method="POST">
+          <div class="col-lg-auto">
+            <label for="Site_ApCutName3" class="visually-hidden">Site_ApCutName</label>
+            <input type="text" class="form-control" id="Site_ApCutName3" placeholder="Site_ApCutName NEW">
+          </div>
+          <div class="col-lg-auto">
+            <label for="login2" class="visually-hidden">sapcn_new</label>
+            <input type="text" class="form-control" id="login2" placeholder="login">
+          </div>
+          <div class="col-lg-auto">
+            <button type="submit" class="btn btn-primary mb-3">Create new</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card mb-4 rounded-3 shadow-sm">
+      <div class="card-header py-3">
+        <h4 class="my-0 fw-normal">Access Points</h4>
+      </div>
+      <div class="card-body">
+        <h1 class="card-title pricing-card-title">$15<small class="text-body-secondary fw-light">/mo</small></h1>
+        <ul class="list-unstyled mt-3 mb-4">
+          <li>20 users included</li>
+          <li>10 GB of storage</li>
+          <li>Priority email support</li>
+          <li>Help center access</li>
+        </ul>
+        <button type="button" class="w-100 btn btn-lg btn-primary">Get started</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!--
+<hr class="my-4">
+
+<form class="row g-3" action="/ap/sapcn_change" method="POST">
+  <div class="col-lg-auto">
+    <label for="Site_ApCutName1" class="visually-hidden">Site_ApCutName</label>
+    <input type="text" class="form-control" id="Site_ApCutName1" placeholder="Site_ApCutName">
+  </div>
+  <div class="col-lg-auto">
+    <label for="login1" class="visually-hidden">login</label>
+    <input type="text" class="form-control" id="login1" placeholder="login">
+  </div>
+  <div class="col-lg-auto">
+    <button type="submit" class="btn btn-primary mb-3">Change</button>
+  </div>
+</form>
+
+<hr class="my-4">
+
+<form class="row g-3" action="/ap/sapcn_add" method="POST">
+  <div class="col-lg-auto">
+    <label for="Site_ApCutName2" class="visually-hidden">БиДВ_BIR</label>
+    <input type="text" class="form-control" id="Site_ApCutName2" placeholder="Site_ApCutName">
+  </div>
+  <div class="col-lg-auto">
+    <label for="login2" class="visually-hidden">login</label>
+    <input type="text" class="form-control" id="login2" placeholder="login">
+  </div>
+  <div class="col-lg-auto">
+    <button type="submit" class="btn btn-primary mb-3">Create</button>
+  </div>
+</form>
+
+<hr class="my-4">
+-->
+
+<!--https://getbootstrap.com/docs/5.3/examples/checkout/
+<div class="row g-3">
+  <div class="col-sm-6">
+    <label for="firstName" class="form-label">First name</label>
+    <input type="text" class="form-control" id="firstName" placeholder="" value="" required="">
+    <div class="invalid-feedback">
+      Valid first name is required.
+    </div>
+  </div>
+
+  <div class="col-sm-6">
+    <label for="lastName" class="form-label">Last name</label>
+    <input type="text" class="form-control" id="lastName" placeholder="" value="" required="">
+    <div class="invalid-feedback">
+      Valid last name is required.
+    </div>
+  </div>
+
+  <div class="col-sm-6">
+    <label for="lastName" class="form-label">Last name</label>
+    <input type="text" class="form-control" id="lastName" placeholder="" value="" required="">
+    <div class="invalid-feedback">
+      Valid last name is required.
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <label for="country" class="form-label">Country</label>
+    <select class="form-select" id="country" required="">
+      <option value="">Choose...</option>
+      <option>United States</option>
+    </select>
+    <div class="invalid-feedback">
+      Please select a valid country.
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <label for="state" class="form-label">State</label>
+    <select class="form-select" id="state" required="">
+      <option value="">Choose...</option>
+      <option>California</option>
+    </select>
+    <div class="invalid-feedback">
+      Please provide a valid state.
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <label for="zip" class="form-label">Zip</label>
+    <input type="text" class="form-control" id="zip" placeholder="" required="">
+    <div class="invalid-feedback">
+      Zip code required.
+    </div>
+  </div>
+</div>
+-->
+
+<!--legacy Create Titile
+<div class="panel panel-default col-sm-12">
+  <div class="panel-body">
+
+    <form class="form" action="/article/create" method="POST">
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" class="form-control" id="title" name="title" placeholder="Title">
+      </div>
+      <div class="form-group">
+        <label for="content">Content</label>
+        <textarea name="content" class="form-control" rows="10" id="content" placeholder="Article Content"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+</div>  
+-->
+
+{{ template "footer.html" .}}
