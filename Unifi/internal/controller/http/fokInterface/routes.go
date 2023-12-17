@@ -2,9 +2,19 @@
 package fokusov
 
 func (fok *Fokusov) initializeRoutes() {
-
 	// Use the setUserStatus middleware for every route to set a flag indicating whether the request was from an authenticated user or not
 	router.Use(setUserStatus())
+
+	siteRoutes := router.Group("/office")
+	{
+		//adminka page
+		siteRoutes.POST("/sapcn_add", fok.officeNew)
+		//siteRoutes.POST("/sapcn_change", fok.changeSapcn)
+		siteRoutes.POST("/login_change", fok.officeLoginChange)
+
+		//siteRoutes.POST("/exception_add", fok.addException)
+		//siteRoutes.POST("/exception_del", fok.delException)
+	}
 
 	userRoutes := router.Group("/user")
 	{
@@ -37,16 +47,6 @@ func (fok *Fokusov) initializeRoutes() {
 
 		//apRoutes.POST("/exception_add", fok.addException)
 		//apRoutes.POST("/exception_del", fok.delException)
-	}
-
-	siteRoutes := router.Group("/office")
-	{
-		//siteRoutes.POST("/sapcn_add", fok.addSapcn)
-		//siteRoutes.POST("/sapcn_change", fok.changeSapcn)
-		siteRoutes.POST("/login_change", fok.officeLoginChange)
-
-		//siteRoutes.POST("/exception_add", fok.addException)
-		//siteRoutes.POST("/exception_del", fok.delException)
 	}
 
 	/*

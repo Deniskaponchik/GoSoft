@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/Unifi/config/poly"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/api_rest"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/api_soap"
+	//"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/api_web"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/netdial"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
-	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/soap"
-	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/webapi"
 	"github.com/deniskaponchik/GoSoft/Unifi/pkg/logger"
 )
 
@@ -35,9 +36,11 @@ func PolyRun(cfg *poly.ConfigPoly) {
 	polyUseCase := usecase.NewPoly(
 		//repo.New(cfg.GLPI.GlpiConnectStrITsupport),
 		polyRepo,
-		webapi.New(cfg.PolyUsername, cfg.PolyPassword),
+		//webapi.New(cfg.PolyUsername, cfg.PolyPassword),
+		//api_web.NewPolyWebApi(cfg.PolyUsername, cfg.PolyPassword),
+		api_rest.NewPolyWebApi(cfg.PolyUsername, cfg.PolyPassword),
 		netdial.New(),
-		soap.New(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
+		api_soap.New(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
 		cfg.InnerVars.EveryCodeMap,
 		cfg.InnerVars.RestartHour,
 		cfg.App.TimeZone,

@@ -2,12 +2,11 @@ package usecase
 
 import (
 	"bytes"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"io"
+	"log"
 	"os"
 	"regexp"
-	//"fmt"
-	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
-	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -28,6 +27,8 @@ type UnifiUseCase struct {
 	uiRostov  Ui //interface. НЕ ИСПОЛЬЗОВАТЬ *
 	uiNovosib Ui //interface. НЕ ИСПОЛЬЗОВАТЬ *
 
+	c3po UnifiRestOut //interface
+
 	everyCodeMap             map[int]int //map[int]bool
 	countDayTicketCreateAnom int
 	countHourAnom            [3]int
@@ -42,7 +43,8 @@ type UnifiUseCase struct {
 
 // реализуем Инъекцию зависимостей DI. Используется в app
 // rr UnifiRepo, rn UnifiRepo, st UnifiSoap, sp UnifiSoap, uiRostov Ui, uiNovosib Ui,
-func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, everyCodeInt map[int]int, timezone int, httpUrl string,
+func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, c3po UnifiRestOut,
+	everyCodeInt map[int]int, timezone int, httpUrl string,
 	countDayTicketCreateAnom int, h1 int, h2 int) *UnifiUseCase {
 	return &UnifiUseCase{
 		//Мы можем передать сюда ЛЮБОЙ репозиторий (pg, s3 и т.д.) НО КОД НЕ ПОМЕНЯЕТСЯ! В этом смысл DI
@@ -52,8 +54,9 @@ func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, everyCodeIn
 		soap: s, //interface
 		//soapTest:     st,
 		//soapProd: 	sp,
-		uiRostov:                 uiRostov,
+		uiRostov:                 uiRostov, //interface
 		uiNovosib:                uiNovosib,
+		c3po:                     c3po,
 		everyCodeMap:             everyCodeInt,
 		timezone:                 timezone,
 		httpUrl:                  httpUrl,
@@ -748,12 +751,24 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 
 					//Получение userlogin
 					if client.Hostname != "" {
-						errGetUserLogin := uuc.repo.GetLoginPCerr(client)
-						if errGetUserLogin != nil {
-							client.UserLogin = "denis.tirskikh"
+						/*
+							errGetUserLogin := uuc.repo.GetLoginPCerr(client)
+							if errGetUserLogin != nil {
+								client.UserLogin = "denis.tirskikh"
+							}*/
+						errGetLoginC3po := uuc.c3po.GetUserLogin(client)
+						if errGetLoginC3po != nil || client.Hostname == "" {
+							errGetUserLogin := uuc.repo.GetLoginPCerr(client)
+							if errGetUserLogin != nil || client.Hostname == "" {
+								client.UserLogin = "denis.tirskikh"
+							} else {
+								log.Println("Логин получен из GLPI: " + client.Hostname)
+							}
+						} else {
+							log.Println("Логин получен из c3po: " + client.Hostname)
 						}
 					} else {
-						//если client.Hostname == "" то создаю информационную заявку на себя, чтобы добавить в БД руками hostname
+						//если client.Hostname == "" то создаю информационную заявку на себя, чтобы добавить в мою БД руками hostname
 						client.UserLogin = "denis.tirskikh"
 						client.Hostname = client.Mac
 					}
@@ -770,7 +785,7 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 						client.Hostname + "\n" + "" + "\n" +
 						"За последние 30 дней зафиксировано более 10 дней с Аномалиями качества работы Wi-Fi сети Tele2Corp" + "\n" +
 						"" + "\n" +
-						"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+						"Необходимый порядок действий по обработке таких инцидентов описан на страничке:" + "\n" +
 						"https://wiki.tele2.ru/pages/viewpage.action?pageId=168680976#id-[HelpdeskIT]SystemMonitoring-Аномалии" + "\n" +
 						"" + "\n" +
 						"Не нужно закрывать обращение, если кол-во дней с аномалиями за последние 30 дн. больше 10" + "\n" +

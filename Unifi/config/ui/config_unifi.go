@@ -11,11 +11,12 @@ import (
 func NewConfigUnifi() (*ConfigUi, error) {
 	cfg := &ConfigUi{}
 
-	//Подгрузка переменных с yaml файла. Отключаю из-за геморроя с указанием пути до него
+	//Подгрузка переменных с yaml файла.
 	//err := cleanenv.ReadConfig("./config/config.yml", cfg) // в оригинале
 	//err := cleanenv.ReadConfig("./config.yml", cfg)  //для тестирования
 	//err := cleanenv.ReadConfig("../../../config.yml", cfg) // Unifi/cmd/poly/bin/Poly_v1.0
 	//if err != nil {		return nil, log.Errorf("read config error: %w", err)	}
+
 	err := cleanenv.ReadEnv(cfg)
 	if err != nil {
 		return nil, err
@@ -76,6 +77,7 @@ func NewConfigUnifi() (*ConfigUi, error) {
 		55: true,
 	}
 
+	//command line arguments
 	//https://stackoverflow.com/questions/2707434/how-to-access-command-line-arguments-passed-to-a-go-program
 	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
 	db := flag.String("db", "it_support_db_3", "database for unifi tables")
@@ -175,6 +177,7 @@ type (
 		Bpm
 		Soap
 		GLPI
+		C3po
 
 		App  `yaml:"app"`
 		HTTP `yaml:"http"`
@@ -222,6 +225,9 @@ type (
 		//GlpiITsupportTest  string `env-required:"true"   env:"GLPI_ITSUP_TEST"`
 		//GlpiITsupport      string //`env-required:"false"`
 		DB string //имя базы данных для unifi таблиц. задаю аргументами командной строки
+	}
+	C3po struct {
+		C3poUrl string //`env-required:"true"   env:"C3PO_URL"`
 	}
 
 	Log struct {

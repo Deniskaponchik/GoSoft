@@ -1,25 +1,68 @@
 package fokusov
 
 import (
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
+
+func (fok *Fokusov) officeNew(c *gin.Context) {
+	newSapcn := c.PostForm("02_sapcn")
+	login := c.PostForm("02_login")
+	timeZoneStr := c.PostForm("02_zone")
+	timeZone, err := strconv.Atoi(timeZoneStr)
+	if err == nil {
+		office := &entity.Office{
+			Site_ApCutName: newSapcn,
+			UserLogin:      login,
+			TimeZone:       timeZone,
+			TimeZoneStr:    timeZoneStr,
+		}
+
+		fok.Logger.Println(office.Site_ApCutName)
+		fok.Logger.Println(office.UserLogin)
+		fok.Logger.Println(office.TimeZone)
+
+		err = fok.Urest.OfficeNew(office) //newSapcn, login, timeZone)
+		if err != nil {
+			fok.Logger.Println("Создать новый офис не удалось")
+			fok.Logger.Println(err)
+			adminkaPageMsg[0] = err.Error() //"Создать новый офис логин не удалось"
+		} else {
+			adminkaPageMsg[0] = "логин успешно изменён"
+		}
+
+		fok.showAdminkaPage(c)
+		//c.Redirect(http.StatusTemporaryRedirect, "/user/adminka")
+		//c.Request.Method = "GET"
+		//c.HTML(http.StatusSeeOther, "adminka.html", nil)
+	}
+}
 
 func (fok *Fokusov) officeLoginChange(c *gin.Context) {
 	sapcn := c.PostForm("00_sapcn")
 	newLogin := c.PostForm("00_login")
 
-	//check if correct
-
 	fok.Logger.Println(sapcn)
 	fok.Logger.Println(newLogin)
 
-	fok.AdminkaArr[0] = "логин успешно изменён"
+	err := fok.Urest.ChangeSapcnLogin(sapcn, newLogin)
+	if err != nil {
+		fok.Logger.Println("Изменить логин не удалось")
+		fok.Logger.Println(err)
+		adminkaPageMsg[0] = err.Error() //"Изменить логин не удалось"
+	} else {
+		adminkaPageMsg[0] = "логин успешно изменён"
+	}
 
 	fok.showAdminkaPage(c)
+	//c.Redirect(http.StatusTemporaryRedirect, "/user/adminka")
+	//c.Request.Method = "GET"
+	//c.HTML(http.StatusSeeOther, "adminka.html", nil)
 }
 
-func performLog(c *gin.Context) {
+func functionWithErrorExample(c *gin.Context) { //old name performLogin
 	// Obtain the POSTed username and password values
 	username := c.PostForm("username")
 	password := c.PostForm("password")
@@ -42,33 +85,5 @@ func performLog(c *gin.Context) {
 		c.HTML(http.StatusBadRequest, "login.html", gin.H{
 			"ErrorTitle":   "Login Failed",
 			"ErrorMessage": "Invalid credentials provided"})
-	}
-}
-
-func reg(c *gin.Context) {
-	// Obtain the POSTed username and password values
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-
-	var sameSiteCookie http.SameSite
-
-	if _, err := registerNewUser(username, password); err == nil {
-		// If the user is created, set the token in a cookie and log the user in
-		token := generateSessionToken()
-		c.SetSameSite(sameSiteCookie)
-		//c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true)
-		c.SetCookie("token", token, 3600, "", "", false, true)
-		c.Set("is_logged_in", true)
-
-		render(c, gin.H{
-			"title": "Successful registration & Login"}, "login-successful.html")
-
-	} else {
-		// If the username/password combination is invalid,
-		// show the error message on the login page
-		c.HTML(http.StatusBadRequest, "register.html", gin.H{
-			"ErrorTitle":   "Registration Failed",
-			"ErrorMessage": err.Error()})
-
 	}
 }

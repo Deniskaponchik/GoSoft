@@ -4,9 +4,10 @@ import (
 	"github.com/deniskaponchik/GoSoft/Unifi/config/ui"
 	fokInterface "github.com/deniskaponchik/GoSoft/Unifi/internal/controller/http/fokInterface"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/api_rest"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/api_soap"
+	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/api_web"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/repo"
-	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/soap"
-	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase/ubiq"
 	"log"
 	"time"
 	//"github.com/deniskaponchik/GoSoft/Unifi/pkg/logger"
@@ -34,12 +35,13 @@ func RunUnifi(cfg *ui.ConfigUi) {
 
 	unifiUseCase := usecase.NewUnifiUC(
 		//repo.New(cfg.GLPI.GlpiConnectStrITsupport),
-		unifiRepo,                             //вставляем объект, который удовлетворяет интерфейсу UnifiRepo
-		soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
-		//ubiq.NewUbiq(unpoller),                //cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword),
-		//ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlstr),
-		ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlRostov, 1),
-		ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
+		unifiRepo, //вставляем объект, который удовлетворяет интерфейсу UnifiRepo
+		api_soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
+		//ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlRostov, 1),
+		//ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
+		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlRostov, 1),
+		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
+		api_rest.NewUnifiC3po(cfg.C3po.C3poUrl),
 		cfg.App.EveryCodeMap,
 		cfg.App.TimeZone,
 		cfg.HTTP.URL,

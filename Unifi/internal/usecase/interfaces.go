@@ -37,23 +37,24 @@ type (
 
 type (
 	//implement usecase methods to web
-	UnifiRest interface {
+	UnifiRestIn interface {
+		OfficeNew(*entity.Office) error
+		ChangeSapcnLogin(string, string) error
 		GetSapcnSortSliceForAdminkaPage() []string
+
 		GetClientForRest(string) *entity.Client
 		GetApForRest(string) *entity.Ap
 	}
-	/*
-		UnifiInterface interface {
-			GetClientForRest(string) *entity.Client //, error) //context.Context
-			GetApForRest(string) *entity.Ap
-			//InfinityProcessingUnifi()               //error
-			//HandlingAps() (map[string][]*entity.Ap, error)
-			//TicketsCreatingAps(map[string][]*entity.Ap) error
-			//TicketsCreatingClientsWithAnomalySlice(map[string]*entity.Client) error
-		}*/
+	//исходящие rest запросы
+	UnifiRestOut interface {
+		GetUserLogin(*entity.Client) error
+		//getPc(*entity.Client) error
+	}
 	UnifiRepo interface {
 		ChangeCntrlNumber(int)
 
+		InsertOffice(office *entity.Office) error
+		UpdateOfficeLogin(sapcn string, newLogin string) error
 		UpdateDbAnomaly(map[string]*entity.Anomaly) error
 		UpdateDbClient(map[string]*entity.Client) error
 		UpdateDbAp(map[string]*entity.Ap) error

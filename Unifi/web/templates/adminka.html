@@ -3,6 +3,7 @@
 <h1>Adminka</h1>
 
 <div class="row row-cols-1 row-cols-md-2 mb-2 text-center">
+
   <div class="col">
     <div class="card mb-4 rounded-3 shadow-sm">
       <div class="card-header py-3">
@@ -27,7 +28,10 @@
           </div>
           <div class="col-md-4">
             <label for="00_login" class="visually-hidden">new login</label>
-            <input type="text" class="form-control" id="00_login" name="00_login" required placeholder="login">
+            <!--new login match contain dot: ^[a-zA-Z]*\.[a-zA-Z]*$ -->
+            <!--nel login doesn't contain space: ^[^\s]*$ -->
+        <input type="text" class="form-control" id="00_login" name="00_login" placeholder="login"
+               required pattern="^[^\s]*$" maxlength="40" minlength="5">
           </div>
           <div class="col-md-4">
             <button type="submit" class="btn btn-primary">Change Login</button>
@@ -35,36 +39,71 @@
         </form>
         <p></p>
 
-        <form class="row g-3" action="/ap/sapcn_change" method="POST">
+        <!-- change sapcn name -->
+        <form class="row g-3" action="/office/sapcn_change" method="POST">
+          {{ if .arr1}}
+          <p> {{.arr1}} </p>
+          {{end}}
+          <!--div class="col-lg-auto"-->
           <div class="col-md-4">
-            <label for="Site_ApCutName2" class="visually-hidden">Site_ApCutName</label>
-            <input type="text" class="form-control" id="Site_ApCutName2" placeholder="Site_ApCutName">
+            <label for="01_sapcn" class="visually-hidden">sapcn</label>
+            <select class="form-select" id="01_sapcn" name="01_sapcn" required>
+              <option selected disabled value="">Choose sapcn</option>
+              {{range .sapcnArr }}
+                <option>{{ . }}</option>
+              {{end}}
+            </select>
           </div>
           <div class="col-md-4">
-            <label for="sapcn_new1" class="visually-hidden">sapcn_new</label>
-            <input type="text" class="form-control" id="sapcn_new1" placeholder="Site_ApCutName NEW">
+            <label for="01_sapcnNew" class="visually-hidden">new login</label>
+            <!--new login match contain dot: ^[a-zA-Z]*\.[a-zA-Z]*$ -->
+            <!--nel login doesn't contain space: ^[^\s]*$ -->
+            <input type="text" class="form-control" id="01_sapcnNew" name="01_sapcnNew" placeholder="new name"
+                   required pattern="^[^\s]*$" maxlength="40" minlength="5">
           </div>
           <div class="col-md-4">
-            <button type="submit" class="btn btn-primary mb-3">Change Name</button>
+            <button type="submit" class="btn btn-primary">Change Name</button>
           </div>
         </form>
+        <p></p>
 
-        <form class="row g-3" action="/ap/sapcn_change" method="POST">
-          <div class="col-lg-auto">
-            <label for="Site_ApCutName3" class="visually-hidden">Site_ApCutName</label>
-            <input type="text" class="form-control" id="Site_ApCutName3" placeholder="Site_ApCutName NEW">
+        <!-- create new sapcn -->
+        <form class="row" action="/office/sapcn_add" method="POST">
+          {{ if .arr2}}
+            <p> {{.arr2}} </p>
+          {{end}}
+          <!--div class="col-lg-auto"-->
+          <div class="col">
+            <label for="02_sapcn" class="visually-hidden">sapcn</label>
+            <!--new login match contain dot: ^[a-zA-Z]*\.[a-zA-Z]*$ -->
+            <!--nel login doesn't contain space: ^[^\s]*$ -->
+            <input type="text" class="form-control" id="02_sapcn" name="02_sapcn" placeholder="new name"
+                   required pattern="^[^\s]*$" maxlength="40" minlength="5">
           </div>
-          <div class="col-lg-auto">
-            <label for="login2" class="visually-hidden">sapcn_new</label>
-            <input type="text" class="form-control" id="login2" placeholder="login">
+          <div class="col">
+            <label for="02_login" class="visually-hidden">new login</label>
+            <!--new login match contain dot: ^[a-zA-Z]*\.[a-zA-Z]*$ -->
+            <!--nel login doesn't contain space: ^[^\s]*$ -->
+            <input type="text" class="form-control" id="02_login" name="02_login" placeholder="login"
+                   required pattern="^[^\s]*$" maxlength="40" minlength="5">
           </div>
-          <div class="col-lg-auto">
-            <button type="submit" class="btn btn-primary mb-3">Create new</button>
+          <div class="col">
+            <label for="02_zone" class="visually-hidden">time zone</label>
+            <!--new login match contain dot: ^[a-zA-Z]*\.[a-zA-Z]*$ -->
+            <!--nel login doesn't contain space: ^[^\s]*$ -->
+            <input type="text" class="form-control" id="02_zone" name="02_zone" placeholder="time zone"
+                   required pattern="^[^\s]*$" maxlength="3" minlength="1">
+          </div>
+          <div class="col">
+            <button type="submit" class="btn btn-primary">Create</button>
           </div>
         </form>
+        <p></p>
+
       </div>
     </div>
   </div>
+
   <div class="col">
     <div class="card mb-4 rounded-3 shadow-sm">
       <div class="card-header py-3">

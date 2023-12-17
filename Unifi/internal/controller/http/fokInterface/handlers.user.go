@@ -10,13 +10,19 @@ import (
 func (fok *Fokusov) showAdminkaPage(c *gin.Context) {
 	//based on showArticleCreationPage function
 	// Call the render function with the name of the template to render
+
+	msgSlice := adminkaPageMsg
+	adminkaPageMsg = make([]string, 10)
+
 	//sapcnArr := [10]string{"БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK"}
 	sapcnArr := fok.Urest.GetSapcnSortSliceForAdminkaPage()
+
 	render(c, gin.H{
 		"page_adminka": true,
 		"sapcnArr":     sapcnArr,
-		"arr0":         fok.AdminkaArr[0],
-		"title":        "Adminka"},
+		//"arr0":       adminkaPageMsg[0],
+		"arr0":  msgSlice[0],
+		"title": "Adminka"},
 		"adminka.html")
 }
 

@@ -17,10 +17,9 @@ type Fokusov struct {
 	Port string
 
 	//UnifiUC *usecase.UnifiUseCase
-	Urest       usecase.UnifiRest //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
+	Urest       usecase.UnifiRestIn //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
 	LogFileName string
 	Logger      *log.Logger
-	AdminkaArr  []string
 }
 
 func New(uuc *usecase.UnifiUseCase, port string, logFileName string) *Fokusov { //router *gin.Engine,rest *usecase.Rest
@@ -32,11 +31,14 @@ func New(uuc *usecase.UnifiUseCase, port string, logFileName string) *Fokusov { 
 		//UnifiUC: uuc,
 		Urest:       uuc, //использовать структуру, реализующие методы интерфейса usecase.UnifiRest
 		LogFileName: logFileName,
-		AdminkaArr:  make([]string, 10),
 	}
 }
 
+var adminkaPageMsg []string
+
 func (fok *Fokusov) Start() {
+
+	adminkaPageMsg = make([]string, 10)
 
 	//FileNameGin := "Unifi_Gin_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
 	fileLogGin, err := os.OpenFile(fok.LogFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)

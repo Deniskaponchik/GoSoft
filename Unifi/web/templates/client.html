@@ -10,7 +10,7 @@
                 <form class="row g-3" action="/client/request" method="POST">
                     <div class="col-8">
                         <label for="cl_hostname" class="visually-hidden">cl_hostname</label>
-                        <input type="text" class="form-control" id="cl_hostname" name="cl_hostname" placeholder="Notebook hostname">
+                        <input type="text" class="form-control" id="cl_hostname" name="cl_hostname" placeholder="Notebook hostname" required pattern="^[^\s]*$" maxlength="40" minlength="5">
                     </div>
                     <div class="col-4">
                         <button type="submit" class="btn btn-primary mb-3">Получить аномалии</button>

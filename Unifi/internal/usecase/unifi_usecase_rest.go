@@ -1,9 +1,41 @@
 package usecase
 
 import (
+	"errors"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"sort"
 )
+
+func (uuc *UnifiUseCase) OfficeNew(newOffice *entity.Office) error { //newSapcn string, login string
+	_, exist := siteApCutName_Office[newOffice.Site_ApCutName]
+	if exist == false {
+		err = uuc.repo.InsertOffice(newOffice)
+		if err == nil {
+			office.UserLogin = newLogin
+			return nil
+		} else {
+			return err
+		}
+	} else {
+		return errors.New("новый логин соответствует старому")
+	}
+}
+
+// Обновляющая функция логина ответственного сотрудника в мапе
+func (uuc *UnifiUseCase) ChangeSapcnLogin(sapcn string, newLogin string) error {
+	office := siteApCutName_Office[sapcn]
+	if office.UserLogin != newLogin {
+		err = uuc.repo.UpdateOfficeLogin(sapcn, newLogin)
+		if err == nil {
+			office.UserLogin = newLogin
+			return nil
+		} else {
+			return err
+		}
+	} else {
+		return errors.New("новый логин соответствует старому")
+	}
+}
 
 func (uuc *UnifiUseCase) GetSapcnSortSliceForAdminkaPage() []string {
 	lenSapcnMap := len(siteApCutName_Office)

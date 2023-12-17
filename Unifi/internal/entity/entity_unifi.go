@@ -40,6 +40,11 @@ type Client struct {
 	SliceAnomalies          []*Anomaly          //Аномалии клиента за 30 дней
 	Date_Anomaly            map[string]*Anomaly //Аномалии клиента за 30 дней. Вроде, не должна больше использоваться
 	CountAnomaly            int                 //кол-во аномалий за последние 30 дней
+
+	//TODO: hardware from c3po
+	//serial number
+	//disk0
+	//etc
 }
 
 // Структура должна обнуляться каждый час и при выгрузке раз в сутки
@@ -69,4 +74,10 @@ type Office struct {
 	Site_ApCutName string `json:"site_apcut" example:"Иркутск_IRK"`
 	UserLogin      string `json:"user_login" example:"vasya.pupkin"`
 	TimeZone       int    `json:"time_zone"  example:"+5"`
+	TimeZoneStr    string //для приёма из формы на странице adminka.html
+}
+
+type User struct {
+	Login string
+	PCs   []*Client
 }

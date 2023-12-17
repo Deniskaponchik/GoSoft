@@ -56,6 +56,105 @@ func (ur *UnifiRepo) ChangeCntrlNumber(newCntrlNumber int) {
 	ur.controller = newCntrlNumber
 }
 
+func (ur *UnifiRepo) InsertOffice(newOffice *entity.Office) (err error) {
+	query := "INSERT INTO  " + ur.databaseITsup + ".site_apcut_login VALUES " +
+		"('" + newOffice.Site_ApCutName + "','" + newOffice.UserLogin + "','" + newOffice.TimeZoneStr + "','0');"
+
+	myError := 1
+	for myError != 0 {
+		if db, errSqlOpen := sql.Open("mysql", ur.dataSourceITsup); errSqlOpen == nil {
+			errDBping := db.Ping()
+			if errDBping == nil {
+				defer db.Close() // defer the close till after the main function has finished
+
+				log.Println(query)
+				_, errQuery := db.Exec(query)
+				if errQuery != nil {
+					log.Println(errQuery.Error())
+					log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+					//myError = 0
+					//err = errQuery //ошибка не критическая. запросов много и не все будут не корректными
+				}
+				if errDBclose := db.Close(); errDBclose != nil {
+					log.Println("Закрытие подключения к БД завершилось не корректно")
+					//return errDBclose //ошибка не критическая
+				}
+				return nil
+			} else {
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
+				time.Sleep(30 * time.Second)
+				myError++
+				err = errDBping
+			}
+		} else {
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
+			time.Sleep(30 * time.Second)
+			myError++
+			err = errSqlOpen
+		}
+		if myError == 5 {
+			myError = 0
+			log.Println("После 5 неудачных попыток идём дальше. Подключение к БД не удалось")
+			return err //errors.New("подключение к бд не удалось")
+		}
+	} //sql.Open
+	return nil
+}
+
+func (ur *UnifiRepo) UpdateOfficeLogin(sapcn string, newLogin string) (err error) {
+	query := "UPDATE " + ur.databaseITsup + ".site_apcut_login SET login = '" + newLogin + "' WHERE site_apcut = '" + sapcn + "';"
+
+	myError := 1
+	for myError != 0 {
+		if db, errSqlOpen := sql.Open("mysql", ur.dataSourceITsup); errSqlOpen == nil {
+			errDBping := db.Ping()
+			if errDBping == nil {
+				defer db.Close() // defer the close till after the main function has finished
+
+				log.Println(query)
+				_, errQuery := db.Exec(query)
+				if errQuery != nil {
+					log.Println(errQuery.Error())
+					log.Println("Запрос НЕ смог отработать. Проверь корректность всех данных в запросе")
+					//myError = 0
+					//err = errQuery //ошибка не критическая. запросов много и не все будут не корректными
+				}
+				if errDBclose := db.Close(); errDBclose != nil {
+					log.Println("Закрытие подключения к БД завершилось не корректно")
+					//return errDBclose //ошибка не критическая
+				}
+				return nil
+			} else {
+				log.Println("db.Ping failed:", errDBping)
+				log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
+				log.Println("Будет предпринята новая попытка через 1 минут")
+				time.Sleep(30 * time.Second)
+				myError++
+				err = errDBping
+			}
+		} else {
+			log.Println("Error creating DB:", errSqlOpen)
+			log.Println("To verify, db is:", db)
+			log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
+			log.Println("Будет предпринята новая попытка через 1 минут")
+			time.Sleep(30 * time.Second)
+			myError++
+			err = errSqlOpen
+		}
+		if myError == 5 {
+			myError = 0
+			log.Println("После 5 неудачных попыток идём дальше. Подключение к БД не удалось")
+			return err //errors.New("подключение к бд не удалось")
+		}
+	} //sql.Open
+	return nil
+}
+
 // под логику, где у Клиентов есть массив Аномалий
 func (ur *UnifiRepo) UpdateDbAnomaly(mac_Anomaly map[string]*entity.Anomaly) (err error) {
 	//приходит мапа типа: мак адрес клиента _ аномалии клиента за 1 час
@@ -86,7 +185,8 @@ func (ur *UnifiRepo) UpdateDbAnomaly(mac_Anomaly map[string]*entity.Anomaly) (er
 	log.Println(query)
 	if countB1 != 0 {
 		//UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
-		err = ur.UploadMapsToDBerr(query)
+		//err = ur.UploadMapsToDBerr(query)
+		err = ur.dbExec(query)
 	} else {
 		log.Println("Передана пустая карта. Запрос не выполнен")
 	}
@@ -176,7 +276,8 @@ func (ur *UnifiRepo) UpdateDbAp(mapAp map[string]*entity.Ap) (err error) {
 	if count != 0 {
 		//UploadMapsToDBstring("it_support_db", query)
 		//UploadMapsToDBerr(wifiConf.GlpiConnectStringITsupport, query)
-		ur.UploadMapsToDBerr(query)
+		//ur.UploadMapsToDBerr(query)
+		err = ur.dbExec(query)
 	} else {
 		log.Println("Передана пустая карта. Запрос не выполнен")
 	}
@@ -186,7 +287,7 @@ func (ur *UnifiRepo) UpdateDbAp(mapAp map[string]*entity.Ap) (err error) {
 }
 
 // Ожидает на входе query
-func (ur *UnifiRepo) UploadMapsToDBerr(query string) (err error) {
+func (ur *UnifiRepo) dbExec(query string) (err error) { //UploadMapsToDBerr
 
 	myError := 1
 	for myError != 0 {
