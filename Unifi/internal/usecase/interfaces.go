@@ -38,8 +38,11 @@ type (
 type (
 	//implement usecase methods to web
 	UnifiRestIn interface {
+		OfficeSapcnChange(string, string) error
+		OfficeLoginChange(string, string) error
+		OfficeTimeZoneChange(string, string) error
+		OfficeExceptionChange(string, string) error
 		OfficeNew(*entity.Office) error
-		ChangeSapcnLogin(string, string) error
 		GetSapcnSortSliceForAdminkaPage() []string
 
 		GetClientForRest(string) *entity.Client
@@ -53,12 +56,14 @@ type (
 	UnifiRepo interface {
 		ChangeCntrlNumber(int)
 
-		InsertOffice(office *entity.Office) error
-		UpdateOfficeLogin(sapcn string, newLogin string) error
+		InsertOffice(*entity.Office) error
+		UpdateOfficeLogin(string, string) error
+		UpdateOfficeException(string, string) error
+
 		UpdateDbAnomaly(map[string]*entity.Anomaly) error
 		UpdateDbClient(map[string]*entity.Client) error
 		UpdateDbAp(map[string]*entity.Ap) error
-		UploadMapsToDBerr(string) error
+		//UploadMapsToDBerr(string) error
 
 		DownloadMacMapsClientApWithAnomaly(map[string]*entity.Client, map[string]*entity.Ap, string, time.Time) error
 		//DownloadClientsWithAnomalySlice(map[string]*entity.Client, string, time.Time) error

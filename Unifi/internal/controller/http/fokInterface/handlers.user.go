@@ -22,6 +22,7 @@ func (fok *Fokusov) showAdminkaPage(c *gin.Context) {
 		"sapcnArr":     sapcnArr,
 		//"arr0":       adminkaPageMsg[0],
 		"arr0":  msgSlice[0],
+		"arr2":  msgSlice[2],
 		"title": "Adminka"},
 		"adminka.html")
 }

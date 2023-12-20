@@ -39,13 +39,13 @@
         </form>
         <p></p>
 
-        <!-- change sapcn name -->
-        <form class="row g-3" action="/office/sapcn_change" method="POST">
+        <!-- change office -->
+        <form class="row g-3" action="/office/change" method="POST">
           {{ if .arr1}}
-          <p> {{.arr1}} </p>
+            <p>{{.arr1}}</p>
           {{end}}
           <!--div class="col-lg-auto"-->
-          <div class="col-md-4">
+          <div class="col">
             <label for="01_sapcn" class="visually-hidden">sapcn</label>
             <select class="form-select" id="01_sapcn" name="01_sapcn" required>
               <option selected disabled value="">Choose sapcn</option>
@@ -54,15 +54,25 @@
               {{end}}
             </select>
           </div>
-          <div class="col-md-4">
-            <label for="01_sapcnNew" class="visually-hidden">new login</label>
-            <!--new login match contain dot: ^[a-zA-Z]*\.[a-zA-Z]*$ -->
-            <!--nel login doesn't contain space: ^[^\s]*$ -->
-            <input type="text" class="form-control" id="01_sapcnNew" name="01_sapcnNew" placeholder="new name"
-                   required pattern="^[^\s]*$" maxlength="40" minlength="5">
+          <div class="col">
+            <label for="01_dropdown" class="visually-hidden">sapcn</label>
+            <select class="form-select" id="01_dropdown" name="01_dropdown" required>
+              <option selected disabled value="">Choose change</option>
+              <option>Sapcn Name</option>
+              <option>Login</option>
+              <option>Time Zone</option>
+              <option>Exception</option>
+            </select>
           </div>
-          <div class="col-md-4">
-            <button type="submit" class="btn btn-primary">Change Name</button>
+          <div class="col">
+            <label for="01_field" class="visually-hidden">new login</label>
+            <!--    match contain dot: ^[a-zA-Z]*\.[a-zA-Z]*$ -->
+            <!--doesn't contain space: ^[^\s]*$ -->
+            <input type="text" class="form-control" id="01_field" name="01_field" placeholder="new value"
+                   required pattern="^[^\s]*$" maxlength="40" minlength="1">
+          </div>
+          <div class="col">
+            <button type="submit" class="btn btn-primary">Change</button>
           </div>
         </form>
         <p></p>

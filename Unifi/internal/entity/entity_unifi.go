@@ -75,6 +75,7 @@ type Office struct {
 	UserLogin      string `json:"user_login" example:"vasya.pupkin"`
 	TimeZone       int    `json:"time_zone"  example:"+5"`
 	TimeZoneStr    string //для приёма из формы на странице adminka.html
+	Exception      int    `json:"exception" example:"1"` //1-true, 0-false
 }
 
 type User struct {

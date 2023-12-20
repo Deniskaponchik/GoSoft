@@ -15,20 +15,12 @@ import (
 )
 
 type UnifiUseCase struct {
-	repo UnifiRepo //interface. НЕ ИСПОЛЬЗОВАТЬ *
-	//repoRostov  UnifiRepo //interface
-	//repoNovosib UnifiRepo //interface
-
-	soap UnifiSoap //interface. НЕ ИСПОЛЬЗОВАТЬ *
-	//soapTest    UnifiSoap //interface
-	//soapProd    UnifiSoap //interface
-
+	repo      UnifiRepo    //interface. НЕ ИСПОЛЬЗОВАТЬ *
+	soap      UnifiSoap    //interface. НЕ ИСПОЛЬЗОВАТЬ *
+	uiRostov  Ui           //interface. НЕ ИСПОЛЬЗОВАТЬ *
+	uiNovosib Ui           //interface. НЕ ИСПОЛЬЗОВАТЬ *
+	c3po      UnifiRestOut //interface
 	//uint		    Ui
-	uiRostov  Ui //interface. НЕ ИСПОЛЬЗОВАТЬ *
-	uiNovosib Ui //interface. НЕ ИСПОЛЬЗОВАТЬ *
-
-	c3po UnifiRestOut //interface
-
 	everyCodeMap             map[int]int //map[int]bool
 	countDayTicketCreateAnom int
 	countHourAnom            [3]int
@@ -535,75 +527,71 @@ func (uuc *UnifiUseCase) TicketsCreatingAps(siteNameApCutName_Ap map[string][]*e
 
 		office, offExis := siteApCutName_Office[k]
 		if offExis {
-			trueHour = timeNowU.Add(time.Duration(office.TimeZone-uuc.timezone) * time.Hour).Hour()
-			if !sleepHoursUnifi[trueHour] || uuc.timezone == 100 {
+			if office.Exception == 0 {
+				trueHour = timeNowU.Add(time.Duration(office.TimeZone-uuc.timezone) * time.Hour).Hour()
+				if !sleepHoursUnifi[trueHour] || uuc.timezone == 100 {
 
-				/*если зонаКода < зоныПроблемы{
-				if uuc.timezone > office.TimeZone {
-					sumTime = timeNowU.Hour() - uuc.timezone - office.TimeZone
-				}else{
-					sumTime = timeNowU.Hour() + office.TimeZone - uuc.timezone
-				}*/
+					var apsNames []string
 
-				var apsNames []string
-
-				for _, ap := range v {
-					//пробегаемся по массиву точек
-					ap.CountAttempts++
-					countAttempts = ap.CountAttempts
-					apsNames = append(apsNames, ap.Name)
-					region = ap.SiteName
-				}
-
-				if countAttempts >= 2 {
-					//create ticket
-					desAps := strings.Join(apsNames, "\n")
-
-					ticket := &entity.Ticket{
-						//UserLogin:    siteApCutName_Login[k],
-						UserLogin:    office.UserLogin,
-						IncidentType: "Недоступна точка доступа",
-						Region:       region,
-						Description: "Зафиксировано отключение Wi-Fi точек доступа:" + "\n" +
-							desAps + "\n" +
-							"" + "\n" +
-							"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
-							"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
-							"" + "\n" +
-							"!!! Не нужно решать/отменять/отклонять/возвращать/закрывать заявку, пока работа точек не будет восстановлена - автоматически создастся новый тикет !!!" + "\n" +
-							"",
+					for _, ap := range v {
+						//пробегаемся по массиву точек
+						ap.CountAttempts++
+						countAttempts = ap.CountAttempts
+						apsNames = append(apsNames, ap.Name)
+						region = ap.SiteName
 					}
-					if ticket.UserLogin == "" {
-						ticket.UserLogin = "denis.tirskikh"
-					}
-					log.Println(ticket.UserLogin)
 
-					//srTicketSlice := CreateSmacWiFiTicketErr(soapServer, bpmUrl, usrLogin, description, v.site, incidentType)
-					err = uuc.soap.CreateTicketSmacWifi(ticket)
-					if err == nil {
-						log.Println(ticket.Url) //srTicketSlice[2])
-						//После создания снова пробегаемся по всему массиву точек и прописываем SrID
-						for _, ap := range v {
-							ap.SrID = ticket.ID
-							ap.CountAttempts = 0
+					if countAttempts >= 2 {
+						//create ticket
+						desAps := strings.Join(apsNames, "\n")
+
+						ticket := &entity.Ticket{
+							//UserLogin:    siteApCutName_Login[k],
+							UserLogin:    office.UserLogin,
+							IncidentType: "Недоступна точка доступа",
+							Region:       region,
+							Description: "Зафиксировано отключение Wi-Fi точек доступа:" + "\n" +
+								desAps + "\n" +
+								"" + "\n" +
+								"Рекомендации по выполнению таких инцидентов собраны на страничке корпоративной wiki" + "\n" +
+								"https://wiki.tele2.ru/display/ITKB/%5BHelpdesk+IT%5D+System+Monitoring" + "\n" +
+								"" + "\n" +
+								"!!! Не нужно решать/отменять/отклонять/возвращать/закрывать заявку, пока работа точек не будет восстановлена - автоматически создастся новый тикет !!!" + "\n" +
+								"",
 						}
-						//Удаляем запись в мапе. По новой логике, где мапа ДляТикета обновляется каждые 12 минут это не нужно
-						//delete(siteNameApCutName_Ap, k)
+						if ticket.UserLogin == "" {
+							ticket.UserLogin = "denis.tirskikh"
+						}
+						log.Println(ticket.UserLogin)
+
+						//srTicketSlice := CreateSmacWiFiTicketErr(soapServer, bpmUrl, usrLogin, description, v.site, incidentType)
+						err = uuc.soap.CreateTicketSmacWifi(ticket)
+						if err == nil {
+							log.Println(ticket.Url) //srTicketSlice[2])
+							//После создания снова пробегаемся по всему массиву точек и прописываем SrID
+							for _, ap := range v {
+								ap.SrID = ticket.ID
+								ap.CountAttempts = 0
+							}
+							//Удаляем запись в мапе. По новой логике, где мапа ДляТикета обновляется каждые 12 минут это не нужно
+							//delete(siteNameApCutName_Ap, k)
+						} else {
+							log.Println("тикет НЕ был создан. В точках srID НЕ был прописан")
+						}
 					} else {
-						log.Println("тикет НЕ был создан. В точках srID НЕ был прописан")
+						//do nothing. Не создаём тикет. Переходим к следующему бакету мапы ДляТикета
 					}
 				} else {
-					//do nothing. Не создаём тикет. Переходим к следующему бакету мапы ДляТикета
+					log.Println(k)
+					log.Println("Аларм попадает в спящие часы")
+					log.Println("Текущий час на сервере: " + strconv.Itoa(timeNowU.Hour()))
+					log.Println("Временная зона сервера: " + strconv.Itoa(uuc.timezone))
+					log.Println("Временная зона региона: " + strconv.Itoa(office.TimeZone))
+					log.Println("Час в регионе: " + strconv.Itoa(trueHour))
 				}
 			} else {
-				log.Println(k)
-				log.Println("Аларм попадает в спящие часы")
-				log.Println("Текущий час на сервере: " + strconv.Itoa(timeNowU.Hour()))
-				log.Println("Временная зона сервера: " + strconv.Itoa(uuc.timezone))
-				log.Println("Временная зона региона: " + strconv.Itoa(office.TimeZone))
-				log.Println("Час в регионе: " + strconv.Itoa(trueHour))
+				log.Println("Офис добавлен в исключение:" + office.Site_ApCutName)
 			}
-
 		} else {
 			log.Println("в мапе siteApCutName_Office нет соответствующего бакета офиса:")
 			log.Println(k)

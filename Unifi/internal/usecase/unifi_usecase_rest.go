@@ -4,25 +4,14 @@ import (
 	"errors"
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
 	"sort"
+	"strconv"
 )
 
-func (uuc *UnifiUseCase) OfficeNew(newOffice *entity.Office) error { //newSapcn string, login string
-	_, exist := siteApCutName_Office[newOffice.Site_ApCutName]
-	if exist == false {
-		err = uuc.repo.InsertOffice(newOffice)
-		if err == nil {
-			office.UserLogin = newLogin
-			return nil
-		} else {
-			return err
-		}
-	} else {
-		return errors.New("новый логин соответствует старому")
-	}
+func (uuc *UnifiUseCase) OfficeSapcnChange(oldSapcn string, newSapcn string) error {
+	return nil
 }
 
-// Обновляющая функция логина ответственного сотрудника в мапе
-func (uuc *UnifiUseCase) ChangeSapcnLogin(sapcn string, newLogin string) error {
+func (uuc *UnifiUseCase) OfficeLoginChange(sapcn string, newLogin string) error {
 	office := siteApCutName_Office[sapcn]
 	if office.UserLogin != newLogin {
 		err = uuc.repo.UpdateOfficeLogin(sapcn, newLogin)
@@ -34,6 +23,47 @@ func (uuc *UnifiUseCase) ChangeSapcnLogin(sapcn string, newLogin string) error {
 		}
 	} else {
 		return errors.New("новый логин соответствует старому")
+	}
+}
+
+func (uuc *UnifiUseCase) OfficeTimeZoneChange(sapcn string, newTimeZone string) error {
+	return nil
+}
+
+func (uuc *UnifiUseCase) OfficeExceptionChange(sapcn string, newException string) error {
+	office := siteApCutName_Office[sapcn]
+
+	newExceptionInt, errStrConv := strconv.Atoi(newException)
+	if errStrConv != nil {
+
+		if office.Exception != newExceptionInt {
+			err = uuc.repo.UpdateOfficeException(sapcn, newException)
+			if err == nil {
+				office.Exception = newExceptionInt
+				return nil
+			} else {
+				return err
+			}
+		} else {
+			return errors.New("новый Exception соответствует старому")
+		}
+	} else {
+		return errStrConv
+	}
+}
+
+func (uuc *UnifiUseCase) OfficeNew(newOffice *entity.Office) error { //newSapcn string, login string
+	_, exist := siteApCutName_Office[newOffice.Site_ApCutName]
+	if exist == false {
+		err = uuc.repo.InsertOffice(newOffice)
+		if err == nil {
+			siteApCutName_Office[newOffice.Site_ApCutName] = newOffice
+			return nil
+		} else {
+			return err
+		}
+	} else {
+		return errors.New("Офис уже существует")
 	}
 }
 

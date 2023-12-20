@@ -8,9 +8,9 @@ func (fok *Fokusov) initializeRoutes() {
 	siteRoutes := router.Group("/office")
 	{
 		//adminka page
-		siteRoutes.POST("/sapcn_add", fok.officeNew)
-		//siteRoutes.POST("/sapcn_change", fok.changeSapcn)
 		siteRoutes.POST("/login_change", fok.officeLoginChange)
+		siteRoutes.POST("/change", fok.officeChange)
+		siteRoutes.POST("/sapcn_add", fok.officeNew)
 
 		//siteRoutes.POST("/exception_add", fok.addException)
 		//siteRoutes.POST("/exception_del", fok.delException)

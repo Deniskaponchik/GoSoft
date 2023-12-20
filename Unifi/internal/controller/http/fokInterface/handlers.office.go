@@ -7,6 +7,61 @@ import (
 	"strconv"
 )
 
+func (fok *Fokusov) officeChange(c *gin.Context) {
+	sapcn := c.PostForm("01_sapcn")
+	action := c.PostForm("01_dropdown")
+	newValue := c.PostForm("01_field")
+
+	switch action {
+
+	case "Sapcn Name":
+		fok.Logger.Println("Выбрано изменение имени sapcn")
+		err := fok.Urest.OfficeSapcnChange(sapcn, newValue)
+		if err != nil {
+			fok.Logger.Println("Изменить sapcn не удалось")
+			fok.Logger.Println(err)
+			adminkaPageMsg[1] = err.Error()
+		} else {
+			adminkaPageMsg[1] = "sapcn успешно изменён"
+		}
+
+	case "Login":
+		fok.Logger.Println("Выбрано изменение логина")
+		err := fok.Urest.OfficeLoginChange(sapcn, newValue)
+		if err != nil {
+			fok.Logger.Println("Изменить логин не удалось")
+			fok.Logger.Println(err)
+			adminkaPageMsg[1] = err.Error()
+		} else {
+			adminkaPageMsg[1] = "Логин успешно изменён"
+		}
+
+	case "Time Zone":
+		fok.Logger.Println("Выбрано изменение Time Zone")
+		err := fok.Urest.OfficeTimeZoneChange(sapcn, newValue)
+		if err != nil {
+			fok.Logger.Println("Изменить Time Zone не удалось")
+			fok.Logger.Println(err)
+			adminkaPageMsg[1] = err.Error()
+		} else {
+			adminkaPageMsg[1] = "Time Zone успешно изменён"
+		}
+
+	case "Exception":
+		fok.Logger.Println("Выбрано изменение Exception")
+		err := fok.Urest.OfficeExceptionChange(sapcn, newValue)
+		if err != nil {
+			fok.Logger.Println("Изменить Exception не удалось")
+			fok.Logger.Println(err)
+			adminkaPageMsg[1] = err.Error()
+		} else {
+			adminkaPageMsg[1] = "Exception успешно изменён"
+		}
+	}
+
+	fok.showAdminkaPage(c)
+}
+
 func (fok *Fokusov) officeNew(c *gin.Context) {
 	newSapcn := c.PostForm("02_sapcn")
 	login := c.PostForm("02_login")
@@ -28,9 +83,9 @@ func (fok *Fokusov) officeNew(c *gin.Context) {
 		if err != nil {
 			fok.Logger.Println("Создать новый офис не удалось")
 			fok.Logger.Println(err)
-			adminkaPageMsg[0] = err.Error() //"Создать новый офис логин не удалось"
+			adminkaPageMsg[2] = err.Error() //"Создать новый офис логин не удалось"
 		} else {
-			adminkaPageMsg[0] = "логин успешно изменён"
+			adminkaPageMsg[2] = "Новый офис успешно создан"
 		}
 
 		fok.showAdminkaPage(c)
@@ -47,7 +102,8 @@ func (fok *Fokusov) officeLoginChange(c *gin.Context) {
 	fok.Logger.Println(sapcn)
 	fok.Logger.Println(newLogin)
 
-	err := fok.Urest.ChangeSapcnLogin(sapcn, newLogin)
+	//err := fok.Urest.ChangeSapcnLogin(sapcn, newLogin)
+	err := fok.Urest.OfficeLoginChange(sapcn, newLogin)
 	if err != nil {
 		fok.Logger.Println("Изменить логин не удалось")
 		fok.Logger.Println(err)
@@ -62,8 +118,8 @@ func (fok *Fokusov) officeLoginChange(c *gin.Context) {
 	//c.HTML(http.StatusSeeOther, "adminka.html", nil)
 }
 
-func functionWithErrorExample(c *gin.Context) { //old name performLogin
-	// Obtain the POSTed username and password values
+func functionWithErrorExample(c *gin.Context) {
+	//old name performLogin
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
