@@ -12,8 +12,7 @@ func TestGetUserLogin(t *testing.T) {
 		client: http.Client{
 			Timeout: 10 * time.Second,
 		},
-		url: "", //УКАЗАТЬ логин на время тестирования
-
+		url: "http://login:password@c3po.corp.tele2.ru/sccm/api/info/", //УКАЗАТЬ логин на время тестирования
 	}
 	client1 := &entity.Client{
 		Hostname: "WSNS-TROFIMOV2", //УКАЗАТЬ ip на время тестирования

@@ -1,10 +1,10 @@
-package api_rest
+package main
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/deniskaponchik/GoSoft/Unifi/internal/entity"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,82 +12,76 @@ import (
 	"time"
 )
 
-type UnifiC3po struct {
-	client http.Client
-	//serverC3po	 string
-	url string
-}
-
-func NewUnifiC3po(url string) *UnifiC3po {
-	client := http.Client{
-		Timeout: 240 * time.Second,
-	}
-	return &UnifiC3po{
-		client: client,
-		url:    url,
+func main() {
+	login, err := GetUserLogin("http://login:password@c3po.corp.tele2.ru/sccm/api/info/pc/WSNS-TROFIMOV2")
+	//login, err := GetUserLogin("http://c3po.corp.tele2.ru/sccm/api/info/pc/WSNS-TROFIMOV2")
+	//login, err := GetUserLogin("http://10.57.188.15/api/v1/mgmt/lineInfo")
+	if err == nil {
+		fmt.Print(login)
+	} else {
+		fmt.Printf(err.Error())
 	}
 }
 
-func (uc3po *UnifiC3po) GetUserLogin(notebook *entity.Client) (err error) {
+func GetUserLogin(url string) (login string, err error) {
 
 	type Envelope struct {
+		Data []struct {
+			//Monitor1_Model   string `json:"Monitor1_Model"`
+			//Monitor1_SN      string `json:"Monitor1_SN"`
+			Monitor1_Vendor  string `json:"Monitor1_Vendor"`
+			Monitor2_Model   string `json:"Monitor2_Model"`
+			Monitor2_SN      string `json:"Monitor2_SN"`
+			Monitor2_Vendor  string `json:"Monitor2_Vendor"`
+			OZU              int    `json:"OZU"`
+			Disk1_model      string `json:"disk1_model;omitempty"`
+			Disk2_model      string `json:"disk2_model;omitempty"`
+			Disk3_model      string `json:"disk3_model;omitempty"`
+			Last_scan        string `json:"last_scan"`
+			Os_build         string `json:"os_build"`
+			Os_version       string `json:"os_version"`
+			Pc_cpu           string `json:"pc_cpu"`
+			Pc_manufacturer  string `json:"pc_manufacturer"`
+			Pc_model         string `json:"pc_model"`
+			Pc_name          string `json:"pc_name"`
+			Pc_serial_number string `json:"pc_serial_number"`
+			Ram1             int    `json:"ram1;omitempty"`
+			Ram2             int    `json:"ram2;omitempty"`
+			Ram3             int    `json:"ram3;omitempty"`
+			Ram4             int    `json:"ram4;omitempty"`
+			Samaccountname   string `json:"samaccountname"`
+		} `json:"data"`
 		Name   string `json:"name"`
 		Status string `json:"status"`
-
-		Data []struct {
-			//Monitor1_Model  string `json:"Monitor1_Model"`
-			//Monitor1_SN     string `json:"Monitor1_SN"`
-			//Monitor1_Vendor string `json:"Monitor1_Vendor"`
-			//Monitor2_Model  string `json:"Monitor2_Model"`
-			//Monitor2_SN     string `json:"Monitor2_SN"`
-			//Monitor2_Vendor string `json:"Monitor2_Vendor"`
-			//OZU              int    `json:"OZU"`
-			//Disk1_model      string `json:"disk1_model"`
-			//Disk2_model      string `json:"disk2_model"`
-			//Disk3_model      string `json:"disk3_model"`
-			//Last_scan        string `json:"last_scan"`
-			//Os_build         string `json:"os_build"`
-			//Os_version       string `json:"os_version"`
-			//Pc_cpu           string `json:"pc_cpu"`
-			//Pc_manufacturer  string `json:"pc_manufacturer"`
-			//Pc_model         string `json:"pc_model"`
-			//Pc_name          string `json:"pc_name"`
-			//Pc_serial_number string `json:"pc_serial_number"`
-			//Ram1             int    `json:"ram1"`
-			//Ram2             int    `json:"ram2"`
-			//Ram3             int    `json:"ram3"`
-			//Ram4             int    `json:"ram4"`
-			Samaccountname string `json:"samaccountname"`
-		} `json:"data"`
 	}
 	//client := http.Client{Timeout: 5 * time.Second}
-	client := uc3po.client
+	client := http.Client{Timeout: 240 * time.Second}
 
 	//var err error
 	myError := 1
 	for myError != 0 {
 		//url := "http://" + polyStruct.IP + "/api/v1/mgmt/lineInfo"
-		url := uc3po.url + "pc/" + notebook.Hostname
+		//url := uc3po.url + "pc/" + notebook.Hostname
 		log.Println(url)
 
 		req, errNewRequest := http.NewRequest(http.MethodGet, url, http.NoBody)
 		if errNewRequest == nil {
-			//req.SetBasicAuth(polyLogin, polyPassword)
+			//req.SetBasicAuth("c3po login", "c3po password")
 			//req.Header.Add("Content-Type", "application/json")
 
 			res, errClientDo := client.Do(req)
 			if errClientDo == nil {
-				defer res.Body.Close()
-
 				envelope := &Envelope{}
 
 				//https://forum.golangbridge.org/t/why-getting-err-eof-while-decoding-responce-body-into-struct/27444
+
+				//defer res.Body.Close()
+
 				/*Посмотреть res.Body
 				b, errIoRead := io.ReadAll(res.Body)
 				if errIoRead != nil {
 					log.Fatalln(errIoRead)
 				}
-				fmt.Println("Вывод из ioReadAll")
 				fmt.Println(string(b))
 				*/
 
@@ -97,32 +91,36 @@ func (uc3po *UnifiC3po) GetUserLogin(notebook *entity.Client) (err error) {
 					log.Fatal(errReadAll)
 				}
 				buf := bytes.NewBuffer(body)
-				//err = json.NewDecoder(buf).Decode(envelope)
 				/*
 					errUnmarshal := json.Unmarshal(body, envelope)
 					if errUnmarshal == nil {
 						log.Fatal(errUnmarshal)
 					}*/
 
-				//if errDecode := json.NewDecoder(res.Body).Decode(envelope); errDecode == nil {
-				if errDecode := json.NewDecoder(buf).Decode(envelope); errDecode == nil {
-					if envelope.Status == "ок" {
+				//if errDecode := json.NewDecoder(res.Body).Decode(&envelope); errDecode == nil {
+				//errDecode := json.NewDecoder(res.Body).Decode(envelope)
+				errDecode := json.NewDecoder(buf).Decode(envelope)
+				if errDecode == nil { //errDecode.Error() == "EOF"
+					if envelope.Status == "ok" { //envelope.Status == "ok" envelope.Status != ""
 						//log.Println("Запрос статуса прошёл.")
 						if len(envelope.Data) > 0 {
 							//Успешное выполнение функции
-							notebook.UserLogin = strings.ReplaceAll(envelope.Data[0].Samaccountname, " ", "") //cut spaces
-							myError = 0
+							//notebook.UserLogin = envelope.Data[0].Samaccountname
+							login = strings.ReplaceAll(envelope.Data[0].Samaccountname, " ", "")
+							fmt.Println(envelope.Status)
+							fmt.Println(envelope.Name)
+							return login, nil
 						} else {
 							log.Println("Получен ответ OK от c3po, но информация о машине не была найдена")
-							myError = 0
+							return "", nil
 						}
-						return nil
+
 					} else {
 						log.Println("От c3po получен Статус НЕ OK")
 						log.Println("Будет предпринята новая попытка отправки запроса через 30 сек.")
 						time.Sleep(30 * time.Second)
 						myError++
-						err = errors.New("от устройства получен статус не ok")
+						err = errors.New("от устройства получен статус не 2000")
 					}
 				} else {
 					log.Println(errDecode.Error())
@@ -152,8 +150,8 @@ func (uc3po *UnifiC3po) GetUserLogin(notebook *entity.Client) (err error) {
 		if myError == 4 {
 			myError = 0
 			log.Println("После 3 неудачных попыток идём дальше. Получить логин от c3po не удалось")
-			return err
+			return "", err
 		}
 	}
-	return nil
+	return "", nil
 }
