@@ -73,7 +73,7 @@ func (ui *Ui) AddAps2Maps(macAp map[string]*entity.Ap, hostnameAp map[string]*en
 
 		for _, ap0 := range devices.UAPs {
 
-			if ap0.Name != "" { //не знаю, откуда могут взяться точки в Бд без имени, но логику с двумя мапами может сломать такая точка
+			if ap0.Name != "" { //не знаю, откуда могут взяться точки в Бд без имени, но логику с двумя мапами может сломать такая точка6
 
 				siteID := ap0.SiteID
 				//if !sitesException[siteID] { // НЕ Резерв/Склад
@@ -270,6 +270,8 @@ func (ui *Ui) UpdateClients2MapWithoutApMap(macClient map[string]*entity.Client,
 
 			} else {
 				//Если клиент Guest
+				//check that ip starts with "192."
+				//if not
 			}
 		}
 		//return mapClient, nil

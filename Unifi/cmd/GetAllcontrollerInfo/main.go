@@ -13,7 +13,7 @@ func main() {
 	c := unifi.Config{
 		User: "",
 		Pass: "",
-		URL:  "https://ip:8443/",
+		URL:  "https://:8443/",
 		// Log with log.Printf or make your own interface that accepts (msg, test_SOAP)
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,
@@ -53,7 +53,7 @@ func main() {
 		splitIP := strings.Split(client.IP, ".")[0]
 		//if splitIP == "169" {
 		if splitIP != "10" && splitIP != "192" {
-			fmt.Println(client.IP, client.Hostname, client.Mac, client.SiteName)
+			fmt.Println(client.IP, client.Hostname, client.Mac, client.SiteName, client.ApMac)
 		}
 		//log.Println(i+1, client.ID, client.Hostname, client.IP, client.Name)
 	}

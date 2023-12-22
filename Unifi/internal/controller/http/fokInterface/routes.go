@@ -1,9 +1,24 @@
 // routes.go
 package fokusov
 
+import (
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	// Swagger docs.
+	_ "github.com/deniskaponchik/GoSoft/docs"
+)
+
+// Swagger spec:
+// @title       IT Support App
+// @description Handling Unifi Wi-Fi controller
+// @version     1.0
+// @host        localhost:
+// @BasePath    /
 func (fok *Fokusov) initializeRoutes() {
 	// Use the setUserStatus middleware for every route to set a flag indicating whether the request was from an authenticated user or not
 	router.Use(setUserStatus())
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	siteRoutes := router.Group("/office")
 	{

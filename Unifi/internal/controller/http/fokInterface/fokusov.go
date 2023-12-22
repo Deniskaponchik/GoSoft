@@ -2,12 +2,16 @@ package fokusov
 
 import (
 	"github.com/deniskaponchik/GoSoft/Unifi/internal/usecase"
+	_ "github.com/evrone/go-clean-template/docs"
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	//"time"
+	//swaggerFiles "github.com/swaggo/files"
+	//ginSwagger "github.com/swaggo/gin-swagger"
+	// Swagger docs.
+	//_ "github.com/deniskaponchik/GoSoft/Unifi/docs"
 )
 
 var router *gin.Engine
@@ -36,6 +40,13 @@ func New(uuc *usecase.UnifiUseCase, port string, logFileName string) *Fokusov { 
 
 var adminkaPageMsg []string
 
+// NewRouter -.
+// Swagger spec:
+// @title       Go Clean Template API
+// @description Using a translation service as an example
+// @version     1.0
+// @host        localhost:8080
+// @BasePath    /v1
 func (fok *Fokusov) Start() {
 
 	adminkaPageMsg = make([]string, 10)
