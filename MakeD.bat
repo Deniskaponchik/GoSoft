@@ -1,9 +1,7 @@
-cd Unifi/cmd/unifi
-
+cd cmd/unifi
 rem swag init -g main.go
-rem swag init -g Unifi/internal/controller/http/fokInterface/fokusov.go
-swag init
-
+rem swag init -g internal/controller/http/fokInterface/fokusov.go
+rem swag init
 
 rem go build -o ..\..\bin\Unifi_v3.13 -ldflags="-s -w"
 rem go build -o ..\..\bin\Unifi_v3.14-TEST -ldflags="-s -w"
