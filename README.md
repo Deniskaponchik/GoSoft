@@ -9,7 +9,7 @@
   <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/client.png" width="600"/>
 </div>
 <div align="left">
-  <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/swager.png" width=600"/>
+  <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/swager.PNG" width=600"/>
 </div>
 
 # [Main]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/main/Unifi))
