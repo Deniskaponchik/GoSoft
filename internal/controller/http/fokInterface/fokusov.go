@@ -10,6 +10,7 @@ import (
 )
 
 var router *gin.Engine
+var adminkaPageMsg []string
 
 type Fokusov struct {
 	//Router    *gin.Engine
@@ -33,15 +34,6 @@ func New(uuc *usecase.UnifiUseCase, port string, logFileName string) *Fokusov { 
 	}
 }
 
-var adminkaPageMsg []string
-
-// NewRouter -.
-// Swagger spec:
-// @title       Go Clean Template API
-// @description Using a translation service as an example
-// @version     1.0
-// @host        localhost:8080
-// @BasePath    /v1
 func (fok *Fokusov) Start() {
 
 	adminkaPageMsg = make([]string, 10)

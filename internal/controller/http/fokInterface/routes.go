@@ -2,17 +2,17 @@
 package fokusov
 
 import (
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	// Swagger docs.
-	_ "github.com/deniskaponchik/GoSoft/docs"
+	_ "github.com/deniskaponchik/GoSoft/docs"  // Swagger docs.
+	swaggerFiles "github.com/swaggo/files"     // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
 
+// NewRouter -.
 // Swagger spec:
 // @title       IT Support App
 // @description Handling Unifi Wi-Fi controller
 // @version     1.0
-// @host        localhost:
+// @host        localhost:8081
 // @BasePath    /
 func (fok *Fokusov) initializeRoutes() {
 	// Use the setUserStatus middleware for every route to set a flag indicating whether the request was from an authenticated user or not

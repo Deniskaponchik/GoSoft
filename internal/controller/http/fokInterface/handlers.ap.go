@@ -7,6 +7,16 @@ import (
 	"strings"
 )
 
+// @BasePath    /ap/request
+// @Summary     Show anomalies for ap
+// @Description Show anomalies for ap
+// @ID          get-ap
+// @Tags  	    ap
+// @Accept      html
+// @Produce     html
+// @Success     200 {object} entity.Ap
+// Failure     500 {object} response
+// @Router      /ap/request [post]
 func (fok *Fokusov) getAP(c *gin.Context) {
 	fok.Logger.Println("")
 	// Check if the client hostname is valid
@@ -75,40 +85,16 @@ func (fok *Fokusov) getAP(c *gin.Context) {
 	}
 }
 
-/*
-func (fok *Fokusov) getClientFok(c *gin.Context) {
-	// Check if the client hostname is valid
-	//if articleID, err := strconv.Atoi(c.Param("article_id")); err == nil {
-	clientHostname := c.Param("client_hostname")
-	fmt.Println(clientHostname)
-
-	// Check if the client exists
-	//if client, err := getArticleByID(articleID); err == nil {
-	client := fok.UnifiUC.GetClientForRest(clientHostname)
-	//fok.UnifiClient = fok.UnifiUC.GetClientForRest(clientHostname)
-	if fok.UnifiClient != nil {
-		fmt.Println("клиент найден в мапе клиентов")
-		fmt.Println(fok.UnifiClient.Hostname)
-		// Call the render function with the title, article and the name of the
-		// template
-		fok.render(c, gin.H{
-			"title":            fok.UnifiClient.Hostname,
-			"hostname":         fok.UnifiClient.Hostname,
-			"anomalies_struct": fok.UnifiClient.SliceAnomalies},
-			"client.html")
-
-	} else {
-		fmt.Println("клиент НЕ найден в мапе клиентов")
-		// If the client is not found, abort with an error
-		//c.AbortWithError(http.StatusNotFound, err)
-		fok.render(c, gin.H{
-			"title":    "Client did not found",
-			"hostname": "Client did not found"},
-			//"anomalies_struct": client.SliceAnomalies},
-			"client.html")
-	}
-}*/
-
+// @BasePath    /ap/request
+// @Summary     Show start ap page
+// @Description Show start ap page
+// @ID          show-ap-page
+// @Tags  	    ap
+// @Accept      html
+// @Produce     html
+// Success     200 {object} response
+// Failure     500 {object} response
+// @Router      /ap/request [get]
 func (fok *Fokusov) showApRequestPage(c *gin.Context) {
 	// Call the render function with the name of the template to render
 	render(c, gin.H{

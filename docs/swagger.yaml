@@ -1,5 +1,209 @@
-basePath: /v1
+basePath: /
 definitions:
+  entity.Anomaly:
+    properties:
+      anomalies:
+        description: AnomalySlice []string  `json:"anomalies"  example:"USER_HIGH_TCP_LATENCY;USER_LOW_PHY_RATE;USER_SLEEPY_CLIENT;USER_HIGH_TCP_PACKET_LOSS;USER_HIGH_WIFI_RETRIES;USER_SIGNAL_STRENGTH_FAILURES;USER_DNS_TIMEOUT;USER_HIGH_WIFI_LATENCY;USER_POOR_STREAM_EFF;USER_HIGH_DNS_LATENCY"`
+        example: USER_HIGH_TCP_LATENCY;USER_LOW_PHY_RATE;USER_SLEEPY_CLIENT;USER_HIGH_TCP_PACKET_LOSS;
+        type: string
+      clientName:
+        type: string
+      controller:
+        example: 1
+        type: integer
+      date_hour:
+        example: "2023-09-01 12:00:00"
+        type: string
+      exception:
+        description: берётся от Client. 2 = exception from Ap and Client
+        example: 1
+        type: integer
+      mac_ap:
+        example: 68:d7:9a:1c:f2:b9
+        type: string
+      mac_client:
+        example: a0:b1:c2:d3:e4:f5
+        type: string
+      name_ap:
+        description: |-
+          при обработке каждой аномалии подключаюсь к мапе Клиентов.
+          А при обработке каждого клиента подключаюсь к мапе точек, чтобы была актальная инфа по Exception
+          Поэтому каждый раз получаю актуальный: имя точки, мак точки, сумму исключений точки и клиента
+        example: XXX-FL1-01-OPENSPACE
+        type: string
+      sitename:
+        example: Москва
+        type: string
+      sliceAnomStr:
+        items:
+          type: string
+        type: array
+    type: object
+  entity.Ap:
+    properties:
+      commentCount:
+        description: 0 - нет комментариев, 1 - комментарий "точка появилась в сети",
+          2 - Попытка закрыть обращение. commentForUpdate
+        example: 1
+        type: integer
+      controller:
+        example: 1
+        type: integer
+      countAnomaly:
+        description: кол-во аномалий за последние 30 дней
+        type: integer
+      countAttempts:
+        description: Число заходов на создание заявок. на втором заходе создаём тикет.
+          не берётся из БД
+        example: 0
+        type: integer
+      date30count:
+        description: Используется в DownloadClientsWithAnomalySlice
+        example: 27
+        type: integer
+      exception:
+        description: Исключение для аномалий клиентов, а не для отключений точек
+        example: 1
+        type: integer
+      login:
+        example: vasya.pupkin
+        type: string
+      mac:
+        example: a0-b1-c2-d3-e4-f5
+        type: string
+      name:
+        example: XXX-OPENSPACE
+        type: string
+      region:
+        example: Волгоград
+        type: string
+      siteID:
+        description: уточнить, нужен ли
+        example: 5e74aaa6a1a76964e770815c
+        type: string
+      sliceAnomalies:
+        description: Аномалии точки за 30 дней
+        items:
+          $ref: '#/definitions/entity.Anomaly'
+        type: array
+      srid:
+        example: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+        type: string
+      stateInt:
+        description: 0 - available
+        example: 0
+        type: integer
+      ticket:
+        allOf:
+        - $ref: '#/definitions/entity.Ticket'
+        description: SliceClients   []*Client           //Аномалии точки за 30 дней
+    type: object
+  entity.Client:
+    properties:
+      ap_mac:
+        example: a0:b1:c2:d3:e4:f5
+        type: string
+      ap_name:
+        description: отключаю, чтобы не было неразберихи. не заполянется этот параметр
+          на контроллере
+        example: XXX-OPENSPACE
+        type: string
+      controller:
+        example: 1
+        type: integer
+      countAnomaly:
+        description: кол-во аномалий за последние 30 дней
+        type: integer
+      date_Anomaly:
+        additionalProperties:
+          $ref: '#/definitions/entity.Anomaly'
+        description: Аномалии клиента за 30 дней. Вроде, не должна больше использоваться
+        type: object
+      date30count:
+        description: Используется в DownloadClientsWithAnomalySlice
+        example: 27
+        type: integer
+      dateTicketCreateAttempt:
+        description: 'DateTicketCreateAttempt time.Time `example: "2023-10-28"` //До
+          первого захода либо nil, либо прошлая дата, после 1 захода - сегодняшняя
+          дата'
+        example: 28
+        type: integer
+      exception:
+        example: 1
+        type: integer
+      hostname:
+        example: XXXX-PUPKIN
+        type: string
+      mac_client:
+        example: a0:b1:c2:d3:e4:f5
+        type: string
+      modified:
+        example: "2023-10-28"
+        type: string
+      sitename:
+        description: SiteName нужен только на этапе создания заявок по клиентам. Поэтому
+          при обработке каждого клиента его не получаю.
+        example: Москва
+        type: string
+      sliceAnomalies:
+        description: Аномалии клиента за 30 дней
+        items:
+          $ref: '#/definitions/entity.Anomaly'
+        type: array
+      srid:
+        example: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+        type: string
+      userLogin:
+        description: не однозначная характеристика. нигде не используется
+        example: vasya.pupkin
+        type: string
+    type: object
+  entity.Ticket:
+    properties:
+      bpmServer:
+        example: https://bpm.com/
+        type: string
+      client:
+        $ref: '#/definitions/entity.Client'
+      comment:
+        example: любой текст
+        type: string
+      description:
+        example: Зафиксированы сбои в работе системы
+        type: string
+      id:
+        example: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+        type: string
+      incidentType:
+        example: Устройство недоступно
+        type: string
+      monitoring:
+        example: https://zabbix.com
+        type: string
+      number:
+        example: SR12345678
+        type: string
+      reason:
+        example: Устройство недоступно
+        type: string
+      region:
+        example: Москва
+        type: string
+      sliceAps:
+        items:
+          $ref: '#/definitions/entity.Ap'
+        type: array
+      status:
+        example: Решено
+        type: string
+      url:
+        example: https://bpm.com/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+        type: string
+      userLogin:
+        example: vasya.pupkin
+        type: string
+    type: object
   entity.Translation:
     properties:
       destination:
@@ -44,13 +248,40 @@ definitions:
         example: message
         type: string
     type: object
-host: localhost:8080
+host: localhost:8081
 info:
   contact: {}
-  description: Using a translation service as an example
-  title: Go Clean Template API
+  description: Handling Unifi Wi-Fi controller
+  title: IT Support App
   version: "1.0"
 paths:
+  /ap/request:
+    get:
+      consumes:
+      - text/html
+      description: Show start ap page
+      operationId: show-ap-page
+      produces:
+      - text/html
+      responses: {}
+      summary: Show start ap page
+      tags:
+      - ap
+    post:
+      consumes:
+      - text/html
+      description: Show anomalies for ap
+      operationId: get-ap
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Ap'
+      summary: Show anomalies for ap
+      tags:
+      - ap
   /translation/do-translate:
     post:
       consumes:

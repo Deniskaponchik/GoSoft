@@ -15,6 +15,45 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/ap/request": {
+            "get": {
+                "description": "Show start ap page",
+                "consumes": [
+                    "text/html"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "ap"
+                ],
+                "summary": "Show start ap page",
+                "operationId": "show-ap-page",
+                "responses": {}
+            },
+            "post": {
+                "description": "Show anomalies for ap",
+                "consumes": [
+                    "text/html"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "ap"
+                ],
+                "summary": "Show anomalies for ap",
+                "operationId": "get-ap",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Ap"
+                        }
+                    }
+                }
+            }
+        },
         "/translation/do-translate": {
             "post": {
                 "description": "Translate a text",
@@ -94,6 +133,271 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "entity.Anomaly": {
+            "type": "object",
+            "properties": {
+                "anomalies": {
+                    "description": "AnomalySlice []string  ` + "`" + `json:\"anomalies\"  example:\"USER_HIGH_TCP_LATENCY;USER_LOW_PHY_RATE;USER_SLEEPY_CLIENT;USER_HIGH_TCP_PACKET_LOSS;USER_HIGH_WIFI_RETRIES;USER_SIGNAL_STRENGTH_FAILURES;USER_DNS_TIMEOUT;USER_HIGH_WIFI_LATENCY;USER_POOR_STREAM_EFF;USER_HIGH_DNS_LATENCY\"` + "`" + `",
+                    "type": "string",
+                    "example": "USER_HIGH_TCP_LATENCY;USER_LOW_PHY_RATE;USER_SLEEPY_CLIENT;USER_HIGH_TCP_PACKET_LOSS;"
+                },
+                "clientName": {
+                    "type": "string"
+                },
+                "controller": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "date_hour": {
+                    "type": "string",
+                    "example": "2023-09-01 12:00:00"
+                },
+                "exception": {
+                    "description": "берётся от Client. 2 = exception from Ap and Client",
+                    "type": "integer",
+                    "example": 1
+                },
+                "mac_ap": {
+                    "type": "string",
+                    "example": "68:d7:9a:1c:f2:b9"
+                },
+                "mac_client": {
+                    "type": "string",
+                    "example": "a0:b1:c2:d3:e4:f5"
+                },
+                "name_ap": {
+                    "description": "при обработке каждой аномалии подключаюсь к мапе Клиентов.\nА при обработке каждого клиента подключаюсь к мапе точек, чтобы была актальная инфа по Exception\nПоэтому каждый раз получаю актуальный: имя точки, мак точки, сумму исключений точки и клиента",
+                    "type": "string",
+                    "example": "XXX-FL1-01-OPENSPACE"
+                },
+                "sitename": {
+                    "type": "string",
+                    "example": "Москва"
+                },
+                "sliceAnomStr": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "entity.Ap": {
+            "type": "object",
+            "properties": {
+                "commentCount": {
+                    "description": "0 - нет комментариев, 1 - комментарий \"точка появилась в сети\", 2 - Попытка закрыть обращение. commentForUpdate",
+                    "type": "integer",
+                    "example": 1
+                },
+                "controller": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "countAnomaly": {
+                    "description": "кол-во аномалий за последние 30 дней",
+                    "type": "integer"
+                },
+                "countAttempts": {
+                    "description": "Число заходов на создание заявок. на втором заходе создаём тикет. не берётся из БД",
+                    "type": "integer",
+                    "example": 0
+                },
+                "date30count": {
+                    "description": "Используется в DownloadClientsWithAnomalySlice",
+                    "type": "integer",
+                    "example": 27
+                },
+                "exception": {
+                    "description": "Исключение для аномалий клиентов, а не для отключений точек",
+                    "type": "integer",
+                    "example": 1
+                },
+                "login": {
+                    "type": "string",
+                    "example": "vasya.pupkin"
+                },
+                "mac": {
+                    "type": "string",
+                    "example": "a0-b1-c2-d3-e4-f5"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "XXX-OPENSPACE"
+                },
+                "region": {
+                    "type": "string",
+                    "example": "Волгоград"
+                },
+                "siteID": {
+                    "description": "уточнить, нужен ли",
+                    "type": "string",
+                    "example": "5e74aaa6a1a76964e770815c"
+                },
+                "sliceAnomalies": {
+                    "description": "Аномалии точки за 30 дней",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Anomaly"
+                    }
+                },
+                "srid": {
+                    "type": "string",
+                    "example": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                },
+                "stateInt": {
+                    "description": "0 - available",
+                    "type": "integer",
+                    "example": 0
+                },
+                "ticket": {
+                    "description": "SliceClients   []*Client           //Аномалии точки за 30 дней",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entity.Ticket"
+                        }
+                    ]
+                }
+            }
+        },
+        "entity.Client": {
+            "type": "object",
+            "properties": {
+                "ap_mac": {
+                    "type": "string",
+                    "example": "a0:b1:c2:d3:e4:f5"
+                },
+                "ap_name": {
+                    "description": "отключаю, чтобы не было неразберихи. не заполянется этот параметр на контроллере",
+                    "type": "string",
+                    "example": "XXX-OPENSPACE"
+                },
+                "controller": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "countAnomaly": {
+                    "description": "кол-во аномалий за последние 30 дней",
+                    "type": "integer"
+                },
+                "date30count": {
+                    "description": "Используется в DownloadClientsWithAnomalySlice",
+                    "type": "integer",
+                    "example": 27
+                },
+                "dateTicketCreateAttempt": {
+                    "description": "DateTicketCreateAttempt time.Time ` + "`" + `example: \"2023-10-28\"` + "`" + ` //До первого захода либо nil, либо прошлая дата, после 1 захода - сегодняшняя дата",
+                    "type": "integer",
+                    "example": 28
+                },
+                "date_Anomaly": {
+                    "description": "Аномалии клиента за 30 дней. Вроде, не должна больше использоваться",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/entity.Anomaly"
+                    }
+                },
+                "exception": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "hostname": {
+                    "type": "string",
+                    "example": "XXXX-PUPKIN"
+                },
+                "mac_client": {
+                    "type": "string",
+                    "example": "a0:b1:c2:d3:e4:f5"
+                },
+                "modified": {
+                    "type": "string",
+                    "example": "2023-10-28"
+                },
+                "sitename": {
+                    "description": "SiteName нужен только на этапе создания заявок по клиентам. Поэтому при обработке каждого клиента его не получаю.",
+                    "type": "string",
+                    "example": "Москва"
+                },
+                "sliceAnomalies": {
+                    "description": "Аномалии клиента за 30 дней",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Anomaly"
+                    }
+                },
+                "srid": {
+                    "type": "string",
+                    "example": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                },
+                "userLogin": {
+                    "description": "не однозначная характеристика. нигде не используется",
+                    "type": "string",
+                    "example": "vasya.pupkin"
+                }
+            }
+        },
+        "entity.Ticket": {
+            "type": "object",
+            "properties": {
+                "bpmServer": {
+                    "type": "string",
+                    "example": "https://bpm.com/"
+                },
+                "client": {
+                    "$ref": "#/definitions/entity.Client"
+                },
+                "comment": {
+                    "type": "string",
+                    "example": "любой текст"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Зафиксированы сбои в работе системы"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                },
+                "incidentType": {
+                    "type": "string",
+                    "example": "Устройство недоступно"
+                },
+                "monitoring": {
+                    "type": "string",
+                    "example": "https://zabbix.com"
+                },
+                "number": {
+                    "type": "string",
+                    "example": "SR12345678"
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Устройство недоступно"
+                },
+                "region": {
+                    "type": "string",
+                    "example": "Москва"
+                },
+                "sliceAps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Ap"
+                    }
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Решено"
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://bpm.com/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                },
+                "userLogin": {
+                    "type": "string",
+                    "example": "vasya.pupkin"
+                }
+            }
+        },
         "entity.Translation": {
             "type": "object",
             "properties": {
@@ -163,15 +467,15 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
-	BasePath:         "/v1",
+	Host:             "localhost:8081",
+	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Go Clean Template API",
-	Description:      "Using a translation service as an example",
+	Title:            "IT Support App",
+	Description:      "Handling Unifi Wi-Fi controller",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	//LeftDelim:        "{{",
-	//RightDelim:       "}}",
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {
