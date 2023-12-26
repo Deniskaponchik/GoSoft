@@ -165,7 +165,7 @@ func NewConfigUnifi() (*ConfigUi, error) {
 	log.Println("Every Code Map: ", cfg.App.EveryCodeMap)
 	log.Println("Timezone: ", cfg.App.TimeZone)
 	log.Println("HTTP URL: ", cfg.HTTP.URL)
-	//time.Sleep(1000 * time.Second)
+	log.Println("C3PO URL: ", cfg.C3poUrl)
 
 	return cfg, nil
 }
@@ -178,6 +178,7 @@ type (
 		Soap
 		GLPI
 		C3po
+		Ldap
 
 		App  `yaml:"app"`
 		HTTP `yaml:"http"`
@@ -191,7 +192,7 @@ type (
 		EveryCodeMap map[int]int
 		TimeZone     int
 	}
-	//env-required:"true" - ОБЯЗАТЕЛЬНО должен получить перменную либо из окружения, либо из yaml. Между true и false разницы не заметил
+	//env-required:"true" -ОБЯЗАТЕЛЬНО должен получить переменную либо из окружения, либо из yaml. Между true и false разницы не заметил
 
 	/*Polycom struct {
 		PolyUsername string `env-required:"true" yaml:"poly_usernamename"    env:"POLY_USERNAME"`
@@ -227,7 +228,14 @@ type (
 		DB string //имя базы данных для unifi таблиц. задаю аргументами командной строки
 	}
 	C3po struct {
-		C3poUrl string //`env-required:"true"   env:"C3PO_URL"`
+		C3poUrl string `env-required:"true"   env:"C3PO_URL"`
+	}
+	Ldap struct {
+		LdapDN       string `env-required:"true"   env:"LDAP_DN"`
+		LdapLogin    string `env-required:"true"   env:"LDAP_LOGIN"`
+		LdapPassword string `env-required:"true"   env:"LDAP_PASSWORD"`
+		LdapRole     string `env-required:"true"   env:"LDAP_ROLE"`
+		LdapServer   string `env-required:"true"   env:"LDAP_SERVER"`
 	}
 
 	Log struct {

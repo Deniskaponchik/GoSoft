@@ -15,7 +15,6 @@ var adminkaPageMsg []string
 type Fokusov struct {
 	//Router    *gin.Engine
 	Port string
-
 	//UnifiUC *usecase.UnifiUseCase
 	Urest       usecase.UnifiRestIn //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
 	LogFileName string
@@ -77,13 +76,10 @@ func render(c *gin.Context, data gin.H, templateName string) {
 
 	switch c.Request.Header.Get("Accept") {
 	case "application/json":
-		// Respond with JSON
-		c.JSON(http.StatusOK, data["payload"])
+		c.JSON(http.StatusOK, data["payload"]) // Respond with JSON
 	case "application/xml":
-		// Respond with XML
-		c.XML(http.StatusOK, data["payload"])
+		c.XML(http.StatusOK, data["payload"]) // Respond with XML
 	default:
-		// Respond with HTML
-		c.HTML(http.StatusOK, templateName, data)
+		c.HTML(http.StatusOK, templateName, data) // Respond with HTML
 	}
 }

@@ -36,7 +36,7 @@ func showLoginPage(c *gin.Context) {
 }
 
 func performLogin(c *gin.Context) {
-	// Obtain the POSTed username and password values
+
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
