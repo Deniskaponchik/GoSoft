@@ -9,9 +9,8 @@
   <img alt="Client anomaly" src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/client.png" width="600"/>
 </kbd>
 
-<kbd>
-  <img alt="Swagger" src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/swager.PNG" width=600"/>
-</kbd>
+![](https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/swager.PNG)
+*Swagger*
 
 ![](https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/ldap.PNG")
 *LDAP Authentication*
