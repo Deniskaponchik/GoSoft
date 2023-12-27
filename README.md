@@ -5,14 +5,19 @@
 или по запросу отображает клиентов и точки доступа через web-интерфейс благодаря GIN-фреймворку. 
 
 # Внешний вид
+<kbd>
+  <img alt="Client anomaly" src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/client.png" width="600"/>
+</kbd>
+
+<kbd>
+  <img alt="Swagger" src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/swager.PNG" width=600"/>
+</kbd>
+
+<kbd">
+  <img alt="LDAP Authentication" src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/ldap.PNG" width=600"/>
+</kbd>
+
 <div align="left">
-  <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/client.png" width="600"/>
-</div>
-<div align="left">
-  <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/swager.PNG" width=600"/>
-</div>
-<div align="left">
-  <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/ldap.PNG" width=600"/>
 </div>
 
 # [Main]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/main/Unifi))
