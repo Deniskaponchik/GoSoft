@@ -11,6 +11,9 @@
 <div align="left">
   <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/swager.PNG" width=600"/>
 </div>
+<div align="left">
+  <img src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/ldap.PNG" width=600"/>
+</div>
 
 # [Main]([https://github.com/Deniskaponchik/](https://github.com/Deniskaponchik/GoSoft/tree/main/Unifi))
 |                |                                                                                                                                                                                                            |
@@ -18,9 +21,12 @@
 | version        | 3.20                                                                                                                                                                                                       |
 | Code Structure | https://www.github.com/golang-standards/project-layout <br/> https://www.youtube.com/watch?v=V6lQG6d5LgU                                                                                                   |
 | ORM            | https://www.github.com/jinzhu/gorm                                                                                                                                                                         |
-| Web server     | https://www.github.com/gin-gonic/gin                                                                                                                                                                       |
-| Authentication | https://github.com/go-ldap/ldap                                                                                                                                                                            |
+| Web server     | https://github.com/Deniskaponchik/GoSoft/tree/main/internal/controller/http/fokInterface                                                                                                                   |
+| Authentication | https://github.com/Deniskaponchik/GoSoft/tree/main/internal/usecase/ldap                                                                                                                                   |
 | Authorization  | https://github.com/golang-jwt/jwt                                                                                                                                                                          |
+| API SOAP       | https://github.com/Deniskaponchik/GoSoft/tree/main/internal/usecase/api_soap                                                                                                                               |
+| API REST       | https://github.com/Deniskaponchik/GoSoft/tree/main/internal/usecase/api_rest                                                                                                                               |
+| API WEB        | https://github.com/Deniskaponchik/GoSoft/tree/main/internal/usecase/api_web                                                                                                                                                                                                        |
 | Arguments      | -mode : TEST or PROD <br/> -time : server time zone <br/> -httpUrl : server url for created ticket <br/> -db : db name                                                                                     |
 | Unifi          | Оба контроллера обрабатываются в одном приложении                                                                                                                                                          |
 | Aps            | тикеты создаются со второй попытки (через 24 минуты)                                                                                                                                                       |

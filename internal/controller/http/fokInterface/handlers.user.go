@@ -88,6 +88,7 @@ func logout(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, "/user/login")
 }
 
+//REGISTRATION
 /*
 func showRegistrationPage(c *gin.Context) {
 	// Call the render function with the name of the template to render
