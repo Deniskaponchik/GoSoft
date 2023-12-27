@@ -13,9 +13,8 @@
   <img alt="Swagger" src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/swager.PNG" width=600"/>
 </kbd>
 
-<kbd">
-  <img alt="LDAP Authentication" src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/ldap.PNG" width=600"/>
-</kbd>
+![](https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/ldap.PNG")
+*LDAP Authentication*
 
 <div align="left">
 </div>
