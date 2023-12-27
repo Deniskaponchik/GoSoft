@@ -3,7 +3,6 @@ package fokusov
 import (
 	"github.com/deniskaponchik/GoSoft/internal/entity"
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"strconv"
 )
 
@@ -116,30 +115,4 @@ func (fok *Fokusov) officeLoginChange(c *gin.Context) {
 	//c.Redirect(http.StatusTemporaryRedirect, "/user/adminka")
 	//c.Request.Method = "GET"
 	//c.HTML(http.StatusSeeOther, "adminka.html", nil)
-}
-
-func functionWithErrorExample(c *gin.Context) {
-	//old name performLogin
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-
-	var sameSiteCookie http.SameSite
-
-	if isUserValid(username, password) {
-		token := generateSessionToken()
-		c.SetSameSite(sameSiteCookie)
-		//c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true)
-		c.SetCookie("token", token, 3600, "", "", false, true) //моё
-		c.Set("is_logged_in", true)
-
-		//render(c, gin.H{"title": "Successful Login"}, "login-successful.html")
-		c.Redirect(http.StatusTemporaryRedirect, "/user/adminka")
-
-	} else {
-		// If the username/password combination is invalid,
-		// show the error message on the login page
-		c.HTML(http.StatusBadRequest, "login.html", gin.H{
-			"ErrorTitle":   "Login Failed",
-			"ErrorMessage": "Invalid credentials provided"})
-	}
 }

@@ -79,6 +79,7 @@ type Office struct {
 }
 
 type User struct {
-	Login string
-	PCs   []*Client
+	Login    string
+	Password string
+	//PCs   []*Client
 }

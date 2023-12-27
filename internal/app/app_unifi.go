@@ -7,6 +7,7 @@ import (
 	"github.com/deniskaponchik/GoSoft/internal/usecase/api_rest"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/api_soap"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/api_web"
+	"github.com/deniskaponchik/GoSoft/internal/usecase/ldap"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/repo"
 	"log"
 	"time"
@@ -35,13 +36,15 @@ func RunUnifi(cfg *ui.ConfigUi) {
 
 	unifiUseCase := usecase.NewUnifiUC(
 		//repo.New(cfg.GLPI.GlpiConnectStrITsupport),
-		unifiRepo,                                 //вставляем объект, который удовлетворяет интерфейсу UnifiRepo
+		unifiRepo, //вставляем объект, который удовлетворяет интерфейсу UnifiRepo
 		api_soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
 		//ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlRostov, 1),
 		//ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
 		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlRostov, 1),
 		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
 		api_rest.NewUnifiC3po(cfg.C3po.C3poUrl),
+		ldap.NewLdap(cfg.LdapDN, cfg.LdapDomain, cfg.LdapLogin, cfg.LdapPassword, cfg.LdapRoleDn, cfg.LdapServer),
+
 		cfg.App.EveryCodeMap,
 		cfg.App.TimeZone,
 		cfg.HTTP.URL,

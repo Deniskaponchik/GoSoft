@@ -34,7 +34,7 @@ func (fok *Fokusov) initializeRoutes() {
 	userRoutes := router.Group("/user")
 	{
 		userRoutes.GET("/login", ensureNotLoggedIn(), showLoginPage)
-		userRoutes.POST("/login", ensureNotLoggedIn(), performLogin)
+		userRoutes.POST("/login", ensureNotLoggedIn(), fok.performLogin)
 		userRoutes.GET("/logout", ensureLoggedIn(), logout)
 		userRoutes.GET("/adminka", ensureLoggedIn(), fok.showAdminkaPage)
 		//redirect from POST performLogin

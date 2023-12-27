@@ -232,9 +232,10 @@ type (
 	}
 	Ldap struct {
 		LdapDN       string `env-required:"true"   env:"LDAP_DN"`
+		LdapDomain   string //`env-required:"true"   env:"LDAP_Domain"`
 		LdapLogin    string `env-required:"true"   env:"LDAP_LOGIN"`
 		LdapPassword string `env-required:"true"   env:"LDAP_PASSWORD"`
-		LdapRole     string `env-required:"true"   env:"LDAP_ROLE"`
+		LdapRoleDn   string `env-required:"true"   env:"LDAP_ROLE_DN"`
 		LdapServer   string `env-required:"true"   env:"LDAP_SERVER"`
 	}
 

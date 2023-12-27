@@ -7,6 +7,15 @@ import (
 	"strconv"
 )
 
+func (uuc *UnifiUseCase) LdapCheckUser(user *entity.User) error { //username, password string
+	errLdap := uuc.ldapt2.AuthSecur(user)
+	if errLdap == nil {
+		return nil
+	} else {
+		return errLdap
+	}
+}
+
 func (uuc *UnifiUseCase) OfficeSapcnChange(oldSapcn string, newSapcn string) error {
 	return nil
 }

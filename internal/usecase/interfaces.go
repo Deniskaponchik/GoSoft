@@ -36,8 +36,14 @@ type (
 )
 
 type (
+	LdapT2 interface {
+		AuthSecur(user *entity.User) error
+	}
+
 	//implement usecase methods to web
 	UnifiRestIn interface {
+		LdapCheckUser(*entity.User) error //string, string) error
+
 		OfficeSapcnChange(string, string) error
 		OfficeLoginChange(string, string) error
 		OfficeTimeZoneChange(string, string) error

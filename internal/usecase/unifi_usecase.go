@@ -20,7 +20,8 @@ type UnifiUseCase struct {
 	uiRostov  Ui           //interface. НЕ ИСПОЛЬЗОВАТЬ *
 	uiNovosib Ui           //interface. НЕ ИСПОЛЬЗОВАТЬ *
 	c3po      UnifiRestOut //interface
-	//uint		    Ui
+	ldapt2    LdapT2       //interface
+
 	everyCodeMap             map[int]int //map[int]bool
 	countDayTicketCreateAnom int
 	countHourAnom            [3]int
@@ -35,7 +36,7 @@ type UnifiUseCase struct {
 
 // реализуем Инъекцию зависимостей DI. Используется в app
 // rr UnifiRepo, rn UnifiRepo, st UnifiSoap, sp UnifiSoap, uiRostov Ui, uiNovosib Ui,
-func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, c3po UnifiRestOut,
+func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, c3po UnifiRestOut, ldapt2 LdapT2,
 	everyCodeInt map[int]int, timezone int, httpUrl string,
 	countDayTicketCreateAnom int, h1 int, h2 int) *UnifiUseCase {
 	return &UnifiUseCase{
@@ -46,9 +47,11 @@ func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, c3po UnifiR
 		soap: s, //interface
 		//soapTest:     st,
 		//soapProd: 	sp,
-		uiRostov:                 uiRostov, //interface
-		uiNovosib:                uiNovosib,
-		c3po:                     c3po,
+		uiRostov:  uiRostov, //interface
+		uiNovosib: uiNovosib,
+		c3po:      c3po,
+		ldapt2:    ldapt2,
+
 		everyCodeMap:             everyCodeInt,
 		timezone:                 timezone,
 		httpUrl:                  httpUrl,
@@ -750,10 +753,10 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 							if errGetUserLogin != nil || client.Hostname == "" {
 								client.UserLogin = "denis.tirskikh"
 							} else {
-								log.Println("Логин получен из GLPI: " + client.Hostname)
+								log.Println("Логин получен из GLPI: " + client.UserLogin)
 							}
 						} else {
-							log.Println("Логин получен из c3po: " + client.Hostname)
+							log.Println("Логин получен из c3po: " + client.UserLogin)
 						}
 					} else {
 						//если client.Hostname == "" то создаю информационную заявку на себя, чтобы добавить в мою БД руками hostname

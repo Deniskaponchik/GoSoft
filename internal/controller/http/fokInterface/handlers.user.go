@@ -1,6 +1,7 @@
 package fokusov
 
 import (
+	"github.com/deniskaponchik/GoSoft/internal/entity"
 	"github.com/gin-gonic/gin"
 	"math/rand"
 	"net/http"
@@ -35,14 +36,20 @@ func showLoginPage(c *gin.Context) {
 	}, "login.html")
 }
 
-func performLogin(c *gin.Context) {
+func (fok *Fokusov) performLogin(c *gin.Context) {
 
-	username := c.PostForm("username")
-	password := c.PostForm("password")
+	//username := c.PostForm("username")
+	//password := c.PostForm("password")
+	userUnifi := &entity.User{
+		c.PostForm("username"),
+		c.PostForm("password"),
+	}
 
 	var sameSiteCookie http.SameSite
 
-	if isUserValid(username, password) {
+	//if isUserValid(username, password) {
+	err := fok.Urest.LdapCheckUser(userUnifi)
+	if err == nil {
 		token := generateSessionToken()
 		c.SetSameSite(sameSiteCookie)
 		//c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true)
@@ -56,8 +63,9 @@ func performLogin(c *gin.Context) {
 		// If the username/password combination is invalid,
 		// show the error message on the login page
 		c.HTML(http.StatusBadRequest, "login.html", gin.H{
-			"ErrorTitle":   "Login Failed",
-			"ErrorMessage": "Invalid credentials provided"})
+			"ErrorTitle": "Login Failed",
+			//"ErrorMessage": "Invalid credentials provided"})
+			"ErrorMessage": err})
 	}
 }
 
@@ -80,6 +88,7 @@ func logout(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, "/user/login")
 }
 
+/*
 func showRegistrationPage(c *gin.Context) {
 	// Call the render function with the name of the template to render
 	render(c, gin.H{
@@ -114,4 +123,4 @@ func register(c *gin.Context) {
 			"ErrorMessage": err.Error()})
 
 	}
-}
+}*/
