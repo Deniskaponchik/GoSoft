@@ -5,9 +5,9 @@
 или по запросу отображает клиентов и точки доступа через web-интерфейс благодаря GIN-фреймворку. 
 
 # Внешний вид
-<kbd>
+<div align="left">
   <img alt="Client anomaly" src="https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/client.png" width="600"/>
-</kbd>
+</div>
 
 ![](https://github.com/Deniskaponchik/GoSoft/blob/main/web/png/swager.PNG)
 *Swagger*
