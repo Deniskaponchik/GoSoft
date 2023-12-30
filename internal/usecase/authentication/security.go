@@ -1,10 +1,11 @@
-package ldap
+package authentication
 
 import (
 	"fmt"
 	"github.com/deniskaponchik/GoSoft/internal/entity"
 	"github.com/go-ldap/ldap"
 	"log"
+	"strings"
 )
 
 func (ldp *Ldap) AuthSecur(user *entity.User) (err error) { //userLogin, userPassword string
@@ -35,8 +36,8 @@ func (ldp *Ldap) BindAndSearch(l *ldap.Conn, user *entity.User) (err error) { //
 	//полученными о ПОЛЬЗОВАТЕЛЯ логином и паролем пытаемся авторизоваться в LDAP
 	//err := l.Bind(BindUsername, BindPassword)
 	//err := l.Bind(os.Args[1], os.Args[2])
-	bindUsername := user.Login + "@corp.tele2.ru"
-	//bindUsername := user.Login + "@" + ldp.Domain //change after reboot PC
+	//bindUsername := user.Login + "@domain"
+	bindUsername := user.Login + "@" + ldp.Domain //change after reboot PC
 	err = l.Bind(bindUsername, user.Password)
 	if err != nil {
 		log.Println("Ошибка аутентификации на LDAP")
@@ -60,7 +61,7 @@ func (ldp *Ldap) BindAndSearch(l *ldap.Conn, user *entity.User) (err error) { //
 		//fmt.Sprintf("(&(objectClass=organizationalPerson)(uid=%s))", "login"),
 		//fmt.Sprintf("(&(sAMAccountName=%s))", os.Args[5]),
 		filter,
-		[]string{"dn", "cn"},
+		[]string{"DisplayName"}, //, "objectSid"
 		nil,
 	)
 
@@ -74,7 +75,14 @@ func (ldp *Ldap) BindAndSearch(l *ldap.Conn, user *entity.User) (err error) { //
 	}
 
 	if len(result.Entries) > 0 {
-		//return result, nil
+		displayName := result.Entries[0].Attributes[0].Values[0]
+		if displayName != "" {
+			fioSlice := strings.Split(displayName, " ")
+			user.FIO = displayName
+			user.GivenName = fioSlice[1]
+			user.SurName = fioSlice[0]
+			user.MiddleName = fioSlice[2]
+		}
 		return nil
 	} else {
 		//return nil, fmt.Errorf("Couldn't fetch search entries")

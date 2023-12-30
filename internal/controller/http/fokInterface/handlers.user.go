@@ -3,9 +3,9 @@ package fokusov
 import (
 	"github.com/deniskaponchik/GoSoft/internal/entity"
 	"github.com/gin-gonic/gin"
-	"math/rand"
+	"github.com/golang-jwt/jwt"
 	"net/http"
-	"strconv"
+	"time"
 )
 
 func (fok *Fokusov) showAdminkaPage(c *gin.Context) {
@@ -38,8 +38,7 @@ func showLoginPage(c *gin.Context) {
 
 func (fok *Fokusov) performLogin(c *gin.Context) {
 
-	//username := c.PostForm("username")
-	//password := c.PostForm("password")
+	//username := c.PostForm("username")   password := c.PostForm("password")
 	userUnifi := &entity.User{
 		c.PostForm("username"),
 		c.PostForm("password"),
@@ -50,15 +49,23 @@ func (fok *Fokusov) performLogin(c *gin.Context) {
 	//if isUserValid(username, password) {
 	err := fok.Urest.LdapCheckUser(userUnifi)
 	if err == nil {
-		token := generateSessionToken()
-		c.SetSameSite(sameSiteCookie)
-		//c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true)
-		c.SetCookie("token", token, 3600, "", "", false, true) //моё
-		c.Set("is_logged_in", true)
+		//token := generateSessionToken()
+		token, errGenToken := fok.generateSessionToken(userUnifi)
+		if errGenToken == nil {
+			c.SetSameSite(sameSiteCookie)
+			//c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true) //original
+			c.SetCookie("token", token, 3600, "", "", false, true) //моё
+			c.Set("is_logged_in", true)
 
-		//render(c, gin.H{"title": "Successful Login"}, "login-successful.html")
-		c.Redirect(http.StatusTemporaryRedirect, "/user/adminka")
-
+			//render(c, gin.H{"title": "Successful Login"}, "login-successful.html")
+			c.Redirect(http.StatusTemporaryRedirect, "/user/adminka")
+		} else {
+			// If generation token broke show the error message on the login page
+			c.HTML(http.StatusBadRequest, "login.html", gin.H{
+				"ErrorTitle": "Token Failed",
+				//"ErrorMessage": "Invalid credentials provided"})
+				"ErrorMessage": err})
+		}
 	} else {
 		// If the username/password combination is invalid,
 		// show the error message on the login page
@@ -69,11 +76,38 @@ func (fok *Fokusov) performLogin(c *gin.Context) {
 	}
 }
 
-func generateSessionToken() string {
-	// We're using a random 16 character string as the session token. This is NOT a secure way of generating session tokens
-	// DO NOT USE THIS IN PRODUCTION
-	return strconv.FormatInt(rand.Int63(), 16)
+func (fok *Fokusov) generateSessionToken(user *entity.User) (string, error) {
+	//https://ru.hexlet.io/courses/go-web-development/lessons/auth/theory_unit
+	jwtSecretKey := []byte(fok.JwtKey)
+
+	//https://www.iana.org/assignments/jwt/jwt.xhtml
+	// Генерируем полезные данные, которые будут храниться в токене
+	payload := jwt.MapClaims{
+		//"sub": user.Email,
+		"nickname": user.Login,
+		"exp":      time.Now().Add(time.Hour * 72).Unix(),
+	}
+
+	// Создаем новый JWT-токен и подписываем его по алгоритму HS256
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
+
+	t, err := token.SignedString(jwtSecretKey)
+	if err != nil {
+		//logrus.WithError(err).Error("JWT token signing")
+		//return c.SendStatus(fiber.StatusInternalServerError)
+		fok.Logger.Println("JWT token НЕ БЫЛ подписан")
+		return "", err
+	} else {
+		return t, nil
+	}
 }
+
+/*
+func generateSessionToken() string {
+	// We're using a random 16 character string as the session token.
+	//This is NOT a secure way of generating session tokens
+	return strconv.FormatInt(rand.Int63(), 16)
+}*/
 
 func logout(c *gin.Context) {
 

@@ -35,10 +35,12 @@ func (fok *Fokusov) initializeRoutes() {
 	{
 		userRoutes.GET("/login", ensureNotLoggedIn(), showLoginPage)
 		userRoutes.POST("/login", ensureNotLoggedIn(), fok.performLogin)
-		userRoutes.GET("/logout", ensureLoggedIn(), logout)
-		userRoutes.GET("/adminka", ensureLoggedIn(), fok.showAdminkaPage)
+
+		userRoutes.GET("/logout", fok.ensureLoggedIn(), logout)
+
+		userRoutes.GET("/adminka", fok.ensureLoggedIn(), fok.showAdminkaPage)
 		//redirect from POST performLogin
-		userRoutes.POST("/adminka", ensureLoggedIn(), fok.showAdminkaPage)
+		userRoutes.POST("/adminka", fok.ensureLoggedIn(), fok.showAdminkaPage)
 	}
 
 	testRoutes := router.Group("/test")

@@ -79,7 +79,12 @@ type Office struct {
 }
 
 type User struct {
-	Login    string
-	Password string
+	Login      string
+	Password   string
+	Sid        string
+	FIO        string `example:"Иванов Иван Иванович"`
+	GivenName  string `example:"Иван"`
+	MiddleName string `example:"Иванович"`
+	SurName    string `example:"Иванов"`
 	//PCs   []*Client
 }

@@ -6,6 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-ldap/ldap v3.0.3+incompatible
 	github.com/go-sql-driver/mysql v1.7.1
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/rs/zerolog v1.26.0
@@ -20,6 +21,7 @@ require (
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/brianvoe/gofakeit/v6 v6.23.2 // indirect
+	github.com/bwmarrin/go-objectsid v0.0.0-20191126144531-5fee401a2f37 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect

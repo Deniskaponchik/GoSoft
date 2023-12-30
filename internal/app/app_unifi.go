@@ -7,7 +7,7 @@ import (
 	"github.com/deniskaponchik/GoSoft/internal/usecase/api_rest"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/api_soap"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/api_web"
-	"github.com/deniskaponchik/GoSoft/internal/usecase/ldap"
+	"github.com/deniskaponchik/GoSoft/internal/usecase/authentication"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/repo"
 	"log"
 	"time"
@@ -43,7 +43,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlRostov, 1),
 		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
 		api_rest.NewUnifiC3po(cfg.C3po.C3poUrl),
-		ldap.NewLdap(cfg.LdapDN, cfg.LdapDomain, cfg.LdapLogin, cfg.LdapPassword, cfg.LdapRoleDn, cfg.LdapServer),
+		authentication.NewLdap(cfg.LdapDN, cfg.LdapDomain, cfg.LdapLogin, cfg.LdapPassword, cfg.LdapRoleDn, cfg.LdapServer),
 
 		cfg.App.EveryCodeMap,
 		cfg.App.TimeZone,
@@ -77,6 +77,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		unifiUseCase,
 		//usecase.Rest(),
 		cfg.HTTP.Port,
+		cfg.HTTP.JwtKey,
 		"Unifi_Gin_"+time.Now().Format("2006-01-02_15.04.05")+".log",
 	)
 	httpFokusov.Start()

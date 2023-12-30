@@ -1,4 +1,4 @@
-package ldap
+package authentication
 
 /*Отключаю за неиспользование. Если понадобится, привести по образу и подобию с версией TLS
 func (ldap *Ldap) AuthUnSecur(userLogin, userPassword string) (err error) {

@@ -232,7 +232,7 @@ type (
 	}
 	Ldap struct {
 		LdapDN       string `env-required:"true"   env:"LDAP_DN"`
-		LdapDomain   string //`env-required:"true"   env:"LDAP_Domain"`
+		LdapDomain   string `env-required:"true"   env:"LDAP_Domain"`
 		LdapLogin    string `env-required:"true"   env:"LDAP_LOGIN"`
 		LdapPassword string `env-required:"true"   env:"LDAP_PASSWORD"`
 		LdapRoleDn   string `env-required:"true"   env:"LDAP_ROLE_DN"`
@@ -244,8 +244,9 @@ type (
 		LevelCmd string
 	}
 	HTTP struct {
-		URL  string
-		Port string //`yaml:"port" env:"HTTP_PORT"`
+		URL    string
+		Port   string //`yaml:"port" env:"HTTP_PORT"`
+		JwtKey string `env-required:"true"   env:"JWT_KEY"`
 	}
 	/*
 		PG struct {

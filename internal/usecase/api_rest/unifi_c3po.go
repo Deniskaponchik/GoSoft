@@ -106,7 +106,8 @@ func (uc3po *UnifiC3po) GetUserLogin(notebook *entity.Client) (err error) {
 
 				//if errDecode := json.NewDecoder(res.Body).Decode(envelope); errDecode == nil {
 				if errDecode := json.NewDecoder(buf).Decode(envelope); errDecode == nil {
-					if envelope.Status == "ок" {
+					log.Println(envelope.Status)
+					if envelope.Status == "ok" {
 						//log.Println("Запрос статуса прошёл.")
 						if len(envelope.Data) > 0 {
 							//Успешное выполнение функции

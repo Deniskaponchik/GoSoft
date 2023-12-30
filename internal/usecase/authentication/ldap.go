@@ -1,4 +1,4 @@
-package ldap
+package authentication
 
 type Ldap struct {
 	DN       string

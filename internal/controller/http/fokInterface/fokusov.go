@@ -14,17 +14,18 @@ var adminkaPageMsg []string
 
 type Fokusov struct {
 	//Router    *gin.Engine
-	Port string
-	//UnifiUC *usecase.UnifiUseCase
+	Port        string
+	JwtKey      string
 	Urest       usecase.UnifiRestIn //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
 	LogFileName string
 	Logger      *log.Logger
 }
 
-func New(uuc *usecase.UnifiUseCase, port string, logFileName string) *Fokusov { //router *gin.Engine,rest *usecase.Rest
+func New(uuc *usecase.UnifiUseCase, port string, jwtKey string, logFileName string) *Fokusov {
+	//router *gin.Engine,rest *usecase.Rest
 	return &Fokusov{
-		Port: port,
-		//Router: router,
+		Port:   port,
+		JwtKey: jwtKey,
 		//Router:  *gin.Engine,
 
 		//UnifiUC: uuc,
