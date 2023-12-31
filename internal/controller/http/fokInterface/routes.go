@@ -1,4 +1,3 @@
-// routes.go
 package fokusov
 
 import (
@@ -15,8 +14,9 @@ import (
 // @host        localhost:8081
 // @BasePath    /
 func (fok *Fokusov) initializeRoutes() {
-	// Use the setUserStatus middleware for every route to set a flag indicating whether the request was from an authenticated user or not
-	router.Use(setUserStatus())
+	// Use the setUserStatus middleware for every route to set a flag indicating
+	// whether the request was from an authenticated user or not
+	router.Use(fok.setUserStatus()) //router.Use(setUserStatus())
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -37,7 +37,6 @@ func (fok *Fokusov) initializeRoutes() {
 		userRoutes.POST("/login", ensureNotLoggedIn(), fok.performLogin)
 
 		userRoutes.GET("/logout", fok.ensureLoggedIn(), logout)
-
 		userRoutes.GET("/adminka", fok.ensureLoggedIn(), fok.showAdminkaPage)
 		//redirect from POST performLogin
 		userRoutes.POST("/adminka", fok.ensureLoggedIn(), fok.showAdminkaPage)

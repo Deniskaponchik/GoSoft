@@ -48,9 +48,7 @@ func (ldp *Ldap) BindAndSearch(l *ldap.Conn, user *entity.User) (err error) { //
 
 	filter := fmt.Sprintf("(&(sAMAccountName=%s)(MemberOf=%s))", user.Login, ldp.RoleDN)
 	searchReq := ldap.NewSearchRequest(
-		//BaseDN,
-		//os.Args[4],
-		ldp.DN,
+		ldp.DN, //BaseDN,	//os.Args[4],
 		//ldap.ScopeBaseObject, // you can also use ldap.ScopeWholeSubtree
 		ldap.ScopeWholeSubtree,
 		ldap.NeverDerefAliases,

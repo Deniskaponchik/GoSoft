@@ -36,10 +36,13 @@ type (
 )
 
 type (
-	LdapT2 interface {
+	Authorization interface {
+		GenerateToken(*entity.User) (string, error)
+		ParseToken(string) (string, error)
+	}
+	Authentication interface {
 		AuthSecur(user *entity.User) error
 	}
-
 	//implement usecase methods to web
 	UnifiRestIn interface {
 		LdapCheckUser(*entity.User) error //string, string) error

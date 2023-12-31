@@ -15,12 +15,13 @@ import (
 )
 
 type UnifiUseCase struct {
-	repo      UnifiRepo    //interface. НЕ ИСПОЛЬЗОВАТЬ *
-	soap      UnifiSoap    //interface. НЕ ИСПОЛЬЗОВАТЬ *
-	uiRostov  Ui           //interface. НЕ ИСПОЛЬЗОВАТЬ *
-	uiNovosib Ui           //interface. НЕ ИСПОЛЬЗОВАТЬ *
-	c3po      UnifiRestOut //interface
-	ldapt2    LdapT2       //interface
+	repo      UnifiRepo      //interface. НЕ ИСПОЛЬЗОВАТЬ *
+	soap      UnifiSoap      //interface. НЕ ИСПОЛЬЗОВАТЬ *
+	uiRostov  Ui             //interface. НЕ ИСПОЛЬЗОВАТЬ *
+	uiNovosib Ui             //interface. НЕ ИСПОЛЬЗОВАТЬ *
+	c3po      UnifiRestOut   //interface
+	ldapt2    Authentication //interface
+	jwtTok    Authorization  //interface
 
 	everyCodeMap             map[int]int //map[int]bool
 	countDayTicketCreateAnom int
@@ -36,21 +37,19 @@ type UnifiUseCase struct {
 
 // реализуем Инъекцию зависимостей DI. Используется в app
 // rr UnifiRepo, rn UnifiRepo, st UnifiSoap, sp UnifiSoap, uiRostov Ui, uiNovosib Ui,
-func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, c3po UnifiRestOut, ldapt2 LdapT2,
+func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, c3po UnifiRestOut,
+	ldapt2 Authentication, jwtTok Authorization,
 	everyCodeInt map[int]int, timezone int, httpUrl string,
 	countDayTicketCreateAnom int, h1 int, h2 int) *UnifiUseCase {
 	return &UnifiUseCase{
 		//Мы можем передать сюда ЛЮБОЙ репозиторий (pg, s3 и т.д.) НО КОД НЕ ПОМЕНЯЕТСЯ! В этом смысл DI
-		repo: r, //interface
-		//repoRostov:   rr,
-		//repoNovosib:	rn,
-		soap: s, //interface
-		//soapTest:     st,
-		//soapProd: 	sp,
+		repo:      r,        //interface
+		soap:      s,        //interface
 		uiRostov:  uiRostov, //interface
 		uiNovosib: uiNovosib,
 		c3po:      c3po,
 		ldapt2:    ldapt2,
+		jwtTok:    jwtTok,
 
 		everyCodeMap:             everyCodeInt,
 		timezone:                 timezone,

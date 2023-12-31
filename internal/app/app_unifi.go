@@ -8,6 +8,7 @@ import (
 	"github.com/deniskaponchik/GoSoft/internal/usecase/api_soap"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/api_web"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/authentication"
+	"github.com/deniskaponchik/GoSoft/internal/usecase/authorization"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/repo"
 	"log"
 	"time"
@@ -44,6 +45,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
 		api_rest.NewUnifiC3po(cfg.C3po.C3poUrl),
 		authentication.NewLdap(cfg.LdapDN, cfg.LdapDomain, cfg.LdapLogin, cfg.LdapPassword, cfg.LdapRoleDn, cfg.LdapServer),
+		authorization.NewAuthJwt(cfg.JwtKey),
 
 		cfg.App.EveryCodeMap,
 		cfg.App.TimeZone,
