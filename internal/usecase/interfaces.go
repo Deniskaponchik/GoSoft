@@ -36,16 +36,12 @@ type (
 )
 
 type (
-	Authorization interface {
-		GenerateToken(*entity.User) (string, error)
-		ParseToken(string) (string, error)
-	}
-	Authentication interface {
-		AuthSecur(user *entity.User) error
-	}
 	//implement usecase methods to web
 	UnifiRestIn interface {
-		LdapCheckUser(*entity.User) error //string, string) error
+		CheckToken(string) (string, error)
+		GetToken(*entity.User) (string, error)
+		CheckUser(*entity.User) error //string, string) error
+		//LdapCheckUser(*entity.User) error //string, string) error
 
 		OfficeSapcnChange(string, string) error
 		OfficeLoginChange(string, string) error
@@ -56,6 +52,13 @@ type (
 
 		GetClientForRest(string) *entity.Client
 		GetApForRest(string) *entity.Ap
+	}
+	Authorization interface {
+		GenerateToken(*entity.User) (string, error)
+		ParseToken(string) (string, error)
+	}
+	Authentication interface {
+		AuthSecur(user *entity.User) error
 	}
 	//исходящие rest запросы
 	UnifiRestOut interface {

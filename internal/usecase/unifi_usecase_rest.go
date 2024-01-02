@@ -7,9 +7,28 @@ import (
 	"strconv"
 )
 
-//func(uuc *UnifiUseCase) GenerateToken (user *entity.User)(string, error) {}
+// Запрос приходит от web
+func (uuc *UnifiUseCase) CheckToken(token string) (string, error) {
+	userGivenName, errCheckToken := uuc.jwtTok.ParseToken(token)
+	if errCheckToken == nil {
+		return userGivenName, nil
+	} else {
+		return "", errCheckToken
+	}
+}
 
-func (uuc *UnifiUseCase) LdapCheckUser(user *entity.User) error { //username, password string
+// Запрос приходит от web
+func (uuc *UnifiUseCase) GetToken(user *entity.User) (string, error) {
+	token, errGetToken := uuc.jwtTok.GenerateToken(user)
+	if errGetToken == nil {
+		return token, nil
+	} else {
+		return "", errGetToken
+	}
+}
+
+// Запрос приходит от web
+func (uuc *UnifiUseCase) CheckUser(user *entity.User) error { //username, password string
 	errLdap := uuc.ldapt2.AuthSecur(user)
 	if errLdap == nil {
 		return nil
@@ -17,6 +36,16 @@ func (uuc *UnifiUseCase) LdapCheckUser(user *entity.User) error { //username, pa
 		return errLdap
 	}
 }
+
+/*
+func (uuc *UnifiUseCase) LdapCheckUser(user *entity.User) error { //username, password string
+	errLdap := uuc.ldapt2.AuthSecur(user)
+	if errLdap == nil {
+		return nil
+	} else {
+		return errLdap
+	}
+}*/
 
 func (uuc *UnifiUseCase) OfficeSapcnChange(oldSapcn string, newSapcn string) error {
 	return nil

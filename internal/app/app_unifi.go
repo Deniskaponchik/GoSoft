@@ -79,7 +79,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		unifiUseCase,
 		//usecase.Rest(),
 		cfg.HTTP.Port,
-		cfg.HTTP.JwtKey,
+		//cfg.HTTP.JwtKey,
 		"Unifi_Gin_"+time.Now().Format("2006-01-02_15.04.05")+".log",
 	)
 	httpFokusov.Start()

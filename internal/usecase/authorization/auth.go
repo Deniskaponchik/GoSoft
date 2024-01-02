@@ -3,7 +3,6 @@ package authorization
 import (
 	"errors"
 	"github.com/deniskaponchik/GoSoft/internal/entity"
-
 	//"crypto/sha1"
 	"github.com/golang-jwt/jwt"
 	"time"
@@ -27,6 +26,7 @@ type tokenClaims struct {
 	jwt.StandardClaims
 	//UserId int `json:"user_id"`
 	UserLogin string `json:"user_login"`
+	//UserGivenName string `json:"user_given_name"`
 }
 
 func (j *Jwt) GenerateToken(user *entity.User) (string, error) {
@@ -38,6 +38,7 @@ func (j *Jwt) GenerateToken(user *entity.User) (string, error) {
 		},
 		//user.Id,
 		user.Login,
+		//user.GivenName,
 	})
 
 	return token.SignedString([]byte(j.signingKey))
@@ -80,6 +81,7 @@ func (j *Jwt) ParseToken(accessToken string) (string, error) {
 
 	//return claims.UserId, nil
 	return claims.UserLogin, nil
+	//return claims.UserGivenName, nil
 }
 
 /*

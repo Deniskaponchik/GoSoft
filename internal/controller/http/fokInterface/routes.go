@@ -13,6 +13,7 @@ import (
 // @version     1.0
 // @host        localhost:8081
 // @BasePath    /
+// https://fokusov.com/posts/razrabotka-web-prilozhenij-i-mikroservisov-na-golang-s-gin/
 func (fok *Fokusov) initializeRoutes() {
 	// Use the setUserStatus middleware for every route to set a flag indicating
 	// whether the request was from an authenticated user or not
@@ -33,8 +34,8 @@ func (fok *Fokusov) initializeRoutes() {
 
 	userRoutes := router.Group("/user")
 	{
-		userRoutes.GET("/login", ensureNotLoggedIn(), showLoginPage)
-		userRoutes.POST("/login", ensureNotLoggedIn(), fok.performLogin)
+		userRoutes.GET("/login", fok.ensureNotLoggedIn(), showLoginPage)
+		userRoutes.POST("/login", fok.ensureNotLoggedIn(), fok.performLogin)
 
 		userRoutes.GET("/logout", fok.ensureLoggedIn(), logout)
 		userRoutes.GET("/adminka", fok.ensureLoggedIn(), fok.showAdminkaPage)

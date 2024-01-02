@@ -14,22 +14,26 @@ var adminkaPageMsg []string
 
 type Fokusov struct {
 	//Router    *gin.Engine
-	Port        string
-	JwtKey      string
-	Urest       usecase.UnifiRestIn //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
+	Port string
+	//JwtKey      string
+	Urest usecase.UnifiRestIn //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
+	//Authentication usecase.Authentication //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
+	//Authorization  usecase.Authorization  //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
 	LogFileName string
 	Logger      *log.Logger
 }
 
-func New(uuc *usecase.UnifiUseCase, port string, jwtKey string, logFileName string) *Fokusov {
+func New(uuc *usecase.UnifiUseCase, port string, logFileName string) *Fokusov { // jwtKey string,
 	//router *gin.Engine,rest *usecase.Rest
 	return &Fokusov{
-		Port:   port,
-		JwtKey: jwtKey,
+		Port: port,
+		//JwtKey: jwtKey,
 		//Router:  *gin.Engine,
 
 		//UnifiUC: uuc,
-		Urest:       uuc, //использовать структуру, реализующие методы интерфейса usecase.UnifiRest
+		Urest: uuc, //использовать структуру, реализующую методы интерфейса usecase.UnifiRest
+		//Authentication: uuc,
+
 		LogFileName: logFileName,
 	}
 }
@@ -44,7 +48,6 @@ func (fok *Fokusov) Start() {
 		log.Fatal(err)
 	}
 	multiWriter := io.MultiWriter(os.Stdout, fileLogGin)
-
 	gin.DefaultWriter = multiWriter
 	gin.DefaultErrorWriter = multiWriter
 	fok.Logger = log.New(multiWriter, "", 0)
@@ -57,8 +60,7 @@ func (fok *Fokusov) Start() {
 	// Process the templates at the start so that they don't have to be loaded from the disk again. This makes serving HTML pages very fast.
 	router.LoadHTMLGlob("../../web/templates/*")
 
-	// Initialize the routes
-	fok.initializeRoutes()
+	fok.initializeRoutes() // Initialize the routes
 
 	fok.Logger.Println("Port : " + fok.Port)
 	//router.Run(":8081")

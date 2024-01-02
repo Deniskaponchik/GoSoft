@@ -3,9 +3,9 @@ package fokusov
 import (
 	"github.com/deniskaponchik/GoSoft/internal/entity"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
+	//"github.com/golang-jwt/jwt"
 	"net/http"
-	"time"
+	//"time"
 )
 
 func (fok *Fokusov) showAdminkaPage(c *gin.Context) {
@@ -18,13 +18,16 @@ func (fok *Fokusov) showAdminkaPage(c *gin.Context) {
 	//sapcnArr := [10]string{"БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK"}
 	sapcnArr := fok.Urest.GetSapcnSortSliceForAdminkaPage()
 
+	userGivenName, _ := c.Get("userGivenName")
+
 	render(c, gin.H{
 		"page_adminka": true,
 		"sapcnArr":     sapcnArr,
 		//"arr0":       adminkaPageMsg[0],
-		"arr0":  msgSlice[0],
-		"arr2":  msgSlice[2],
-		"title": "Adminka"},
+		"arr0":          msgSlice[0],
+		"arr2":          msgSlice[2],
+		"title":         "Adminka",
+		"userGivenName": userGivenName},
 		"adminka.html")
 }
 
@@ -40,27 +43,39 @@ func (fok *Fokusov) performLogin(c *gin.Context) {
 
 	//username := c.PostForm("username")   password := c.PostForm("password")
 	userUnifi := &entity.User{
-		c.PostForm("username"),
-		c.PostForm("password"),
+		Login:    c.PostForm("username"),
+		Password: c.PostForm("password"),
 	}
 
 	var sameSiteCookie http.SameSite
 
 	//if isUserValid(username, password) {
-	err := fok.Urest.LdapCheckUser(userUnifi)
+	err := fok.Urest.CheckUser(userUnifi) //в user добавился GivenName
+	//err := fok.Authentication.AuthSecur(userUnifi)
 	if err == nil {
 		//token := generateSessionToken()
-		token, errGenToken := fok.generateSessionToken(userUnifi)
+		//token, errGenToken := fok.generateSessionToken(userUnifi)
+		token, errGenToken := fok.Urest.GetToken(userUnifi)
 		if errGenToken == nil {
+			fok.Logger.Println(token)
+			fok.Logger.Println(userUnifi.GivenName)
+
 			c.SetSameSite(sameSiteCookie)
-			//c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true) //original
-			c.SetCookie("token", token, 3600, "", "", false, true) //моё
+
+			//c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true) 	//original
+			c.SetCookie("token", token, 3600, "/", "", false, true)
+			c.SetCookie("userGivenName", userUnifi.GivenName, 3600, "/", "", false, true)
+			//c.SetCookie("is_logged_in", true, 3600, "/", "", false, true)
+			//c.Set("userGivenName", userUnifi.GivenName)
+			//c.Set("userLogin", userUnifi.Login)
 			c.Set("is_logged_in", true)
+			//c.Header("Authorization", token)
 
 			//render(c, gin.H{"title": "Successful Login"}, "login-successful.html")
-			c.Redirect(http.StatusTemporaryRedirect, "/user/adminka")
+			//c.Redirect(http.StatusTemporaryRedirect, "/user/adminka")
+			fok.showAdminkaPage(c)
 		} else {
-			// If generation token broke show the error message on the login page
+
 			c.HTML(http.StatusBadRequest, "login.html", gin.H{
 				"ErrorTitle": "Token Failed",
 				//"ErrorMessage": "Invalid credentials provided"})
@@ -68,7 +83,8 @@ func (fok *Fokusov) performLogin(c *gin.Context) {
 		}
 	} else {
 		// If the username/password combination is invalid,
-		// show the error message on the login page
+		fok.Logger.Println(userUnifi.Login)
+
 		c.HTML(http.StatusBadRequest, "login.html", gin.H{
 			"ErrorTitle": "Login Failed",
 			//"ErrorMessage": "Invalid credentials provided"})
@@ -76,6 +92,24 @@ func (fok *Fokusov) performLogin(c *gin.Context) {
 	}
 }
 
+func logout(c *gin.Context) {
+
+	var sameSiteCookie http.SameSite
+	c.SetSameSite(sameSiteCookie)
+
+	//c.SetCookie("token", "", -1, "", "", sameSiteCookie, false, true)  //ORIGINAL
+	c.SetCookie("token", "", -1, "", "", false, true)
+	c.SetCookie("userGivenName", "", -1, "", "", false, true)
+	//c.Set("userLogin", nil)
+	//c.Set("userGivenName", nil)
+	c.Set("is_logged_in", false)
+	//c.Header("Authorization", "")
+
+	//c.Redirect(http.StatusTemporaryRedirect, "/")
+	c.Redirect(http.StatusTemporaryRedirect, "/user/login")
+}
+
+/*МОЁ
 func (fok *Fokusov) generateSessionToken(user *entity.User) (string, error) {
 	//https://ru.hexlet.io/courses/go-web-development/lessons/auth/theory_unit
 	jwtSecretKey := []byte(fok.JwtKey)
@@ -100,27 +134,14 @@ func (fok *Fokusov) generateSessionToken(user *entity.User) (string, error) {
 	} else {
 		return t, nil
 	}
-}
-
+}*/
 /*
+//ORIGINAL
 func generateSessionToken() string {
 	// We're using a random 16 character string as the session token.
 	//This is NOT a secure way of generating session tokens
 	return strconv.FormatInt(rand.Int63(), 16)
 }*/
-
-func logout(c *gin.Context) {
-
-	var sameSiteCookie http.SameSite
-
-	// Clear the cookie
-	c.SetSameSite(sameSiteCookie)
-	//c.SetCookie("token", "", -1, "", "", sameSiteCookie, false, true)
-	c.SetCookie("token", "", -1, "", "", false, true) //моё
-
-	//c.Redirect(http.StatusTemporaryRedirect, "/")
-	c.Redirect(http.StatusTemporaryRedirect, "/user/login")
-}
 
 //REGISTRATION
 /*
