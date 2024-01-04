@@ -16,7 +16,7 @@ func (fok *Fokusov) setUserStatus() gin.HandlerFunc {
 			//userGivenName, errCheckToken := fok.Urest.CheckToken(token)
 			userLogin, errCheckToken := fok.Urest.CheckToken(token)
 			if errCheckToken != nil {
-				fok.Logger.Println(err.Error())
+				fok.Logger.Println(errCheckToken.Error())
 				c.SetCookie("userGivenName", "", -1, "", "", false, true)
 				//c.Set("userLogin", nil)
 				//c.Set("userGivenName", nil)

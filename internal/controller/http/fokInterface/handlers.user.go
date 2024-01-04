@@ -18,7 +18,23 @@ func (fok *Fokusov) showAdminkaPage(c *gin.Context) {
 	//sapcnArr := [10]string{"БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK", "БиДВ_BRK"}
 	sapcnArr := fok.Urest.GetSapcnSortSliceForAdminkaPage()
 
-	userGivenName, _ := c.Get("userGivenName")
+	userGivenName := ""
+	//var errCook error
+	//var errGet bool
+	//if userGivenName, errCook := c.Cookie("userGivenName"); errCook != nil || userGivenName == "" {
+	cookieGivenName, errCook := c.Cookie("userGivenName")
+	if errCook != nil {
+		fok.Logger.Println("userGivenName не удалось получить из куки")
+
+		storeGivenName, _ := c.Get("userGivenName")
+		if storeGivenName == nil {
+			fok.Logger.Println("userGivenName не удалось получить из store")
+		} else {
+			userGivenName = storeGivenName.(string)
+		}
+	} else {
+		userGivenName = cookieGivenName
+	}
 
 	render(c, gin.H{
 		"page_adminka": true,
@@ -59,14 +75,15 @@ func (fok *Fokusov) performLogin(c *gin.Context) {
 		if errGenToken == nil {
 			fok.Logger.Println(token)
 			fok.Logger.Println(userUnifi.GivenName)
+			fok.Logger.Println(userUnifi.Login)
 
 			c.SetSameSite(sameSiteCookie)
 
 			//c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true) 	//original
-			c.SetCookie("token", token, 3600, "/", "", false, true)
-			c.SetCookie("userGivenName", userUnifi.GivenName, 3600, "/", "", false, true)
+			c.SetCookie("token", token, 3600, "", "", false, true)
+			c.SetCookie("userGivenName", userUnifi.GivenName, 3600, "", "", false, true)
 			//c.SetCookie("is_logged_in", true, 3600, "/", "", false, true)
-			//c.Set("userGivenName", userUnifi.GivenName)
+			c.Set("userGivenName", userUnifi.GivenName)
 			//c.Set("userLogin", userUnifi.Login)
 			c.Set("is_logged_in", true)
 			//c.Header("Authorization", token)

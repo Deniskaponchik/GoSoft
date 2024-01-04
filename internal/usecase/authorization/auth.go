@@ -17,7 +17,7 @@ type Jwt struct {
 func NewAuthJwt(k string) *Jwt {
 	return &Jwt{
 		signingKey: k,
-		tokenTTL:   15 * time.Minute,
+		tokenTTL:   60 * time.Minute, //Синхронизировать с временем жизни куки!!!
 		//salt
 	}
 }
