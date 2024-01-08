@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+//определяет просто пространтсво имён, чтобы не было конфликтов
+//package unifi_v1;
+package api.unifi_v1;
+
+//We are essentially saying the Protobuf compiler where we want to put the generated stubs
+option go_package = "github.com/deniskaponchik/GoSoft/pkg/grpc/service/";
+
+service GetAnomalies{
+  rpc GetClient(ClientRequest) returns (ClientResponse);
+  //rpc GetAp(ApRequest) returns (ApResponse);
+}
+message ClientRequest {
+  string hostname = 1;
+}
+
+message ClientResponse{
+  string hostname = 1;
+  string error = 2;
+  //ClientInfo info = 2;
+  repeated Anomaly anomalies = 3;
+}
+message Anomaly {
+  string apName = 1;
+  string dateHour = 2;
+  repeated AnomalyString sliceAnomStr = 3;
+}
+message AnomalyString{
+  string anomaly = 1;
+}
+
+/*
+service Ap{}
+message ApRequest{
+  string hostname = 1;
+  Anomaly anomalies = 2;
+}
+message ApResponse{}
+*/
