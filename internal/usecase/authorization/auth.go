@@ -14,10 +14,11 @@ type Jwt struct {
 	tokenTTL time.Duration
 }
 
-func NewAuthJwt(k string) *Jwt {
+func NewAuthJwt(k string, t int) *Jwt {
 	return &Jwt{
 		signingKey: k,
-		tokenTTL:   60 * time.Minute, //Синхронизировать с временем жизни куки!!!
+		//tokenTTL:   60 * time.Minute, //Синхронизировать с временем жизни куки!!!
+		tokenTTL: time.Duration(t) * time.Minute, //Синхронизировать с временем жизни куки!!!
 		//salt
 	}
 }

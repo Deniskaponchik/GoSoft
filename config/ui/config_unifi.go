@@ -79,11 +79,15 @@ func NewConfigUnifi() (*ConfigUi, error) {
 
 	//command line arguments
 	//https://stackoverflow.com/questions/2707434/how-to-access-command-line-arguments-passed-to-a-go-program
-	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
+
 	db := flag.String("db", "it_support_db_3", "database for unifi tables")
-	//controller := flag.String("cntrl", "Rostov", "controller: Novosib, Rostov")
+	httpUrl := flag.String("http", "wsir-it-03:8081", "url of http-server")
+	grpcPort := flag.Int("grpc", 8082, "port of grpc-server")
+	//rmqPort := flag.Int("rmq", 8083, "port of rabbitMQ-server")
+	tokenTTL := flag.Int("tokenTTL", 60, "minutes of live time token")
+
+	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
 	timezone := flag.Int("time", 100, "Time hour from Moscow") //100-заявки создаются минута в минуту без задержек по ночам
-	httpUrl := flag.String("httpUrl", "wsir-it-03:8081", "url of web-server")
 	daily := flag.Int("daily", time.Now().Day(), "To do daily anomaly creating tickets")
 	h1 := flag.Int("h1", time.Now().Hour(), "To do hourly anomaly downloading to DB")
 	h2 := flag.Int("h2", time.Now().Hour(), "To do hourly anomaly downloading to DB")
@@ -149,8 +153,10 @@ func NewConfigUnifi() (*ConfigUi, error) {
 	}*/
 	cfg.GLPI.DB = *db
 	cfg.App.TimeZone = *timezone
+	cfg.Token.TTL = *tokenTTL
 	cfg.HTTP.URL = *httpUrl
 	cfg.HTTP.Port = strings.Split(*httpUrl, ":")[1]
+	cfg.GRPC.Port = *grpcPort
 	cfg.Ubiquiti.Daily = *daily
 	cfg.Ubiquiti.H1 = *h1
 	if cfg.Ubiquiti.H1 == 0 {
@@ -180,9 +186,11 @@ type (
 		C3po
 		Ldap
 
-		App  `yaml:"app"`
+		App `yaml:"app"`
+		Token
 		HTTP `yaml:"http"`
-		Log  `yaml:"logger"`
+		GRPC
+		Log `yaml:"logger"`
 		//PG   `yaml:"postgres"`
 		//RMQ  `yaml:"rabbitmq"`
 	}
@@ -227,6 +235,11 @@ type (
 		//GlpiITsupport      string //`env-required:"false"`
 		DB string //имя базы данных для unifi таблиц. задаю аргументами командной строки
 	}
+	/*
+		PG struct {
+			PoolMax int `yaml:"pool_max" env:"PG_POOL_MAX"`
+			//URL     string `env-required:"true"                 env:"PG_URL"`
+		}*/
 	C3po struct {
 		C3poUrl string `env-required:"true"   env:"C3PO_URL"`
 	}
@@ -243,16 +256,18 @@ type (
 		LevelEnv string `yaml:"log_level"   env:"LOG_LEVEL"`
 		LevelCmd string
 	}
-	HTTP struct {
-		URL    string
-		Port   string //`yaml:"port" env:"HTTP_PORT"`
+	Token struct {
+		TTL    int
 		JwtKey string `env-required:"true"   env:"JWT_KEY"`
 	}
+	HTTP struct {
+		URL  string
+		Port string //`yaml:"port" env:"HTTP_PORT"`
+	}
+	GRPC struct {
+		Port int
+	}
 	/*
-		PG struct {
-			PoolMax int `yaml:"pool_max" env:"PG_POOL_MAX"`
-			//URL     string `env-required:"true"                 env:"PG_URL"`
-		}
 		RMQ struct {
 			ServerExchange string `yaml:"rpc_server_exchange" env:"RMQ_RPC_SERVER"`
 			ClientExchange string `yaml:"rpc_client_exchange" env:"RMQ_RPC_CLIENT"`

@@ -4,6 +4,8 @@ syntax = "proto3";
 //package unifi_v1;
 package api.unifi_v1;
 
+import "google/protobuf/timestamp.proto";
+
 //We are essentially saying the Protobuf compiler where we want to put the generated stubs
 option go_package = "github.com/deniskaponchik/GoSoft/pkg/grpc/service/";
 
@@ -24,6 +26,7 @@ message ClientResponse{
 message Anomaly {
   string apName = 1;
   string dateHour = 2;
+  //google.protobuf.Timestamp date_hour = 2;
   repeated AnomalyString sliceAnomStr = 3;
 }
 message AnomalyString{

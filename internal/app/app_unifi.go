@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/deniskaponchik/GoSoft/config/ui"
+	myGRPC "github.com/deniskaponchik/GoSoft/internal/controller/grpc/my"
 	fokInterface "github.com/deniskaponchik/GoSoft/internal/controller/http/fokInterface"
 	"github.com/deniskaponchik/GoSoft/internal/usecase"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/api_rest"
@@ -45,7 +46,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
 		api_rest.NewUnifiC3po(cfg.C3po.C3poUrl),
 		authentication.NewLdap(cfg.LdapDN, cfg.LdapDomain, cfg.LdapLogin, cfg.LdapPassword, cfg.LdapRoleDn, cfg.LdapServer),
-		authorization.NewAuthJwt(cfg.JwtKey),
+		authorization.NewAuthJwt(cfg.Token.JwtKey, cfg.Token.TTL),
 
 		cfg.App.EveryCodeMap,
 		cfg.App.TimeZone,
@@ -72,6 +73,25 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	//err = unifiUseCase.InfinityProcessingUnifi() //cfg.BpmUrl, cfg.SoapUrl)
 	//if err != nil {		l.Fatal(log.Errorf("app - Run - InfinityUnifiProcessing: %w", err))	}
 
+	//GRPC
+	myGrpc := myGRPC.New(
+		unifiUseCase,
+		cfg.GRPC.Port,
+		"Unifi_Grpc_"+time.Now().Format("2006-01-02_15.04.05")+".log",
+	)
+	go func() {
+		//application.GRPCServer.MustRun()
+		myGrpc.MustRun()
+	}()
+	/*olezhek
+	olezhekGRPC := olezhekClean.New(
+		unifiUseCase,
+		cfg.GRPC.Port,
+		"Unifi_Grpc_"+time.Now().Format("2006-01-02_15.04.05")+".log",
+	)
+	olezhekGRPC.Start()
+	*/
+
 	//
 	//FOKUSOV
 	httpFokusov := fokInterface.New(
@@ -79,10 +99,19 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		unifiUseCase,
 		//usecase.Rest(),
 		cfg.HTTP.Port,
-		//cfg.HTTP.JwtKey,
 		"Unifi_Gin_"+time.Now().Format("2006-01-02_15.04.05")+".log",
+		cfg.Token.TTL, //синхронизация времени жизни куки и токена
 	)
 	httpFokusov.Start()
+
+	/* Graceful shutdown Tuzov
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	<-stop
+
+	application.GRPCServer.Stop()
+	log.Info("Gracefully stopped")
+	*/
 
 	/* EVRONE
 	handler := gin.New()

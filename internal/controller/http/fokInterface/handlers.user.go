@@ -80,8 +80,10 @@ func (fok *Fokusov) performLogin(c *gin.Context) {
 			c.SetSameSite(sameSiteCookie)
 
 			//c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true) 	//original
-			c.SetCookie("token", token, 3600, "", "", false, true)
-			c.SetCookie("userGivenName", userUnifi.GivenName, 3600, "", "", false, true)
+			//c.SetCookie("token", token, 3600, "", "", false, true)
+			c.SetCookie("token", token, fok.CookieTTL, "", "", false, true)
+			//c.SetCookie("userGivenName", userUnifi.GivenName, 3600, "", "", false, true)
+			c.SetCookie("userGivenName", userUnifi.GivenName, fok.CookieTTL, "", "", false, true)
 			//c.SetCookie("is_logged_in", true, 3600, "/", "", false, true)
 			c.Set("userGivenName", userUnifi.GivenName)
 			//c.Set("userLogin", userUnifi.Login)

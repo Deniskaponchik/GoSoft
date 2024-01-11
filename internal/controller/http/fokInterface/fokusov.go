@@ -21,19 +21,18 @@ type Fokusov struct {
 	//Authorization  usecase.Authorization  //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
 	LogFileName string
 	Logger      *log.Logger
+	CookieTTL   int
 }
 
-func New(uuc *usecase.UnifiUseCase, port string, logFileName string) *Fokusov { // jwtKey string,
+func New(uuc *usecase.UnifiUseCase, port string, logFileName string, ct int) *Fokusov { // jwtKey string,
 	//router *gin.Engine,rest *usecase.Rest
 	return &Fokusov{
-		Port: port,
-		//JwtKey: jwtKey,
+		Port:      port,
+		CookieTTL: ct * 60,
 		//Router:  *gin.Engine,
-
 		//UnifiUC: uuc,
 		Urest: uuc, //использовать структуру, реализующую методы интерфейса usecase.UnifiRest
 		//Authentication: uuc,
-
 		LogFileName: logFileName,
 	}
 }
