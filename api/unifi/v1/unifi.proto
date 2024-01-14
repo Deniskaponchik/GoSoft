@@ -4,10 +4,10 @@ syntax = "proto3";
 //package unifi_v1;
 package api.unifi_v1;
 
-import "google/protobuf/timestamp.proto";
+//import "google/protobuf/timestamp.proto";
 
 //We are essentially saying the Protobuf compiler where we want to put the generated stubs
-option go_package = "github.com/deniskaponchik/GoSoft/pkg/grpc/service/";
+option go_package = "github.com/deniskaponchik/GoSoft/pkg/grpc/unifi/v1";
 
 service GetAnomalies{
   rpc GetClient(ClientRequest) returns (ClientResponse);
@@ -27,11 +27,10 @@ message Anomaly {
   string apName = 1;
   string dateHour = 2;
   //google.protobuf.Timestamp date_hour = 2;
-  repeated AnomalyString sliceAnomStr = 3;
+  //repeated AnomalyString sliceAnomStr = 3;
+  repeated string anomStr = 3;
 }
-message AnomalyString{
-  string anomaly = 1;
-}
+//message AnomalyString{  string anomaly = 1;}
 
 /*
 service Ap{}

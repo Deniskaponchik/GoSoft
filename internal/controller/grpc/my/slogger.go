@@ -34,7 +34,8 @@ func setupLogger(logFileName string) *slog.Logger {
 
 	//log = slog.New(slog.NewTextHandler(os.Stderr, nil))
 	//log = slog.New(slog.NewTextHandler(multiWriter, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	slogger = slog.New(slog.NewTextHandler(multiWriter, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	slogger = slog.New(slog.NewTextHandler(multiWriter, &slog.HandlerOptions{
+		Level: slog.LevelDebug}))
 	//log = slog.New(slog.NewSimpleHandler(os.Stderr, nil))
 
 	/*Tuzov

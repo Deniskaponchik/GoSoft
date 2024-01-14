@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+service UserV1{
+  rpc Get(GetRequest) returns (GetResponse);
+}
+
+message UserInfo{
+  int64 id = 1;
+  string name = 2;
+  bool is_human = 3;
+}
+
+message GetRequest{
+  int64 id = 1;
+}
+
+message GetResponse{
+  UserInfo info = 1;
+}

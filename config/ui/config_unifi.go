@@ -81,7 +81,7 @@ func NewConfigUnifi() (*ConfigUi, error) {
 	//https://stackoverflow.com/questions/2707434/how-to-access-command-line-arguments-passed-to-a-go-program
 
 	db := flag.String("db", "it_support_db_3", "database for unifi tables")
-	httpUrl := flag.String("http", "wsir-it-03:8081", "url of http-server")
+	httpUrl := flag.String("http", "10.57.179.121:8081", "url of http-server")
 	grpcPort := flag.Int("grpc", 8082, "port of grpc-server")
 	//rmqPort := flag.Int("rmq", 8083, "port of rabbitMQ-server")
 	tokenTTL := flag.Int("tokenTTL", 60, "minutes of live time token")
