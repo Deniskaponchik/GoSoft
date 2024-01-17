@@ -34,7 +34,7 @@ rem if "%5" == "run"(
 rem start /B ../../bin/Unifi_v3.19-TEST -mode WEB -time +5 -httpUrl 10.57.179.121:8081 -db it_support_db_3
 rem start /B ../../bin/Unifi_v3.20-TEST -mode WEB -time +5 -httpUrl 10.57.179.121:8081 -db it_support_db_3
 rem start /B ../../bin/Unifi_v3.21 -mode PROD -time +5 -httpUrl 10.57.179.121:8081 -db it_support_db_3
-start /B ../../bin/Unifi_v3.22-TEST -mode WEB -time +5
+start /B ../../bin/Unifi_v3.22-TEST -mode PROD -time +5
 rem )
 
 rem start /B MakeD.bat

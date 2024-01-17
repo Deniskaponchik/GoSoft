@@ -30,7 +30,6 @@ message Anomaly {
   //repeated AnomalyString sliceAnomStr = 3;
   repeated string anomStr = 3;
 }
-//message AnomalyString{  string anomaly = 1;}
 
 /*
 service Ap{}
