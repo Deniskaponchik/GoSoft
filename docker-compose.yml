@@ -18,7 +18,8 @@ services:
     volumes:
 #     - ./pg:/docker-entrypoint-initdb.d
 #     - pg-data:/var/lib/postgresql/data
-      - pg-data:/pg/db
+#     - pg-data:D:\DataBase\Postgres\db
+      - pg-data://d/DataBase/Postgres/db
     environment:
       POSTGRES_USER: 'gisupAdmin'
 #     POSTGRES_USER: $PG_DB_USER
@@ -47,7 +48,8 @@ services:
       PGADMIN_CONFIG_SERVER_MODE: "False"
     volumes:
 #     - pgadmin-data:/var/lib/pgadmin
-      - pgadmin-data:pg/pgadmin
+#     - pgadmin-data:D:\DataBase\Postgres\pgadmin
+      - pgadmin-data://d/DataBase/Postgres/pgadmin
     ports:
       - "5050:80"
     restart: unless-stopped
@@ -59,6 +61,14 @@ services:
           memory: 256M
     networks:
       - postgres
+
+volumes:
+  pg-data:
+  pgadmin-data:
+
+networks:
+  postgres:
+    driver: bridge
 
 #https://github.com/evrone/go-clean-template/blob/master/docker-compose.yml
 #  app:
