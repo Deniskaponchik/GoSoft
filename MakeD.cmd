@@ -37,6 +37,7 @@ rem start /B ../../bin/Unifi_v3.21 -mode PROD -time +5 -httpUrl 10.57.179.121:80
 start /B ../../bin/Unifi_v3.22-TEST -mode PROD -time +5
 rem )
 
+rem start /B /bin/Unifi_v3.22-TEST -mode PROD -time +5
 rem start /B MakeD.bat
 rem start /B MakeD nil grpc nil nil nil
 rem MakeD

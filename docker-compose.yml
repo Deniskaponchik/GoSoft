@@ -1,0 +1,88 @@
+#https://gist.github.com/ju2wheels/1885539d63dbcfb20729
+#https://habr.com/ru/articles/578744/
+version: '3.9'
+services:
+
+  rabbitmq:
+    #   container_name: rabbitmq
+    container_name: rmq-mngmnt-3.12.12
+    image: rabbitmq:3.12.12-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+  postgres:
+#   container_name: postgres
+    container_name: pg-gisup-13.13
+    image: postgres
+    volumes:
+#     - ./pg:/docker-entrypoint-initdb.d
+#     - pg-data:/var/lib/postgresql/data
+      - pg-data:/pg/db
+    environment:
+      POSTGRES_USER: 'gisupAdmin'
+#     POSTGRES_USER: $PG_DB_USER
+      POSTGRES_PASSWORD: 'pgGISUP25'
+#     POSTGRES_PASSWORD: $PG_DB_PWD
+      POSTGRES_DB: 'it_support_db_1'
+#     POSTGRES_DB: $PG_DB
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    networks:
+      - postgres
+
+  pgadmin:
+    container_name: pgadmin-8.2
+    image: dpage/pgadmin4:8.2
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "it_support@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "pgGISUP25"
+#     PGADMIN_DEFAULT_PASSWORD: PG_ADMIN_PWD
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+#     - pgadmin-data:/var/lib/pgadmin
+      - pgadmin-data:pg/pgadmin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+#         memory: 1G
+          memory: 256M
+    networks:
+      - postgres
+
+#https://github.com/evrone/go-clean-template/blob/master/docker-compose.yml
+#  app:
+#    build: .
+#    container_name: app
+#    image: app
+#    environment:
+#      PG_URL: 'postgres://user:pass@postgres:5432/postgres'
+#      RMQ_URL: 'amqp://guest:guest@rabbitmq:5672/'
+#    ports:
+#      - 8080:8080
+#    depends_on:
+#      - postgres
+#      - rabbitmq
+
+#  integration:
+#    build:
+#      context: .
+#      dockerfile: integration-test/Dockerfile
+#    container_name: integration
+#    image: integration
+#    depends_on:
+#      - app
+
+#volumes:
+#  pg-data:
+#
