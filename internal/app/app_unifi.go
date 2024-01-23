@@ -5,6 +5,7 @@ import (
 	myGRPC "github.com/deniskaponchik/GoSoft/internal/controller/grpc/my"
 	fokInterface "github.com/deniskaponchik/GoSoft/internal/controller/http/fokInterface"
 	"github.com/deniskaponchik/GoSoft/internal/usecase"
+	"github.com/deniskaponchik/GoSoft/internal/usecase/amqp_rmq"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/api_rest"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/api_soap"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/api_web"
@@ -19,13 +20,15 @@ import (
 // Run creates objects via constructors.
 func RunUnifi(cfg *ui.ConfigUi) {
 
-	/* Repository
+	//Repository
+	/*Postgres
 	pg, err := postgres.New(cfg.PG.URL, postgres.MaxPoolSize(cfg.PG.PoolMax))
 	if err != nil {
 		l.Fatal(log.Errorf("app - Run - postgres.New: %w", err))
 	}
 	defer pg.Close()
 	*/
+	//MySQL
 	//unifiRepo, err := repo.NewUnifiRepo(cfg.GLPI.GlpiITsupport, cfg.GLPI.GlpiConnectStrGLPI) //, cfg.UiContrlint)
 	unifiRepo, err := repo.NewUnifiRepo(cfg.GLPI.GlpiConnectStr, cfg.GLPI.DB)
 	//repoRostov, err := repo.NewUnifiRepo(cfg.GLPI.GlpiITsupport, cfg.GLPI.GlpiConnectStrGLPI, cfg.)
@@ -36,12 +39,11 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		log.Println("Проверка подключения к БД прошла успешно")
 	}
 
+	//USECASE
 	unifiUseCase := usecase.NewUnifiUC(
-		//repo.New(cfg.GLPI.GlpiConnectStrITsupport),
 		unifiRepo, //вставляем объект, который удовлетворяет интерфейсу UnifiRepo
+		amqp_rmq.NewRmqUnifi(cfg.RMQ.RmqConnectStr, cfg.RMQ.ServerExchange),
 		api_soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
-		//ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlRostov, 1),
-		//ubiq.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
 		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlRostov, 1),
 		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
 		api_rest.NewUnifiC3po(cfg.C3po.C3poUrl),
@@ -56,9 +58,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		cfg.Ubiquiti.H1,
 		cfg.Ubiquiti.H2,
 	)
-
 	go unifiUseCase.InfinityProcessingUnifi()
-	log.Println("InfinityProcessingUnifi отправился в горутину")
 	/*https://stackoverflow.com/questions/25142016/how-to-return-a-error-from-a-goroutine-through-channels
 	errors := make(chan error, 0)
 	go func() {
@@ -69,9 +69,6 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		}
 	}()
 	*/
-	//первоначальная версия:
-	//err = unifiUseCase.InfinityProcessingUnifi() //cfg.BpmUrl, cfg.SoapUrl)
-	//if err != nil {		l.Fatal(log.Errorf("app - Run - InfinityUnifiProcessing: %w", err))	}
 
 	//GRPC
 	myGrpc := myGRPC.New(
@@ -79,10 +76,8 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		cfg.GRPC.Port,
 		"Unifi_Grpc_"+time.Now().Format("2006-01-02_15.04.05")+".log",
 	)
-	go func() {
-		//application.GRPCServer.MustRun()
-		myGrpc.MustRun()
-	}()
+	go myGrpc.MustRun()
+	//go application.GRPCServer.MustRun()
 	/*olezhek
 	olezhekGRPC := olezhekClean.New(
 		unifiUseCase,
@@ -92,7 +87,16 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	olezhekGRPC.Start()
 	*/
 
-	//
+	// RabbitMQ RPC Server
+	/*EVRONE
+	rmqRouter := amqprpc.NewRouter(unifiUseCase)
+	//rmqServer, err := server.New(cfg.RMQ.URL, cfg.RMQ.ServerExchange, rmqRouter, l)
+	rmqServer, err := rmqrpcserv.New(cfg.RMQ.URL, cfg.RMQ.ServerExchange, rmqRouter, l)
+	if err != nil {
+		log.Fatal(fmt.Errorf("app - Run - rmqServer - server.New: %w", err))
+	}*/
+
+	//HTTP v1
 	//FOKUSOV
 	httpFokusov := fokInterface.New(
 		//gin.Engine,
@@ -103,8 +107,14 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		cfg.Token.TTL, //синхронизация времени жизни куки и токена
 	)
 	httpFokusov.Start()
+	/* EVRONE
+	handler := gin.New()
+	v1.NewRouter(handler, l, unifiUseCase)
+	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
+	*/
 
-	/* Graceful shutdown Tuzov
+	// Graceful shutdown
+	/* Tuzov
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 	<-stop
@@ -113,11 +123,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	log.Info("Gracefully stopped")
 	*/
 
-	/* EVRONE
-	handler := gin.New()
-	v1.NewRouter(handler, l, unifiUseCase)
-	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
-
+	/*EVRONE
 	// Waiting signal
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)

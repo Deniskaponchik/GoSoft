@@ -36,6 +36,9 @@ type (
 )
 
 type (
+	UnifiRmq interface {
+		Publish(message, queueName string) error
+	}
 	//implement usecase methods to web
 	UnifiRestIn interface {
 		CheckToken(string) (string, error)

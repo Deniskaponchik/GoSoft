@@ -15,7 +15,8 @@ import (
 )
 
 type UnifiUseCase struct {
-	repo      UnifiRepo      //interface. НЕ ИСПОЛЬЗОВАТЬ *
+	repo      UnifiRepo //interface. НЕ ИСПОЛЬЗОВАТЬ *
+	rmq       UnifiRmq
 	soap      UnifiSoap      //interface. НЕ ИСПОЛЬЗОВАТЬ *
 	uiRostov  Ui             //interface. НЕ ИСПОЛЬЗОВАТЬ *
 	uiNovosib Ui             //interface. НЕ ИСПОЛЬЗОВАТЬ *
@@ -37,13 +38,14 @@ type UnifiUseCase struct {
 
 // реализуем Инъекцию зависимостей DI. Используется в app
 // rr UnifiRepo, rn UnifiRepo, st UnifiSoap, sp UnifiSoap, uiRostov Ui, uiNovosib Ui,
-func NewUnifiUC(r UnifiRepo, s UnifiSoap, uiRostov Ui, uiNovosib Ui, c3po UnifiRestOut,
+func NewUnifiUC(r UnifiRepo, ur UnifiRmq, s UnifiSoap, uiRostov Ui, uiNovosib Ui, c3po UnifiRestOut,
 	ldapt2 Authentication, jwtTok Authorization,
 	everyCodeInt map[int]int, timezone int, httpUrl string,
 	countDayTicketCreateAnom int, h1 int, h2 int) *UnifiUseCase {
 	return &UnifiUseCase{
 		//Мы можем передать сюда ЛЮБОЙ репозиторий (pg, s3 и т.д.) НО КОД НЕ ПОМЕНЯЕТСЯ! В этом смысл DI
-		repo:      r,        //interface
+		repo:      r, //interface
+		rmq:       ur,
 		soap:      s,        //interface
 		uiRostov:  uiRostov, //interface
 		uiNovosib: uiNovosib,
@@ -155,6 +157,12 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 		log.Fatalf("мапа соответсвия hostname и клиентов не смогла загрузиться из БД")
 	} else {
 		countDayDownloadMapsWithAnomalies = timeNowU.Day()
+	}
+
+	err = uuc.rmq.Publish("Unifi UseCase is starting", "error")
+	if err != nil {
+		log.Println("модуль RMQ не смог опубликовать сообщение")
+		log.Println(err.Error())
 	}
 
 	for true {
