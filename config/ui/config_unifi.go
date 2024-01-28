@@ -83,7 +83,7 @@ func NewConfigUnifi() (*ConfigUi, error) {
 	db := flag.String("db", "it_support_db_3", "database for unifi tables")
 	httpUrl := flag.String("http", "10.57.179.121:8081", "url of http-server")
 	grpcPort := flag.Int("grpc", 8082, "port of grpc-server")
-	rmqServExcahnge := flag.String("RmqServExch", "unifi", "Exchange of rabbitMQ-server")
+	rmqServExcahnge := flag.String("RmqServExch", "unifi.direct", "Exchange of rabbitMQ-server")
 	tokenTTL := flag.Int("tokenTTL", 60, "minutes of live time token")
 
 	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST")
@@ -227,7 +227,8 @@ type (
 	}
 	PG struct {
 		//PoolMax int `yaml:"pool_max" env:"PG_POOL_MAX"`
-		PgConnectStr string `env-required:"true"   env:"PG_CONNECT_STR"`
+		//TODO:Remove comment after reboot:
+		PgConnectStr string `env:"PG_CONNECT_STR"`
 	}
 	C3po struct {
 		C3poUrl string `env-required:"true"   env:"C3PO_URL"`
@@ -250,7 +251,8 @@ type (
 		JwtKey string `env-required:"true"   env:"JWT_KEY"`
 	}
 	HTTP struct {
-		URL  string
+		//TODO:Remove comment after reboot:
+		URL  string `env-required:"true"   env:"GISUP_HTTP_URL"`
 		Port string //`yaml:"port" env:"HTTP_PORT"`
 	}
 	GRPC struct {
@@ -260,6 +262,7 @@ type (
 		//ServerExchange string `yaml:"rpc_server_exchange" env:"RMQ_RPC_SERVER"`
 		ServerExchange string
 		//ClientExchange string `yaml:"rpc_client_exchange" env:"RMQ_RPC_CLIENT"`
-		RmqConnectStr string `env-required:"true"  env:"RMQ_CONNECT_STR"`
+		//TODO:Remove comment after reboot:
+		RmqConnectStr string `env:"RMQ_CONNECT_STR"`
 	}
 )

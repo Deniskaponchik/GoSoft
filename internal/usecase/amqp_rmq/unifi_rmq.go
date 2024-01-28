@@ -64,10 +64,11 @@ func (ur *UnifiRmq) Publish(message, queueName string) error {
 	//if err != nil {		lib.ErrorHanding(err, "struct to json failed")	}
 
 	err = ch.Publish(
-		ur.servExchange, // exchange
-		q.Name,          // routing key
-		false,           // mandatory
-		false,           // immediate
+		//ur.servExchange, // exchange
+		"",     // exchange. Когда не указываю exchange, сообщение отправляется...
+		q.Name, // routing key
+		false,  // mandatory
+		false,  // immediate
 		amqp.Publishing{
 			//DeliveryMode: amqp.Persistent,
 			ContentType: "text/plain",

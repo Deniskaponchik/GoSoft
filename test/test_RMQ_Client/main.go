@@ -1,15 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"github.com/streadway/amqp"
 	"log"
-	"os"
 )
 
 func main() {
-	connectStr := os.Args[0]
+	//connectStr := os.Args[0]
+	connectStr := ""
 	//servExchange := os.Args[1]
-	queueName := os.Args[1]
+	//queueName := os.Args[1]
+	queueName := ""
+
+	fmt.Println(connectStr)
+	fmt.Println(queueName)
 
 	conn, err := amqp.Dial(connectStr)
 	if err != nil {

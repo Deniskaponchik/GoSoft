@@ -12,31 +12,36 @@ import (
 	"github.com/deniskaponchik/GoSoft/internal/usecase/authentication"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/authorization"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/repo"
+	"github.com/deniskaponchik/GoSoft/pkg/postgres"
+	"os"
+	"os/signal"
+	"syscall"
+
+	//"github.com/deniskaponchik/GoSoft/pkg/logger"
+	//"github.com/deniskaponchik/GoSoft/pkg/rabbitmq/rmq_rpc/server"
 	"log"
 	"time"
-	//"github.com/deniskaponchik/GoSoft/pkg/logger"
 )
 
 // Run creates objects via constructors.
 func RunUnifi(cfg *ui.ConfigUi) {
 
 	//Repository
-	/*Postgres
-	pg, err := postgres.New(cfg.PG.URL, postgres.MaxPoolSize(cfg.PG.PoolMax))
+	//Postgres
+	pg, err := postgres.New(cfg.PG.PgConnectStr)
 	if err != nil {
-		l.Fatal(log.Errorf("app - Run - postgres.New: %w", err))
+		log.Printf("Подключение к Postgres завершилось ошибкой: %w", err)
+	} else {
+		log.Println("Проверка подключения к БД Postgres прошла успешно")
 	}
 	defer pg.Close()
-	*/
+
 	//MySQL
-	//unifiRepo, err := repo.NewUnifiRepo(cfg.GLPI.GlpiITsupport, cfg.GLPI.GlpiConnectStrGLPI) //, cfg.UiContrlint)
 	unifiRepo, err := repo.NewUnifiRepo(cfg.GLPI.GlpiConnectStr, cfg.GLPI.DB)
-	//repoRostov, err := repo.NewUnifiRepo(cfg.GLPI.GlpiITsupport, cfg.GLPI.GlpiConnectStrGLPI, cfg.)
 	if err != nil {
-		//fmt.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))
-		log.Fatalf("app - Run - glpi.New: %w", err)
+		log.Fatalf("Подключение к GLPI завершилось ошибкой: %w", err)
 	} else {
-		log.Println("Проверка подключения к БД прошла успешно")
+		log.Println("Проверка подключения к БД GLPI прошла успешно")
 	}
 
 	//USECASE
@@ -74,7 +79,7 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	myGrpc := myGRPC.New(
 		unifiUseCase,
 		cfg.GRPC.Port,
-		"Unifi_Grpc_"+time.Now().Format("2006-01-02_15.04.05")+".log",
+		"logs/Unifi_Grpc_"+time.Now().Format("2006-01-02_15.04.05")+".log",
 	)
 	go myGrpc.MustRun()
 	//go application.GRPCServer.MustRun()
@@ -103,7 +108,8 @@ func RunUnifi(cfg *ui.ConfigUi) {
 		unifiUseCase,
 		//usecase.Rest(),
 		cfg.HTTP.Port,
-		"Unifi_Gin_"+time.Now().Format("2006-01-02_15.04.05")+".log",
+		//"Unifi_Gin_"+time.Now().Format("2006-01-02_15.04.05")+".log",
+		"logs/Unifi_Gin_"+time.Now().Format("2006-01-02_15.04.05")+".log",
 		cfg.Token.TTL, //синхронизация времени жизни куки и токена
 	)
 	httpFokusov.Start()
@@ -114,30 +120,25 @@ func RunUnifi(cfg *ui.ConfigUi) {
 	*/
 
 	// Graceful shutdown
+	//EVRONE
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+	s := <-interrupt
+	log.Println("Получен сигнал с клавиатуры на остановку работы приложения" + s.String())
+
+	httpFokusov.Stop()
+	myGrpc.Stop()
+	/*
+		err = rmqServer.Shutdown()
+		if err != nil {
+			l.Error(fmt.Errorf("app - Run - rmqServer.Shutdown: %w", err))
+		}*/
+
 	/* Tuzov
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 	<-stop
-
 	application.GRPCServer.Stop()
 	log.Info("Gracefully stopped")
 	*/
-
-	/*EVRONE
-	// Waiting signal
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
-	select {
-	case s := <-interrupt:
-		l.Info("app - Run - signal: " + s.String())
-	case err = <-httpServer.Notify():
-		l.Error(log.Errorf("app - Run - httpServer.Notify: %w", err))
-	}
-
-	// Shutdown
-	err = httpServer.Shutdown()
-	if err != nil {
-		l.Error(log.Errorf("app - Run - httpServer.Shutdown: %w", err))
-	}*/
 }

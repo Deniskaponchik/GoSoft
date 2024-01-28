@@ -56,8 +56,11 @@ func (fok *Fokusov) Start() {
 	// Set the router as the default one provided by Gin
 	router = gin.Default() //fok.Router = gin.Default()
 
-	// Process the templates at the start so that they don't have to be loaded from the disk again. This makes serving HTML pages very fast.
-	router.LoadHTMLGlob("../../web/templates/*")
+	// Process the templates at the start so that they don't have to be loaded from the disk again.
+	//This makes serving HTML pages very fast.
+	//router.LoadHTMLGlob("../../web/templates/*")
+	//router.LoadHTMLGlob("templates/*")
+	router.LoadHTMLGlob("web/templates/*")
 
 	fok.initializeRoutes() // Initialize the routes
 
@@ -84,4 +87,8 @@ func render(c *gin.Context, data gin.H, templateName string) {
 	default:
 		c.HTML(http.StatusOK, templateName, data) // Respond with HTML
 	}
+}
+
+func (fok *Fokusov) Stop() {
+
 }

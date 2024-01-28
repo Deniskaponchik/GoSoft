@@ -135,7 +135,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 	if err != nil {
 		//log.Println("мапа соответствия сайта и логина ответственного сотрудника не загрузилась")
 		//return err //прекращаем работу скрипта
-		log.Fatalf("мапа ответсвенных за офис не смогла загрузиться из БД")
+		log.Fatalf("мапа ответственных за офис не смогла загрузиться из БД")
 	}
 
 	uuc.mx.Lock() //блокируем на всю загрузку из БД мютекс у hostnameClient
@@ -159,10 +159,12 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 		countDayDownloadMapsWithAnomalies = timeNowU.Day()
 	}
 
-	err = uuc.rmq.Publish("Unifi UseCase is starting", "error")
+	err = uuc.rmq.Publish("Unifi UseCase started successfully", "unifi.error")
 	if err != nil {
 		log.Println("модуль RMQ не смог опубликовать сообщение")
 		log.Println(err.Error())
+	} else {
+		log.Println("RMQ module was started successfully")
 	}
 
 	for true {
@@ -172,7 +174,8 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 			log.Println("")
 			log.Println("Ежесуточное изменение файла лога для Unifi")
 
-			fileNameUnifi := "Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
+			//fileNameUnifi := "Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
+			fileNameUnifi := "logs/Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
 			fileLogUnifi, errCreateFile := os.OpenFile(fileNameUnifi, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 			if errCreateFile != nil {
 				log.Println(errCreateFile.Error())
