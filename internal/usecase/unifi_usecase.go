@@ -154,11 +154,12 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 	//errDownClwithAnom := uuc.repo.DownloadClientsWithAnomalySlice(mac_Client, before30days, timeNowU)
 	errDownClwithAnom := uuc.repo.DownloadMacMapsClientApWithAnomaly(mac_Client, mac_Ap, before30days, timeNowU)
 	if errDownClwithAnom != nil {
-		log.Fatalf("мапа соответсвия hostname и клиентов не смогла загрузиться из БД")
+		log.Fatalf("мапа соответствия hostname и клиентов не смогла загрузиться из БД")
 	} else {
 		countDayDownloadMapsWithAnomalies = timeNowU.Day()
 	}
 
+	log.Println("")
 	err = uuc.rmq.Publish("Unifi UseCase started successfully", "unifi.error")
 	if err != nil {
 		log.Println("модуль RMQ не смог опубликовать сообщение")
@@ -166,6 +167,7 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 	} else {
 		log.Println("RMQ module was started successfully")
 	}
+	log.Println("")
 
 	for true {
 		timeNowU = time.Now()
@@ -758,9 +760,9 @@ func (uuc *UnifiUseCase) TicketsCreatingClientsWithAnomalySlice(mac_Client map[s
 								client.UserLogin = "denis.tirskikh"
 							}*/
 						errGetLoginC3po := uuc.c3po.GetUserLogin(client)
-						if errGetLoginC3po != nil || client.Hostname == "" {
+						if errGetLoginC3po != nil || client.UserLogin == "" {
 							errGetUserLogin := uuc.repo.GetLoginPCerr(client)
-							if errGetUserLogin != nil || client.Hostname == "" {
+							if errGetUserLogin != nil || client.UserLogin == "" {
 								client.UserLogin = "denis.tirskikh"
 							} else {
 								log.Println("Логин получен из GLPI: " + client.UserLogin)
