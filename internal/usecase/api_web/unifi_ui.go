@@ -344,7 +344,8 @@ func (ui *Ui) UpdateClientsWithoutApMap(mapClient map[string]*entity.Client, dat
 // у Клиента аномалии лежат в массиве, а не мапе и добавляются каждый час последним элнементом
 // Новых клиентов и Точек в данном методе не создаю, т.к. это всё будет делаться раз в сутки при загрузке за 30 дней
 // Без apName аномалия не нужна. А apName можно получить только через мапу Клиентов. Создав на данном этапе Клиента, всё равно нужных данных не получу
-func (ui *Ui) GetHourAnomaliesAddSlice(mac_Client map[string]*entity.Client, mac_Ap map[string]*entity.Ap) (mac_Anomaly map[string]*entity.Anomaly, err error) {
+func (ui *Ui) GetHourAnomaliesAddSlice(anomalyHourTime string, mac_Client map[string]*entity.Client, mac_Ap map[string]*entity.Ap) (
+	mac_Anomaly map[string]*entity.Anomaly, err error) {
 	count := 1 //минус 1 час
 	then := time.Now().Add(time.Duration(-count) * time.Hour)
 
@@ -398,7 +399,8 @@ func (ui *Ui) GetHourAnomaliesAddSlice(mac_Client map[string]*entity.Client, mac
 								siteNameCut = "Урал"
 							}
 
-							kAnom.DateHour = v.Datetime.Format("2006-01-02 15:04:05")
+							//kAnom.DateHour = v.Datetime.Format("2006-01-02 15:04:05") //время опрашивающего сервера
+							kAnom.DateHour = anomalyHourTime //время контроллера, откуда взята аномалия
 							kAnom.SiteName = siteNameCut
 							kAnom.ApMac = kClient.ApMac
 							kAnom.ApName = kAp.Name

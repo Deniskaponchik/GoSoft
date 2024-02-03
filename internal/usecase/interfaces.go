@@ -103,7 +103,8 @@ type (
 		AddAps2Maps(map[string]*entity.Ap, map[string]*entity.Ap) error
 		//AddAps(map[string]*entity.Ap) error
 		UpdateClients2MapWithoutApMap(map[string]*entity.Client, map[string]*entity.Client, string) error
-		GetHourAnomaliesAddSlice(map[string]*entity.Client, map[string]*entity.Ap) (map[string]*entity.Anomaly, error)
+		GetHourAnomaliesAddSlice(string, map[string]*entity.Client, map[string]*entity.Ap) (map[string]*entity.Anomaly, error)
+		//GetHourAnomaliesAddSlice(map[string]*entity.Client, map[string]*entity.Ap) (map[string]*entity.Anomaly, error)
 		//GetHourAnomalies(map[string]*entity.Client, map[string]*entity.Ap) (map[string]*entity.Anomaly, error)
 	}
 )

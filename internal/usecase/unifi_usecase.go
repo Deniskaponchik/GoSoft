@@ -73,12 +73,15 @@ var srStatusCodesForCancelTicket map[string]bool
 var sleepHoursUnifi map[int]bool
 
 var timeNowU time.Time
+var anomalyHourTime string //Время, зависящее от месторасположения сервера и контролера, с которого собирается инфо
 var ui Ui
 var before30days string
 var err error
 var exis bool
 
 func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
+
+	timeNowU = time.Now() //будет меняться в зависимости от контроллера
 
 	//удалить префикс времени в логах
 	//https://stackoverflow.com/questions/48629988/remove-timestamp-prefix-from-go-logger
@@ -93,7 +96,8 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 
 	countDayDownloadMapsWithAnomalies := 0
 	//countDayTicketCreateAnom := 0 //перенёс в uuc
-	countDayChangeLogFile := time.Now().Day()
+	//countDayChangeLogFile := time.Now().Day()
+	countDayChangeLogFile := timeNowU.Day()
 	//countDayUploadMachineToDB := 0
 	//countDayDownlSiteApCutName := time.Now().Day()
 
@@ -148,9 +152,9 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 	uuc.mx.Unlock()
 	//for k, v := range mac_Client {log.Println(k, v.Mac, v.Controller, v.Exception, v.ApMac, v.Modified, v.Hostname, v.SrID)}
 
-	timeNowU = time.Now()
+	//timeNowU = time.Now()
 	before30days = timeNowU.Add(time.Duration(-720) * time.Hour).Format("2006-01-02 15:04:05")
-	timeNowU = time.Now()
+	//timeNowU = time.Now()
 	//errDownClwithAnom := uuc.repo.DownloadClientsWithAnomalySlice(mac_Client, before30days, timeNowU)
 	errDownClwithAnom := uuc.repo.DownloadMacMapsClientApWithAnomaly(mac_Client, mac_Ap, before30days, timeNowU)
 	if errDownClwithAnom != nil {
@@ -177,7 +181,8 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 			log.Println("Ежесуточное изменение файла лога для Unifi")
 
 			//fileNameUnifi := "Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
-			fileNameUnifi := "logs/Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
+			//fileNameUnifi := "logs/Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
+			fileNameUnifi := "logs/Unifi_App_" + timeNowU.Format("2006-01-02_15.04.05") + ".log"
 			fileLogUnifi, errCreateFile := os.OpenFile(fileNameUnifi, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 			if errCreateFile != nil {
 				log.Println(errCreateFile.Error())
@@ -192,17 +197,19 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 		//intCodeController, exisCodeRun := uuc.everyCodeMap[timeNowU.Minute()]
 		uuc.controllerInt, exis = uuc.everyCodeMap[timeNowU.Minute()]
 		if exis {
-			if uuc.controllerInt == 1 {
-				ui = uuc.uiRostov
-				uuc.repo.ChangeCntrlNumber(1)
-			} else {
-				ui = uuc.uiNovosib
-				uuc.repo.ChangeCntrlNumber(2)
-			}
-
 			//if uuc.everyCodeMap[timeNowU.Minute()] { //актуально для ИЛИ условия: timeNowU.Minute() != 0 || timeNowU.Minute() != count12minute
 			//count12minute = timeNowU.Minute()
 			log.Println(timeNowU.Format("02 January, 15:04:05"))
+
+			if uuc.controllerInt == 1 {
+				ui = uuc.uiRostov
+				uuc.repo.ChangeCntrlNumber(1)
+				anomalyHourTime = timeNowU.Add(time.Duration(-uuc.timezone-1) * time.Hour).Format("2006-01-02 15:00:00")
+			} else {
+				ui = uuc.uiNovosib
+				uuc.repo.ChangeCntrlNumber(2)
+				anomalyHourTime = timeNowU.Add(time.Duration(-uuc.timezone+3) * time.Hour).Format("2006-01-02 15:00:00")
+			}
 
 			//err = uuc.ui.GetSites() //в uuc *UnifiUseCase подгружаются Sites
 			err = ui.GetSites() //в uuc *UnifiUseCase подгружаются Sites
@@ -271,10 +278,12 @@ func (uuc *UnifiUseCase) InfinityProcessingUnifi() {
 				if timeNowU.Hour() != uuc.countHourAnom[uuc.controllerInt] {
 					log.Println("")
 					log.Println("Ежечасовое получение и занесение аномалий в БД")
+					log.Println(anomalyHourTime)
 
 					//macClient_OneHourAnomalies, errGetHourAnom := uuc.ui.GetHourAnomalies(mac_Client, mac_Ap)
 					//macClient_OneHourAnomalies, errGetHourAnom := ui.GetHourAnomalies(mac_Client, mac_Ap)
-					macClient_OneHourAnomalies, errGetHourAnom := ui.GetHourAnomaliesAddSlice(mac_Client, mac_Ap)
+					//macClient_OneHourAnomalies, errGetHourAnom := ui.GetHourAnomaliesAddSlice(mac_Client, mac_Ap)
+					macClient_OneHourAnomalies, errGetHourAnom := ui.GetHourAnomaliesAddSlice(anomalyHourTime, mac_Client, mac_Ap)
 					if errGetHourAnom == nil {
 						err = uuc.repo.UpdateDbAnomaly(macClient_OneHourAnomalies)
 						if err != nil {

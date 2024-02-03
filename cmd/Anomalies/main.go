@@ -27,29 +27,9 @@ type Machine struct {
 func main() {
 	fmt.Println("")
 
-	unifiController := 21 //10-Rostov Local; 11-Rostov ip; 20-Novosib Local; 21-Novosib ip
 	var urlController string
-	var bdController int8 //Да string, потому что значение пойдёт в replace для БД
+	var bdController int8
 
-	//ROSTOV
-	if unifiController == 10 || unifiController == 11 {
-		bdController = 1
-		if unifiController == 10 {
-			urlController = "https://localhost:8443/"
-		} else {
-			urlController = "https://:8443/"
-		}
-
-		//NOVOSIB
-	} else if unifiController == 20 || unifiController == 21 {
-		bdController = 2
-		if unifiController == 20 {
-			urlController = "https://localhost:8443/"
-		} else {
-			urlController = "https://:8443/"
-		}
-
-	}
 	fmt.Println("Unifi controller")
 	fmt.Println(urlController)
 	fmt.Println(bdController)
@@ -70,10 +50,11 @@ func main() {
 
 	c := unifi.Config{
 		//c := *unifi.Config{  //ORIGINAL
-		User: "",
-		Pass: "",
+		User: "unifi",
+		Pass: "FORCEpower23",
 		//URL: "https://localhost:8443/"
-		URL: urlController,
+		//URL: "https://10.78.221.142:8443/",
+		URL: "https://10.8.176.8:8443/",
 		// Log with log.Printf or make your own interface that accepts (msg, test_SOAP)
 		ErrorLog: log.Printf,
 		DebugLog: log.Printf,
@@ -119,10 +100,10 @@ func main() {
 	//count := 3600
 	//count := 36000 //+++
 	//count := 86400
-	//then := now.Add(time.Duration(-count) * time.Minute)
-	//then := timeNow.Add(time.Duration(-count) * time.Minute)
+	then := timeNow.Add(time.Duration(-count) * time.Minute)
+	//then := timeNow.Add(time.Duration(count) * time.Minute)
 	//then := timeNow.Add(time.Duration(-count) * time.)
-	then := timeNow.Add(time.Duration(-count) * time.Hour)
+	//then := timeNow.Add(time.Duration(-count) * time.Hour)
 
 	anomalies, err := uni.GetAnomalies(sites,
 		//time.Date(2023, 7, 9, 0, 0, 0, 0, time.Local), //time.Now(),
