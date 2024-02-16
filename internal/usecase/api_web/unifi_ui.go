@@ -209,7 +209,7 @@ func (ui *Ui) UpdateClients2MapWithoutApMap(macClient map[string]*entity.Client,
 		var client1 *entity.Client   //клиент из мапы macClient
 
 		var exisClient1 bool
-		var exisClient2 bool
+		//var exisClient2 bool
 
 		var clientNameUpperCase string
 
@@ -242,12 +242,13 @@ func (ui *Ui) UpdateClients2MapWithoutApMap(macClient map[string]*entity.Client,
 						client1.Modified = date
 						client1.Controller = ui.Controller
 
-						//проверяем доступность в мапе hostnameClient
+						/*Был случай с NBKG-BELYAEVA, когда заменили ноутбук, а имя оставил прежнее. Меняю этот блок
 						_, exisClient2 = hostnameClient[clientNameUpperCase] //client0.Name]
 						if !exisClient2 {
 							//Если бакета нет, значит, только сменилось сетевое имя - переназначаем ссылку на client1
 							hostnameClient[clientNameUpperCase] = client1
-						}
+						}*/
+						hostnameClient[clientNameUpperCase] = client1
 
 					} else {
 						//если мак не бьётся, создаём нового клиента

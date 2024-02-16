@@ -574,7 +574,8 @@ func (ur *UnifiRepo) Download2MapFromDBclient() (map[string]*entity.Client, map[
 				defer db.Close() // defer the close till after the main function has finished
 				//queryAfter := "SELECT * FROM it_support_db.machine WHERE controller = " + strconv.Itoa(int(bdController))
 				//queryAfter := "SELECT * FROM " + ur.databaseITsup + ".client WHERE controller = " + strconv.Itoa(int(ur.controller))
-				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".client" // WHERE controller = " + strconv.Itoa(int(ur.controller))
+				//queryAfter := "SELECT * FROM " + ur.databaseITsup + ".client" // WHERE controller = " + strconv.Itoa(int(ur.controller))
+				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".client ORDER BY modified" //Из-за случая, когда меняют ноутбук, но оставляют старое имя
 				log.Println(queryAfter)
 
 				for myError != 0 { //зацикливание выполнения запроса
