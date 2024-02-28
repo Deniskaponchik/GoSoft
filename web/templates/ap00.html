@@ -1,0 +1,76 @@
+<!--ap.html-->
+{{ template "header.html" .}}
+<p></p>
+
+<div class="row row-cols-1 row-cols-md-2 mb-2 text-center">
+    <div class="col">
+        <div class="card mb-4 rounded-3 shadow-sm">
+
+            <div class="card-header py-3">
+                <form class="row g-3" action="/ap/request" method="POST">
+                    <div class="col-8">
+                        <label for="ap_hostname" class="visually-hidden">ap_hostname</label>
+                        <input type="text" class="form-control" id="ap_hostname" name="ap_hostname" placeholder="Access point hostname" required pattern="^[^\s]*$" maxlength="40" minlength="5">
+                    </div>
+                    <div class="col-4">
+                        <button type="submit" class="btn btn-primary mb-3">Получить аномалии</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-body">
+                {{ if .hostname}}
+                <p></p>
+                {{ if .redmarker}}
+                <p style="color:red;">За 30 дн. на точке {{.countanomaly}} дней с аномалиями</p>
+                {{else}}
+                <p style="color:green;">За 30 дн. на точке {{.countanomaly}} дней с аномалиями</p>
+                {{end}}
+                <p></p>
+                <p>Минимальный шаг обновления - 1 час</p>
+                <p></p>
+                <p></p>
+                <p>Аномалии обновляются в течение первых 10 минут каждого часа</p>
+                <p></p>
+                <p>Аномалии берутся только для сети Tele2Corp</p>
+                <p></p>
+                <p>Время аномалий:</p>
+                <p>Для Урала, Сибири, Дальнего Востока - Новосибирское</p>
+                <p>Для всей остальной западной России - Московское</p>
+                <p></p>
+                <a href="https://wiki.tele2.ru/pages/viewpage.action?pageId=168680976#id-[HelpdeskIT]SystemMonitoring-Аномалии">
+                    <h3 style="color:red;">Как обрабатывать обращения по аномалиям</h3>
+                </a>
+                {{end}}
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card mb-4 rounded-3 shadow-sm">
+            <div class="card-header py-3">
+                {{ if .hostname}}
+                    <h2>{{.hostname}}</h2>
+                {{else}}
+                    <h2>Имя точки не указано</h2>
+                {{end}}
+            </div>
+            <div class="card-body">
+                {{ if .hostname}}
+                <!--Loop over the `anomalies_struct` variable, which is the list of anomalies structure-->
+                {{range .anomalies_struct }}
+                <!--Display the content of the anomaly-->
+                <p>{{.ClientName}}<br>{{.DateHour}}<br>
+                    <!--Loop over the `anomalies_string` variable, which is the list of anomalies string-->
+                    {{range .SliceAnomStr }}
+                    {{ . }}<br>
+                    {{end}}
+                </p>
+                {{end}}
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Embed the footer.html template at this location-->
+{{ template "footer.html" .}}

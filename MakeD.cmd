@@ -26,7 +26,8 @@ rem if "%4" == "build"(
 rem go build -o ..\..\bin\Unifi_v3.25-TEST -ldflags="-s -w"
 rem go build -o ..\..\bin\Unifi_v3.26-TEST -ldflags="-s -w"
 rem go build -o ..\..\bin\Unifi_v3.27-PROD -ldflags="-s -w"
-    go build -o ..\..\bin\Unifi_v3.28-TEST -ldflags="-s -w"
+rem go build -o ..\..\bin\Unifi_v3.28-PROD -ldflags="-s -w"
+    go build -o ..\..\bin\Unifi_v3.29-TEST -ldflags="-s -w"
 rem )
 
 cd ../..
@@ -36,7 +37,8 @@ rem if "%5" == "run"(
 rem start /B bin/Unifi_v3.25-TEST -mode PROD -time +5
 rem start /B bin/Unifi_v3.26-TEST -mode PROD -time +5
 rem start /B bin/Unifi_v3.27-PROD -mode PROD -time +5
-    start /B bin/Unifi_v3.28-TEST -mode PROD -time +5
+rem start /B bin/Unifi_v3.28-PROD -mode PROD -time +5
+    start /B bin/Unifi_v3.29-TEST -mode PROD -time +5
 rem )
 
 rem start /B ./bin/Unifi_v3.23-TEST -mode PROD -time +5
