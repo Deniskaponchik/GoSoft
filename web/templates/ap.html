@@ -23,14 +23,28 @@
                 <p></p>
 
                 <p id="colorAnomalyText">За 30 дн. на точке {{.countanomaly}} дней с аномалиями</p>
-                <script src="./share.js"></script>
+                <!--<script src="./share.js"></script>-->
+                <!--https://stackoverflow.com/questions/38450435/local-absolute-paths-c-for-script-tag-->
                 <script>
-                    var countAnomaly = document.getElementById(countanomaly);
-                    alert(countAnomaly.value);
-                    alert("My TEXT");
+                    <!--var countAnomaly = document.getElementById(countanomaly);-->
+                    var countAnom = parseInt("{{.countanomaly}}");
+                    <!--alert(countAnom);                 alert(countAnom + 100);-->
 
-                    let textColor = colorAnomalyText(countAnomaly);
-                    document.getElementById("colorAnomalyText").style.color = textColor;
+                    function colorAnomalyText(countOfAnomalies){
+                        if (countOfAnomalies < 7){
+                            return "green"
+                        }
+                        if (countOfAnomalies > 6 && countOfAnomalies < 10){
+                            return "orange"
+                        }
+                        if (countOfAnomalies > 9){
+                            return "red"
+                        }
+                    }
+
+                    <!--let textColor = `За 30 дн. на точке ${countAnom} дней с аномалиями`;-->
+                    document.getElementById("colorAnomalyText").style.color = colorAnomalyText(countAnom);
+
                 </script>
 
                 <p></p>
