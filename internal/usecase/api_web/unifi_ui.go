@@ -384,8 +384,12 @@ func (ui *Ui) GetHourAnomaliesAddSlice(anomalyHourTime string, mac_Client map[st
 				}
 
 			} else {
-				//выполниться ТОЛЬКО на ВТОРОМ заходе. не на первом, не на третьем
+				//выполнится ТОЛЬКО на ВТОРОМ заходе. не на первом, не на третьем
 				if len(kAnom.SliceAnomStr) == 1 {
+
+					//Добавить для избавления от двойного USER_DNS_TIMEOUT
+					//if !(kAnom.SliceAnomStr[0] == "USER_DNS_TIMEOUT" && v.Anomaly == "USER_DNS_TIMEOUT") {}
+
 					//подключаемся к мапе Клиентов
 					kClient, exisMacClient := mac_Client[noutMac]
 					if exisMacClient {
