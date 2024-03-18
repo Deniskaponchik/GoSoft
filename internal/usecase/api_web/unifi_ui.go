@@ -388,7 +388,7 @@ func (ui *Ui) GetHourAnomaliesAddSlice(anomalyHourTime string, mac_Client map[st
 				if len(kAnom.SliceAnomStr) == 1 {
 
 					//Добавить для избавления от двойного USER_DNS_TIMEOUT
-					//if !(kAnom.SliceAnomStr[0] == "USER_DNS_TIMEOUT" && v.Anomaly == "USER_DNS_TIMEOUT") {}
+					//if !(kAnom.SliceAnomStr[0] == "USER_DNS_TIMEOUT" && v.Anomaly == "USER_DNS_TIMEOUT") {
 
 					//подключаемся к мапе Клиентов
 					kClient, exisMacClient := mac_Client[noutMac]
@@ -421,6 +421,8 @@ func (ui *Ui) GetHourAnomaliesAddSlice(anomalyHourTime string, mac_Client map[st
 						//Если в мапе macClient нет мака клиента из аномалии?
 						// Без apName аномалия не нужна. А apName можно получить только через мапу Клиентов. Создав на данном этапе Клиента, всё равно нужных данных не получу
 					}
+					//} //"USER_DNS_TIMEOUT"
+
 				} else {
 					//kAnom.TimeStr_sliceAnomStr[dateTime] = append(kAnom.TimeStr_sliceAnomStr[dateTime], v.Anomaly)
 					kAnom.SliceAnomStr = append(kAnom.SliceAnomStr, v.Anomaly)
