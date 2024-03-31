@@ -1,23 +1,14 @@
 ﻿# Version:      0.0
 # STATUS:       Не протестировано
-# Цель:         настройка и запуск Zabbix для систем ВКС AudioCodes
-# реализация:   Меняет параметры в conf.file, устанавливает и запускает службу
+# Цель:         
+# реализация:   
 # проблемы:     
 # Планы:        Протестировать
-# Last Update:  Все функции в принципе добавлены. нужно проверять
-# Author:       denis.tirskikh@tele2.ru
+# Last Update:  
+#
 
-
-<# !!! Сначала запускаем только эту одну строку кода снизу (выделить или поставить курсор и F8)
-try {
-    Set-ExecutionPolicy Unrestricted
-    Write-Host  "Политика выполнения PS-скриптов включена" -ForegroundColor Green
-}
-catch {
-    Write-Host  'Политика выполнения PS-скриптов уже включена' -ForegroundColor Green  
-}
-[Environment]::NewLine
-#>
+#.\D.ps1 -task Web
+#Set-ExecutionPolicy Unrestricted
 
 #Внешние входные параметры для скрипта
 [CmdletBinding()]
@@ -35,7 +26,9 @@ Param (
 )
 Write-Host "Task : "$task
 Write-Host "Hostname : "$hostname
+#$Env:GISUP_PATH
 $ScriptVersion = "Unifi_v3.29-PROD"
+$TimeZone = "+5"
 [Environment]::NewLine 
 
 #Выбор варианта работы скрипта
@@ -44,6 +37,7 @@ if (!$task){
         Write-Host "Choose task for this script "
         [Environment]::NewLine
 
+        
         Write-Host "Run"
         Write-Host "Build"
         Write-Host "Web"
@@ -93,27 +87,25 @@ if (!$task){
 }
 #>
 
-switch($task){
-    "Run"{Run}
-    "Build"{Build}  # -ipadd $ip
-    "Web"{Web}
-    "Swagger"{Swagger}
-    "GRPC"{GRPC}
-Default {"EMPTY"}
-}
-[Environment]::NewLine
-
-
 function Run {
-
+     cmd.exe /c "D:/Clouds/GitHub/GoSoft/bin/$ScriptVersion -mode PROD -time $TimeZone"
+    #cmd.exe /c "$Env:GISUP_PATH/bin/$ScriptVersion -mode PROD -time $Env:GISUP_TIMEZONE"
+    #"$Env:GISUP_HTTP_URL/bin/"
 }
 
 function Build {
 
 }
 
-function Web{
+function Web {
+    #$ScriptVersion = "Unifi_v3.29-PROD"
+    #cmd.exe /c "/B bin/$ScriptVersion -mode WEB -time $TimeZone"
+     cmd.exe /c "D:/Clouds/GitHub/GoSoft/bin/$ScriptVersion -mode WEB -time $TimeZone"
+    #cmd.exe /c "$Env:GISUP_PATH/bin/$ScriptVersion -mode WEB -time $Env:GISUP_TIMEZONE"
 
+    #Start-Process cmd.exe -ArgumentList "/B bin/$ScriptVersion -mode WEB -time $TimeZone" -NoNewWindow
+    #start bin/$ScriptVersion -ArgumentList "-mode WEB -time $TimeZone"
+    #go run ./bin/$ScriptVersion -mode WEB -time $TimeZone
 }
 
 
@@ -164,3 +156,28 @@ function DeleteOldFiles {
     }
    
 }
+
+function CreateTaskScheduler{
+    #https://blog.netwrix.com/2018/07/03/how-to-automate-powershell-scripts-with-task-scheduler/
+    $Trigger= New-ScheduledTaskTrigger -At 10:00am –Daily
+    $User= "NT AUTHORITYSYSTEM" # Specify the account to run the script
+    # Specify what program to run and with its parameters
+    $Action= New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "C:PSStartupScript.ps1" 
+    # Specify the name of the task
+    Register-ScheduledTask -TaskName "MonitorGroupMembership" -Trigger $Trigger -User $User -Action $Action -RunLevel Highest –Force 
+}
+
+
+switch($task){
+    "Run"{Run}
+    "Build"{Build}  # -ipadd $ip
+    "Web"{Web}
+    "Swagger"{Swagger}
+    "GRPC"{GRPC}
+Default {"EMPTY"}
+}
+[Environment]::NewLine
+
+
+
+
