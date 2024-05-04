@@ -4,7 +4,7 @@
 # реализация:   
 # проблемы:     
 # Планы:        Протестировать
-# Last Update:  
+# Last Update:      
 
 #.\Make.ps1 -device Unifi -task Run
 #.\Make.ps1 -device Poly -task Run
@@ -222,7 +222,7 @@ function CreateTaskScheduler{
 
 switch($task){
     "Run"{Run}
-    "Build"{Build}  # -ipadd $ip
+    "Build"{Build}
     "Web"{Web}
     "Swagger"{Swagger}
     "GRPC"{GRPC}
