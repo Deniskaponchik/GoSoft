@@ -32,10 +32,15 @@ type (
 	Polycom struct {
 		PolyUsername string `env-required:"true" yaml:"poly_usernamename"    env:"POLY_USERNAME"`
 		PolyPassword string `env-required:"true" yaml:"poly_password"        env:"POLY_PASSWORD"`
+		PolySwitch   int
+		PolyLogLevel string
+		RestartHour  int
 	}
 	AudioCodes struct {
 		ZabbixUsername string
 		ZabbixPassword string
+		AudioSwitch    int
+		AudioLogLevel  string
 	}
 	Ubiquiti struct {
 		UiUsername      string `env-required:"true" yaml:"unifi_usernamename"   env:"UNIFI_USERNAME"`
@@ -44,17 +49,21 @@ type (
 		UiContrlNovosib string `env-required:"true" yaml:"contrl_novosib"  env:"UNIFI_CONTROLLER_NOVOSIB"`
 		//UiContrlstr     string
 		//UiContrlint     int //для совместного приложения двух контроллеров не должен приходить с конфигом
-		Daily        int
-		H1           int
-		H2           int
-		EveryCodeMap map[int]int
+		Daily          int
+		H1             int
+		H2             int
+		UiEveryCodeMap map[int]int
+		UiSwitch       int
+		UiLogLevel     string
 	}
 	Eltex struct {
 		EltexUsername     string
 		EltexPassword     string
 		EltexCntrlRostov  string
 		EltexCntrlNovosib string
-		EveryCodeMap      map[int]int
+		EltexEveryCodeMap map[int]int
+		EltexSwitch       int
+		EltexLogLevel     string
 	}
 	Bpm struct {
 		BpmUrl  string //`env-required:"false"`
@@ -67,7 +76,8 @@ type (
 		SoapTest string `env-required:"true" env:"SOAP_TEST"`
 	}
 	GLPI struct {
-		GlpiConnectStr string `env-required:"true"   env:"GLPI_CONNECT_STR"` //строка подключения к серверу без указания БД
+		GlpiConnectStr string `env-required:"true"   env:"GLPI_CONNECT_STR"`
+		//строка подключения к серверу без указания БД
 		//GlpiConnectStrGLPI string `env-required:"true"   env:"GLPI_CONNECT_STR_GLPI"`
 		//GlpiITsupportProd  string `env-required:"true"   env:"GLPI_CONNECT_STR_ITSUP"`
 		//GlpiITsupportTest  string `env-required:"true"   env:"GLPI_ITSUP_TEST"`
