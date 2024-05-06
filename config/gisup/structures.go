@@ -3,7 +3,7 @@ package gisup
 type (
 	ConfigGisup struct {
 		Polycom
-		AudioCodes
+		Lenovo
 		Ubiquiti
 		Eltex
 		Bpm
@@ -30,17 +30,19 @@ type (
 	//Между true и false разницы не заметил. Разобраться
 
 	Polycom struct {
-		PolyUsername string `env-required:"true" yaml:"poly_usernamename"    env:"POLY_USERNAME"`
-		PolyPassword string `env-required:"true" yaml:"poly_password"        env:"POLY_PASSWORD"`
-		PolySwitch   int
-		PolyLogLevel string
-		RestartHour  int
+		PolyUsername     string `env-required:"true" yaml:"poly_usernamename"    env:"POLY_USERNAME"`
+		PolyPassword     string `env-required:"true" yaml:"poly_password"        env:"POLY_PASSWORD"`
+		PolySwitch       int
+		PolyLogLevel     string
+		RestartHour      int
+		PolyEveryCodeMap map[int]bool
 	}
-	AudioCodes struct {
-		ZabbixUsername string
-		ZabbixPassword string
-		AudioSwitch    int
-		AudioLogLevel  string
+	Lenovo struct {
+		ZabbixUsername     string
+		ZabbixPassword     string
+		LenovoSwitch       int
+		LenovoLogLevel     string
+		LenovoEveryCodeMap map[int]bool
 	}
 	Ubiquiti struct {
 		UiUsername      string `env-required:"true" yaml:"unifi_usernamename"   env:"UNIFI_USERNAME"`
@@ -86,7 +88,6 @@ type (
 	}
 	PG struct {
 		//PoolMax int `yaml:"pool_max" env:"PG_POOL_MAX"`
-		//TODO:Remove comment after reboot:
 		PgConnectStr string `env:"PG_CONNECT_STR"`
 	}
 	C3po struct {
@@ -110,7 +111,6 @@ type (
 		JwtKey string `env-required:"true"   env:"JWT_KEY"`
 	}
 	HTTP struct {
-		//TODO:Remove comment after reboot:
 		URL  string `env-required:"true"   env:"GISUP_HTTP_URL"`
 		Port string //`yaml:"port" env:"HTTP_PORT"`
 	}
@@ -121,7 +121,6 @@ type (
 		//ServerExchange string `yaml:"rpc_server_exchange" env:"RMQ_RPC_SERVER"`
 		ServerExchange string
 		//ClientExchange string `yaml:"rpc_client_exchange" env:"RMQ_RPC_CLIENT"`
-		//TODO:Remove comment after reboot:
 		RmqConnectStr string `env:"RMQ_CONNECT_STR"`
 	}
 )

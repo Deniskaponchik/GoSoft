@@ -63,10 +63,10 @@ func NewConfigGisup() (*ConfigGisup, error) {
 	//DEBUG, INFO, WARN, ERROR
 	poly_logLevel := flag.String("poly_loglevel", "DEBUG", "level of log")
 
-	//AudioCodes
-	audiocodes_switch := flag.Int("audiocodes_switch", 1, "0 - Disable, 1 - Enable")
+	//Lenovo
+	lenovo_switch := flag.Int("lenovo_switch", 1, "0 - Disable, 1 - Enable")
 	//DEBUG, INFO, WARN, ERROR
-	audiocodes_logLevel := flag.String("audiocodes_loglevel", "DEBUG", "level of log")
+	lenovo_logLevel := flag.String("lenovo_loglevel", "DEBUG", "level of log")
 
 	flag.Parse()
 
@@ -92,19 +92,19 @@ func NewConfigGisup() (*ConfigGisup, error) {
 	cfg.Ubiquiti.UiSwitch = *unifi_switch
 	cfg.Eltex.EltexSwitch = *eltex_switch
 	cfg.Polycom.PolySwitch = *poly_switch
-	cfg.AudioCodes.AudioSwitch = *audiocodes_switch
+	cfg.Lenovo.LenovoSwitch = *lenovo_switch
 
 	cfg.Ubiquiti.UiLogLevel = *unifi_logLevel
 	cfg.Eltex.EltexLogLevel = *eltex_logLevel
 	cfg.Polycom.PolyLogLevel = *poly_logLevel
-	cfg.AudioCodes.AudioLogLevel = *audiocodes_logLevel
+	cfg.Lenovo.LenovoLogLevel = *lenovo_logLevel
 
 	if *mode == "TEST" {
 		cfg.BpmUrl = cfg.BpmTest
 		cfg.SoapUrl = cfg.SoapTest
 
 		//cfg.App.EveryCodeMap = map[int]int{ //[минута]номер контроллера
-		shareEveryCodeMap := map[int]int{ //[минута]номер контроллера
+		wifiEveryCodeMap := map[int]int{ //[минута]номер контроллера
 			5:  1,
 			15: 2,
 			25: 1,
@@ -112,8 +112,32 @@ func NewConfigGisup() (*ConfigGisup, error) {
 			45: 1,
 			55: 2,
 		}
-		cfg.Ubiquiti.UiEveryCodeMap = shareEveryCodeMap
-		cfg.Eltex.EltexEveryCodeMap = shareEveryCodeMap
+		cfg.Ubiquiti.UiEveryCodeMap = wifiEveryCodeMap
+		cfg.Eltex.EltexEveryCodeMap = wifiEveryCodeMap
+
+		vcsEveryCodeMap := map[int]bool{
+			3:  true,
+			6:  true,
+			9:  true,
+			12: true,
+			15: true,
+			18: true,
+			21: true,
+			24: true,
+			27: true,
+			30: true,
+			33: true,
+			36: true,
+			39: true,
+			42: true,
+			45: true,
+			48: true,
+			51: true,
+			54: true,
+			57: true,
+		}
+		cfg.Polycom.PolyEveryCodeMap = vcsEveryCodeMap
+		cfg.Lenovo.LenovoEveryCodeMap = vcsEveryCodeMap
 
 	} else if *mode == "WEB" {
 		cfg.BpmUrl = cfg.BpmProd
@@ -123,17 +147,20 @@ func NewConfigGisup() (*ConfigGisup, error) {
 		cfg.Ubiquiti.UiEveryCodeMap = make(map[int]int)
 		cfg.Eltex.EltexEveryCodeMap = make(map[int]int)
 
+		cfg.Polycom.PolyEveryCodeMap = make(map[int]bool)
+		cfg.Lenovo.LenovoEveryCodeMap = make(map[int]bool)
+
 		cfg.Ubiquiti.UiSwitch = 0
 		cfg.Eltex.EltexSwitch = 0
 		cfg.Polycom.PolySwitch = 0
-		cfg.AudioCodes.AudioSwitch = 0
+		cfg.Lenovo.LenovoSwitch = 0
 
 	} else if *mode == "PROD" {
 		cfg.BpmUrl = cfg.BpmProd
 		cfg.SoapUrl = cfg.SoapProd
 
 		//cfg.App.EveryCodeMap = map[int]int{ //[минута]номер контроллера
-		shareEveryCodeMap := map[int]int{ //[минута]номер контроллера
+		wifiEveryCodeMap := map[int]int{ //[минута]номер контроллера
 			2:  1, // в начале часа различные выгрузки/загрузки в БД. нужно больше времени
 			9:  2,
 			15: 1,
@@ -145,8 +172,8 @@ func NewConfigGisup() (*ConfigGisup, error) {
 			51: 1,
 			57: 2,
 		}
-		cfg.Ubiquiti.UiEveryCodeMap = shareEveryCodeMap
-		cfg.Eltex.EltexEveryCodeMap = shareEveryCodeMap
+		cfg.Ubiquiti.UiEveryCodeMap = wifiEveryCodeMap
+		cfg.Eltex.EltexEveryCodeMap = wifiEveryCodeMap
 
 	}
 	log.Println("")
@@ -173,7 +200,7 @@ func NewConfigGisup() (*ConfigGisup, error) {
 	log.Println("Poly Restart: ", cfg.Polycom.RestartHour)
 	log.Println("")
 
-	log.Println("Audio Switch: ", cfg.AudioCodes.AudioSwitch)
+	log.Println("Lenovo Switch: ", cfg.Lenovo.LenovoSwitch)
 	log.Println("")
 
 	return cfg, nil
