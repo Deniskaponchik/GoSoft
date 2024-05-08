@@ -66,6 +66,11 @@ func (fok *Fokusov) initializeRoutes() {
 		//apRoutes.POST("/exception_del", fok.delException)
 	}
 
+	lenovoRoutes := router.Group("/lenovo")
+	{
+		lenovoRoutes.POST("/zabbix", fok.lenovoAlarm)
+	}
+
 	/*
 		// Use the setUserStatus middleware for every route to set a flag
 		// indicating whether the request was from an authenticated user or not

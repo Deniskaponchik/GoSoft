@@ -31,7 +31,6 @@ import (
 // func RunUnifi(cfg *ui.ConfigUi) {
 func RunGisup(cfg *gisup.ConfigGisup) {
 
-	//Repository
 	//Postgres
 	pg, err := postgres.New(cfg.PG.PgConnectStr)
 	if err != nil {
@@ -48,6 +47,51 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 	} else {
 		log.Println("Проверка подключения к БД GLPI прошла успешно")
 	}
+
+	//SOAP
+	gisupSoap, err := api_soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl) // cfg.SoapTest, cfg.BpmTest
+	if err != nil {
+		log.Fatalf("Подключение к SOAP завершилось ошибкой: %w", err)
+	} else {
+		log.Println("Проверка подключения к SOAP прошла успешно")
+	}
+
+	//LDAP
+	gisupLdap, err := authentication.NewLdap(cfg.LdapDN, cfg.LdapDomain, cfg.LdapLogin, cfg.LdapPassword, cfg.LdapRoleDn, cfg.LdapServer),
+	if err != nil {
+		log.Println("Подключение к LDAP завершилось ошибкой: %w", err)
+	} else {
+		log.Println("Проверка подключения к SOAP прошла успешно")
+	}
+
+	//JWT
+	gisupJwt, err := authorization.NewAuthJwt(cfg.Token.JwtKey, cfg.Token.TTL)
+	if err != nil {
+		log.Println("Создание JWT-токена завершилось ошибкой: %w", err)
+	} else {
+		log.Println("Создание JWT-токена прошло успешно")
+	}
+
+	//C3PO
+	gisupC3po := api_rest.NewGisupC3po(cfg.C3po.C3poUrl)
+	err = gisupC3po.GetUserLogin()
+	if err != nil {
+		log.Println("Подключение к C3PO завершилось ошибкой: %w", err)
+	} else {
+		log.Println("Проверка подключения к C3PO прошла успешно")
+	}
+
+	//RMQ
+	gisupRmq := amqp_rmq.NewRmqUnifi(cfg.RMQ.RmqConnectStr, cfg.RMQ.ServerExchange)
+	err = gisupRmq.Publish("Start", "")
+	if err != nil {
+		log.Println("Подключение к RMQ завершилось ошибкой: %w", err)
+	} else {
+		log.Println("Проверка подключения к RMQ прошла успешно")
+	}
+
+
+	log.Println("")
 
 	//USECASE
 	unifiUseCase := usecase.NewUnifiUC(
@@ -80,6 +124,9 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 	}()
 	*/
 
+	eltexUseCase := usecase.NewEltex(
+		)
+
 	polyRepo, err := repo.NewPolyRepo(cfg.GLPI.GlpiConnectStr, cfg.GLPI.DB)
 	if err != nil {
 		//если БД недоступна - останавливаем тут же
@@ -101,9 +148,15 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 		cfg.App.TimeZone,
 	)
 
+	gisupUseCase := usecase.NewGisup(
+		wifiUseCase,
+		vcsUseCase,
+		)
+
 	//GRPC
 	myGrpc := myGRPC.New(
-		unifiUseCase,
+		//unifiUseCase,
+		gisupUseCase,
 		cfg.GRPC.Port,
 		"logs/Unifi_Grpc_"+time.Now().Format("2006-01-02_15.04.05")+".log",
 	)

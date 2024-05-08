@@ -15,10 +15,10 @@ var adminkaPageMsg []string
 type Fokusov struct {
 	//Router    *gin.Engine
 	Port string
-	//JwtKey      string
-	Urest usecase.UnifiRestIn //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
-	//Authentication usecase.Authentication //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
-	//Authorization  usecase.Authorization  //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
+
+	Urest      usecase.UnifiRestIn  //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
+	LenovoRest usecase.LenovoRestIn //interface. НЕ ИСПОЛЬЗОВАТЬ разыменовыватель *
+
 	LogFileName string
 	Logger      *log.Logger
 	CookieTTL   int
