@@ -11,7 +11,6 @@ import (
 )
 
 func main() {
-
 	//
 	//STANDARD LOG
 	//fileNameUnifi := "Unifi_App_" + time.Now().Format("2006-01-02_15.04.05") + ".log"
@@ -40,6 +39,7 @@ func main() {
 	//Zerro Log
 	//zl := logger.New(cfg.Log.LevelCmd)
 	//zl.Info("")
+	//
 
 	//
 	// app.Run(cfg)

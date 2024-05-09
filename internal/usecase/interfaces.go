@@ -7,6 +7,14 @@ import (
 )
 
 type (
+	GisupRepo interface {
+		InsertOffice(*entity.Office) error
+		UpdateOfficeLogin(string, string) error
+		UpdateOfficeException(string, string) error
+	}
+)
+
+type (
 	PolyInterface interface {
 		InfinityPolyProcessing() error
 		Survey() error          //map[string]entity.PolyStruct, map[string][]entity.PolyStruct, error)
@@ -70,10 +78,6 @@ type (
 	}
 	UnifiRepo interface {
 		ChangeCntrlNumber(int)
-
-		InsertOffice(*entity.Office) error
-		UpdateOfficeLogin(string, string) error
-		UpdateOfficeException(string, string) error
 
 		UpdateDbAnomaly(map[string]*entity.Anomaly) error
 		UpdateDbClient(map[string]*entity.Client) error

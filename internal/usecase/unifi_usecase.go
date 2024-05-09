@@ -30,7 +30,7 @@ type UnifiUseCase struct {
 
 	controllerInt  int
 	timezone       int
-	httpUrl        string
+	httpUrl        string○
 	mx             sync.RWMutex
 	hostnameClient map[string]*entity.Client
 	hostnameAp     map[string]*entity.Ap

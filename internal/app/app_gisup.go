@@ -48,13 +48,26 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 		log.Println("Проверка подключения к БД GLPI прошла успешно")
 	}
 
-	//SOAP
+	/*SOAP
 	gisupSoap, err := api_soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl) // cfg.SoapTest, cfg.BpmTest
 	if err != nil {
 		log.Fatalf("Подключение к SOAP завершилось ошибкой: %w", err)
 	} else {
 		log.Println("Проверка подключения к SOAP прошла успешно")
+	}*/
+	soapTest, err := api_soap.NewSoap(cfg.SoapTest, cfg.BpmTest) // cfg.SoapTest, cfg.BpmTest
+	if err != nil {
+		log.Fatalf("Подключение к тестовому SOAP завершилось ошибкой: %w", err)
+	} else {
+		log.Println("Проверка подключения к тестовому SOAP прошла успешно")
 	}
+	soapProd, err := api_soap.NewSoap(cfg.SoapProd, cfg.BpmProd) // cfg.SoapTest, cfg.BpmTest
+	if err != nil {
+		log.Fatalf("Подключение к продуктовому SOAP завершилось ошибкой: %w", err)
+	} else {
+		log.Println("Проверка подключения к продуктовому SOAP прошла успешно")
+	}
+	log.Println("")
 
 	//LDAP
 	gisupLdap, err := authentication.NewLdap(cfg.LdapDN, cfg.LdapDomain, cfg.LdapLogin, cfg.LdapPassword, cfg.LdapRoleDn, cfg.LdapServer),
@@ -63,6 +76,7 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 	} else {
 		log.Println("Проверка подключения к SOAP прошла успешно")
 	}
+	log.Println("")
 
 	//JWT
 	gisupJwt, err := authorization.NewAuthJwt(cfg.Token.JwtKey, cfg.Token.TTL)
@@ -71,6 +85,7 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 	} else {
 		log.Println("Создание JWT-токена прошло успешно")
 	}
+	log.Println("")
 
 	//C3PO
 	gisupC3po := api_rest.NewGisupC3po(cfg.C3po.C3poUrl)
@@ -80,6 +95,7 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 	} else {
 		log.Println("Проверка подключения к C3PO прошла успешно")
 	}
+	log.Println("")
 
 	//RMQ
 	gisupRmq := amqp_rmq.NewRmqUnifi(cfg.RMQ.RmqConnectStr, cfg.RMQ.ServerExchange)
@@ -89,20 +105,41 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 	} else {
 		log.Println("Проверка подключения к RMQ прошла успешно")
 	}
-
-
 	log.Println("")
 
-	//USECASE
+
+	//
+	gisupUseCase := usecase.NewGisupUC(
+		//Обновление офисов из БД в мапу туда-обратно
+		gisupRepo,
+		//обработка админки веба
+		gisupJwt,
+		gisupLdap,
+		//отправка в очередь общих сообщений всего приложения
+		gisupRmq,
+		//очистка старых логов
+		)
+	go gisupUseCase.InfinityProcessingGisup
+
+	//
+	wifiUseCase := usecase.NewWiFiuc(
+		//Инициализурет мапу из БД, создаёт заявки
+		gisupRepo,
+
+		)
+	go wifiUseCase.InfinityProcessingWiFi
+
+
 	unifiUseCase := usecase.NewUnifiUC(
-		unifiRepo, //вставляем объект, который удовлетворяет интерфейсу UnifiRepo
-		amqp_rmq.NewRmqUnifi(cfg.RMQ.RmqConnectStr, cfg.RMQ.ServerExchange),
+		gisupRepo, //unifiRepo, //вставляем объект, который удовлетворяет интерфейсу UnifiRepo
 		api_soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
+		amqp_rmq.NewRmqUnifi(cfg.RMQ.RmqConnectStr, cfg.RMQ.ServerExchange),
+
 		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlRostov, 1),
 		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
-		api_rest.NewUnifiC3po(cfg.C3po.C3poUrl),
-		authentication.NewLdap(cfg.LdapDN, cfg.LdapDomain, cfg.LdapLogin, cfg.LdapPassword, cfg.LdapRoleDn, cfg.LdapServer),
-		authorization.NewAuthJwt(cfg.Token.JwtKey, cfg.Token.TTL),
+		api_rest.NewUnifiC3po(cfg.C3po.C3poUrl)
+		//authentication.NewLdap(cfg.LdapDN, cfg.LdapDomain, cfg.LdapLogin, cfg.LdapPassword, cfg.LdapRoleDn, cfg.LdapServer),
+		//authorization.NewAuthJwt(cfg.Token.JwtKey, cfg.Token.TTL),
 
 		cfg.App.EveryCodeMap,
 		cfg.App.TimeZone,
@@ -125,19 +162,21 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 	*/
 
 	eltexUseCase := usecase.NewEltex(
+		gisupRepo,
+		gisupSoap,
+
 		)
 
-	polyRepo, err := repo.NewPolyRepo(cfg.GLPI.GlpiConnectStr, cfg.GLPI.DB)
-	if err != nil {
-		//если БД недоступна - останавливаем тут же
-		l.Fatal(fmt.Errorf("app - Run - glpi.New: %w", err))
-	} else {
-		fmt.Println("Проверка подключения к БД прошла успешно")
-	}
+
+	vcsUseCase := usecase.NewVcsUc(
+		//Инициализурет мапу из БД, создаёт заявки
+		gisupRepo,
+
+	)
+	go vcsUseCase.InfinityTicketsCreating
 
 	polyUseCase := usecase.NewPoly(
-		//repo.New(cfg.GLPI.GlpiConnectStrITsupport),
-		polyRepo,
+		gisupRepo,   //polyRepo,
 		//webapi.New(cfg.PolyUsername, cfg.PolyPassword),
 		//api_web.NewPolyWebApi(cfg.PolyUsername, cfg.PolyPassword),
 		api_rest.NewPolyWebApi(cfg.PolyUsername, cfg.PolyPassword),

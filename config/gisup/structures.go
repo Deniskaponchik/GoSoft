@@ -32,31 +32,32 @@ type (
 	Polycom struct {
 		PolyUsername     string `env-required:"true" yaml:"poly_usernamename"    env:"POLY_USERNAME"`
 		PolyPassword     string `env-required:"true" yaml:"poly_password"        env:"POLY_PASSWORD"`
-		PolySwitch       int
-		PolyLogLevel     string
-		RestartHour      int
 		PolyEveryCodeMap map[int]bool
+		RestartHour      int
+		PolySwitch       int
+		PolyMode         string
+		PolyLogLevel     string
 	}
 	Lenovo struct {
 		ZabbixUsername     string
 		ZabbixPassword     string
-		LenovoSwitch       int
-		LenovoLogLevel     string
 		LenovoEveryCodeMap map[int]bool
+		LenovoSwitch       int
+		LenovoMode         string
+		LenovoLogLevel     string
 	}
 	Ubiquiti struct {
 		UiUsername      string `env-required:"true" yaml:"unifi_usernamename"   env:"UNIFI_USERNAME"`
 		UiPassword      string `env-required:"true" yaml:"unifi_password"       env:"UNIFI_PASSWORD"`
 		UiContrlRostov  string `env-required:"true" yaml:"contrl_rostov"   env:"UNIFI_CONTROLLER_ROSTOV"`
 		UiContrlNovosib string `env-required:"true" yaml:"contrl_novosib"  env:"UNIFI_CONTROLLER_NOVOSIB"`
-		//UiContrlstr     string
-		//UiContrlint     int //для совместного приложения двух контроллеров не должен приходить с конфигом
-		Daily          int
-		H1             int
-		H2             int
-		UiEveryCodeMap map[int]int
-		UiSwitch       int
-		UiLogLevel     string
+		Daily           int
+		H1              int
+		H2              int
+		UiEveryCodeMap  map[int]int
+		UiSwitch        int
+		UiMode          string
+		UiLogLevel      string
 	}
 	Eltex struct {
 		EltexUsername     string
@@ -65,6 +66,7 @@ type (
 		EltexCntrlNovosib string
 		EltexEveryCodeMap map[int]int
 		EltexSwitch       int
+		EltexMode         string
 		EltexLogLevel     string
 	}
 	Bpm struct {
