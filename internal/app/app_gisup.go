@@ -1,9 +1,7 @@
 package app
 
 import (
-	"fmt"
 	"github.com/deniskaponchik/GoSoft/internal/usecase/netdial"
-
 	//"github.com/deniskaponchik/GoSoft/config/ui"
 	"github.com/deniskaponchik/GoSoft/config/gisup"
 	myGRPC "github.com/deniskaponchik/GoSoft/internal/controller/grpc/my"
@@ -27,8 +25,8 @@ import (
 	"time"
 )
 
-// Run creates objects via constructors.
-// func RunUnifi(cfg *ui.ConfigUi) {
+//Run creates objects via constructors.
+//func RunUnifi(cfg *ui.ConfigUi) {
 func RunGisup(cfg *gisup.ConfigGisup) {
 
 	//Postgres
@@ -98,7 +96,7 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 	log.Println("")
 
 	//RMQ
-	gisupRmq := amqp_rmq.NewRmqUnifi(cfg.RMQ.RmqConnectStr, cfg.RMQ.ServerExchange)
+	gisupRmq := amqp_rmq.NewRmqUnifi(cfg.RmqConnectStr, cfg.RmqServerExchange)
 	err = gisupRmq.Publish("Start", "")
 	if err != nil {
 		log.Println("Подключение к RMQ завершилось ошибкой: %w", err)
@@ -123,15 +121,17 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 
 	//
 	wifiUseCase := usecase.NewWiFiuc(
-		//Инициализурет мапу из БД, создаёт заявки
+		//Инициализурет мапу из БД
 		gisupRepo,
-
+		//создаёт заявки
+		cfg.App.TimeZone,
+		cfg.HttpURL,
 		)
 	go wifiUseCase.InfinityProcessingWiFi
 
 
 	unifiUseCase := usecase.NewUnifiUC(
-		gisupRepo, //unifiRepo, //вставляем объект, который удовлетворяет интерфейсу UnifiRepo
+		//unifiRepo, //вставляем объект, который удовлетворяет интерфейсу UnifiRepo
 		api_soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
 		amqp_rmq.NewRmqUnifi(cfg.RMQ.RmqConnectStr, cfg.RMQ.ServerExchange),
 
@@ -142,8 +142,7 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 		//authorization.NewAuthJwt(cfg.Token.JwtKey, cfg.Token.TTL),
 
 		cfg.App.EveryCodeMap,
-		cfg.App.TimeZone,
-		cfg.HTTP.URL,
+
 
 		cfg.Ubiquiti.Daily,
 		cfg.Ubiquiti.H1,
@@ -162,16 +161,17 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 	*/
 
 	eltexUseCase := usecase.NewEltex(
-		gisupRepo,
-		gisupSoap,
-
-		)
+		//gisupRepo,
+		//gisupSoap,
+	)
 
 
 	vcsUseCase := usecase.NewVcsUc(
-		//Инициализурет мапу из БД, создаёт заявки
+		//Инициализурет мапу из БД
 		gisupRepo,
-
+		//создаёт заявки
+		cfg.App.TimeZone,
+		cfg.HttpURL,
 	)
 	go vcsUseCase.InfinityTicketsCreating
 
@@ -187,16 +187,12 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 		cfg.App.TimeZone,
 	)
 
-	gisupUseCase := usecase.NewGisup(
-		wifiUseCase,
-		vcsUseCase,
-		)
 
 	//GRPC
 	myGrpc := myGRPC.New(
 		//unifiUseCase,
 		gisupUseCase,
-		cfg.GRPC.Port,
+		cfg.GrpcPort,
 		"logs/Unifi_Grpc_"+time.Now().Format("2006-01-02_15.04.05")+".log",
 	)
 	go myGrpc.MustRun()

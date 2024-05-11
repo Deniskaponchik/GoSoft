@@ -12,23 +12,23 @@ import (
 	"time"
 )
 
-type UnifiC3po struct {
+type C3po struct {
 	client http.Client
 	//serverC3po	 string
 	url string
 }
 
-func NewUnifiC3po(url string) *UnifiC3po {
+func NewC3po(url string) *C3po {
 	client := http.Client{
 		Timeout: 240 * time.Second,
 	}
-	return &UnifiC3po{
+	return &C3po{
 		client: client,
 		url:    url,
 	}
 }
 
-func (uc3po *UnifiC3po) GetUserLogin(notebook *entity.Client) (err error) {
+func (c3po *C3po) GetUserLogin(notebook *entity.Client) (err error) {
 
 	type Envelope struct {
 		Name   string `json:"name"`
@@ -61,13 +61,13 @@ func (uc3po *UnifiC3po) GetUserLogin(notebook *entity.Client) (err error) {
 		} `json:"data"`
 	}
 	//client := http.Client{Timeout: 5 * time.Second}
-	client := uc3po.client
+	client := c3po.client
 
 	//var err error
 	myError := 1
 	for myError != 0 {
 		//url := "http://" + polyStruct.IP + "/api/v1/mgmt/lineInfo"
-		url := uc3po.url + "pc/" + notebook.Hostname
+		url := c3po.url + "pc/" + notebook.Hostname
 		log.Println(url)
 
 		req, errNewRequest := http.NewRequest(http.MethodGet, url, http.NoBody)

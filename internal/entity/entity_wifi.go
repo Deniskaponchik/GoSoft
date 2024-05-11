@@ -70,14 +70,6 @@ type Anomaly struct {
 	//DateHour     time.Time `json:"date_hour"  example:"2023-09-01 12:00:00"`
 }
 
-type Office struct {
-	Site_ApCutName string `json:"site_apcut" example:"Иркутск_IRK"`
-	UserLogin      string `json:"user_login" example:"vasya.pupkin"`
-	TimeZone       int    `json:"time_zone"  example:"+5"`
-	TimeZoneStr    string //для приёма из формы на странице adminka.html
-	Exception      int    `json:"exception" example:"1"` //1-true, 0-false
-}
-
 type User struct {
 	Login      string
 	Password   string

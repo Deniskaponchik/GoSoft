@@ -43,6 +43,167 @@ func NewSoap(s string, b string) *Soap {
 	}
 }
 
+func (ss *Soap) GetDirectoryFieldsAll(newDirectory string, mapRegionsRus map[string]bool) (err error) {
+
+	//mapRegionsRus := map[string]bool
+
+	strBefore :=
+		"<soapenv:Envelope " +
+			"xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+			"xmlns:bpm=\"http://www.bercut.com/specs/aoi/tele2/bpm\">" +
+			"<soapenv:Header/>" +
+			"<soapenv:Body>" +
+			"<bpm:getDirectoryRequest>" +
+			"<Name>oldDirectory</Name>" +
+			"<Top>1000</Top>" +
+			"</bpm:getDirectoryRequest>" +
+			"</soapenv:Body>" +
+			"</soapenv:Envelope>"
+	replacer := strings.NewReplacer("oldDirectory", newDirectory)
+	strAfter := replacer.Replace(strBefore)
+	//log.Println(strAfter)
+	payload := []byte(strAfter)
+	//os.Exit(0)
+
+	type Region struct {
+	}
+
+	//Вбиваем результат запроса из постмана сюда: https://tool.hiofd.com/en/xml-to-go/
+	type Envelope struct {
+		XMLName xml.Name `xml:"Envelope"`
+		Text    string   `xml:",chardata"`
+		SOAPENV string   `xml:"SOAP-ENV,attr"`
+		Body    struct {
+			Text                 string `xml:",chardata"`
+			BerNs0               string `xml:"ber-ns0,attr"`
+			BerNs1               string `xml:"ber-ns1,attr"`
+			GetDirectoryResponse struct {
+				Text  string `xml:",chardata"`
+				Table struct {
+					Text string `xml:",chardata"`
+					Head struct {
+						Text string   `xml:",chardata"`
+						Cell []string `xml:"cell"`
+					} `xml:"head"`
+					Rows []struct {
+						Text string   `xml:",chardata"`
+						Cell []string `xml:"cell"`
+					} `xml:"row"`
+				} `xml:"Table"`
+				Code string `xml:"Code"`
+			} `xml:"getDirectoryResponse"`
+		} `xml:"Body"`
+	}
+
+	//var err error
+	myError := 1
+	for myError != 0 {
+		//req, err :=	http.NewRequest(httpMethod, url, bytes.NewReader(payload))
+		req, errHttpReq := http.NewRequest("POST", ss.soapUrl, bytes.NewReader(payload))
+		if errHttpReq == nil {
+			/*
+				client := &http.Client{
+					Timeout: 120 * time.Second, //bpm часто лагает
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
+					},
+				}
+				res, errClientDo := client.Do(req) */
+			res, errClientDo := ss.httpClient.Do(req)
+			if errClientDo == nil {
+				//ОБЯЗАТЕЛЬНО КОММЕНТИРОВАТЬ, а то будет ошибка при декодировании
+				/*Посмотреть response Body, если понадобится
+				defer res.Body.Close()
+				b, err := io.ReadAll(res.Body)
+				if err != nil {
+					log.Fatalln(err)
+				}
+				log.Println(string(b))
+				//os.Exit(0)
+				*/
+
+				// Смог победить только через unmarshal. Кривенько косо, но работает и куча времени угрохано даже на это
+				envelope := &Envelope{}
+				bodyByte, errIOread := io.ReadAll(res.Body)
+				if errIOread == nil {
+					errXmlUnmarshal := xml.Unmarshal(bodyByte, envelope)
+					if errXmlUnmarshal == nil {
+
+						//if envelope.Body.GetDirectoryResponse.Code != 0 || len(envelope.Body.GetDirectoryResponse.Table.Rows) == 0 {
+						if envelope.Body.GetDirectoryResponse.Code != "0" || len(envelope.Body.GetDirectoryResponse.Table.Rows) == 0 {
+							log.Println(envelope.Body.GetDirectoryResponse.Code)
+							//log.Println(envelope.Body.CreateRequestResponse.Code)
+							//log.Println(envelope.Body.CreateRequestResponse.Text)
+							log.Println("Пришёл ответ с кодом НЕ ноль или пустой массив регионов")
+							log.Println("Проверь доступность SOAP-сервера и корректность входных данных:")
+							log.Println("SOAP-сервер		 : " + ss.soapUrl)
+							log.Println("Название справочника: " + newDirectory)
+							log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+							log.Println("")
+							time.Sleep(30 * time.Second)
+							myError = 6
+							err = errors.New("Пришёл ответ с кодом НЕ ноль или пустой массив регионов")
+							return err
+						} else {
+							//Успешное завершение функции
+							for _, row := range envelope.Body.GetDirectoryResponse.Table.Rows {
+								id := row.Cell[0]
+								regionName := row.Cell[1]
+
+								log.Println(id)
+								log.Println(regionName)
+
+								mapRegionsRus[regionName] = true
+							}
+							myError = 0
+							//return mapRegionsRus, nil
+							return nil
+						}
+					} else {
+						log.Println(errXmlUnmarshal.Error())
+						log.Println("Ошибка перекодировки ответа в xml")
+						log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+						time.Sleep(30 * time.Second)
+						myError++
+						err = errXmlUnmarshal
+					}
+				} else {
+					log.Println(errIOread.Error())
+					log.Println("Ошибка чтения байтов из ответа")
+					log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+					time.Sleep(30 * time.Second)
+					myError++
+					err = errIOread
+				}
+			} else {
+				log.Println(errClientDo.Error())
+				log.Println("Ошибка отправки запроса")
+				log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+				time.Sleep(30 * time.Second)
+				myError++
+				err = errClientDo
+			}
+		} else {
+			log.Println(errHttpReq.Error())
+			log.Println("Ошибка создания объекта запроса")
+			log.Println("Будет предпринята новая попытка отправки запроса через 1 минут")
+			time.Sleep(30 * time.Second)
+			myError++
+			err = errHttpReq
+		}
+		if myError == 6 {
+			myError = 0
+			log.Println("После 6 неудачных попыток идём дальше. Заявка не была создана")
+			//return nil, err
+			return err
+		}
+	}
+	//return mapRegionsRus, nil
+	return nil
+}
+
 func (ss *Soap) CreateTicketSmacWifi(ticket *entity.Ticket) (err error) { //(entity.Ticket, error) { //srSlice []string, err error) {
 
 	ticket.BpmServer = ss.bpmUrl //оставь в таком виде. не нужно при успешном выполнении формировать полную ссылку.

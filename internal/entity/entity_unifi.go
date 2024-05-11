@@ -2,7 +2,7 @@
 // HTTP response objects if suitable. Each logic group entities in own file.
 package entity
 
-type Ap struct {
+type ApUnifi struct {
 	Mac            string     `json:"mac"        example:"a0-b1-c2-d3-e4-f5"`
 	SiteName       string     `json:"region"     example:"Волгоград"`
 	SiteID         string     `example:"5e74aaa6a1a76964e770815c"` //уточнить, нужен ли
@@ -21,7 +21,7 @@ type Ap struct {
 	CountAnomaly int //кол-во аномалий за последние 30 дней
 }
 
-type Client struct {
+type ClientUnifi struct {
 	Mac      string `json:"mac_client" example:"a0:b1:c2:d3:e4:f5"`
 	Hostname string `json:"hostname"   example:"XXXX-PUPKIN"`
 	//SiteName нужен только на этапе создания заявок по клиентам. Поэтому при обработке каждого клиента его не получаю.
@@ -48,7 +48,7 @@ type Client struct {
 }
 
 // Структура должна обнуляться каждый час и при выгрузке раз в сутки
-type Anomaly struct {
+type AnomalyUnifi struct {
 	ClientMac  string `json:"mac_client" example:"a0:b1:c2:d3:e4:f5"`
 	ClientName string
 	SiteName   string `json:"sitename"   example:"Москва"`
@@ -70,7 +70,7 @@ type Anomaly struct {
 	//DateHour     time.Time `json:"date_hour"  example:"2023-09-01 12:00:00"`
 }
 
-type Office struct {
+type OfficeUnifi struct {
 	Site_ApCutName string `json:"site_apcut" example:"Иркутск_IRK"`
 	UserLogin      string `json:"user_login" example:"vasya.pupkin"`
 	TimeZone       int    `json:"time_zone"  example:"+5"`
@@ -78,7 +78,7 @@ type Office struct {
 	Exception      int    `json:"exception" example:"1"` //1-true, 0-false
 }
 
-type User struct {
+type UserUnifi struct {
 	Login      string
 	Password   string
 	Sid        string

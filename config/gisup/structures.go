@@ -93,6 +93,10 @@ type (
 		PgConnectStr string `env:"PG_CONNECT_STR"`
 	}
 	C3po struct {
+		//C3poLogin    string `env-required:"true"   env:"C3PO_LOGIN"`
+		//C3poPassword string `env-required:"true"   env:"C3PO_PASSWORD"`
+		//Это универсальная строка для подключения и если будут добавляться новые методы, то не изменится
+		//поэтому пока использования отдельно логина и пароля
 		C3poUrl string `env-required:"true"   env:"C3PO_URL"`
 	}
 	Ldap struct {
@@ -113,15 +117,15 @@ type (
 		JwtKey string `env-required:"true"   env:"JWT_KEY"`
 	}
 	HTTP struct {
-		URL  string `env-required:"true"   env:"GISUP_HTTP_URL"`
-		Port string //`yaml:"port" env:"HTTP_PORT"`
+		HttpURL  string `env-required:"true"   env:"GISUP_HTTP_URL"`
+		HttpPort string //`yaml:"port" env:"HTTP_PORT"`
 	}
 	GRPC struct {
-		Port int
+		GrpcPort int
 	}
 	RMQ struct {
-		//ServerExchange string `yaml:"rpc_server_exchange" env:"RMQ_RPC_SERVER"`
-		ServerExchange string
+		//ServerExchange 	string `yaml:"rpc_server_exchange" env:"RMQ_RPC_SERVER"`
+		RmqServerExchange string
 		//ClientExchange string `yaml:"rpc_client_exchange" env:"RMQ_RPC_CLIENT"`
 		RmqConnectStr string `env:"RMQ_CONNECT_STR"`
 	}

@@ -40,6 +40,9 @@ func NewConfigGisup() (*ConfigGisup, error) {
 	tokenTTL := flag.Int("tokenTTL", 60, "minutes of live time token")
 
 	//Unifi
+	unifi_switch := flag.Int("unifi_switch", 1, "0 - Disable, 1 - Enable")
+	unifi_mode := flag.String("unifi_mode", "TEST", "PROD, TEST, WEB")
+	unifi_logLevel := flag.String("unifi_loglevel", "DEBUG", "DEBUG, INFO, WARN, ERROR")
 	//Задаёт число месяца, когда заявки по аномалиям уже были созданы. Нужно для того, чтобы при старте кода не создавались
 	//тикеты, а код ждал наступления следующего дня. Если необходимо, чтобы при старте кода шла проверка на аномалии, то
 	//указать номер, отличный от сегодняшнего числа
@@ -47,30 +50,23 @@ func NewConfigGisup() (*ConfigGisup, error) {
 	//TODO: вспомнить, за что это отвечает
 	unifi_h1 := flag.Int("unifi_h1", time.Now().Hour(), "To do hourly anomaly downloading to DB")
 	unifi_h2 := flag.Int("unifi_h2", time.Now().Hour(), "To do hourly anomaly downloading to DB")
-	unifi_switch := flag.Int("unifi_switch", 1, "0 - Disable, 1 - Enable")
-	unifi_mode := flag.String("unifi_mode", "TEST", "PROD, TEST, WEB")
-	//DEBUG, INFO, WARN, ERROR
-	unifi_logLevel := flag.String("unifi_loglevel", "DEBUG", "level of log")
 
 	//Eltex
 	eltex_switch := flag.Int("eltex_switch", 1, "0 - Disable, 1 - Enable")
 	eltex_mode := flag.String("eltex_mode", "TEST", "PROD, TEST, WEB")
-	//DEBUG, INFO, WARN, ERROR
-	eltex_logLevel := flag.String("eltex_loglevel", "DEBUG", "level of log")
+	eltex_logLevel := flag.String("eltex_loglevel", "DEBUG", "DEBUG, INFO, WARN, ERROR")
 
 	//Polycom
 	poly_switch := flag.Int("poly_switch", 1, "0 - Disable, 1 - Enable")
 	poly_mode := flag.String("poly_mode", "TEST", "PROD, TEST, WEB")
+	poly_logLevel := flag.String("poly_loglevel", "DEBUG", "DEBUG, INFO, WARN, ERROR")
 	//чтобы отключить ежедневную перезагрузку, указать 25 и выше
 	poly_restart_time := flag.Int("poly_restart_time", 7, "hour when codecs restart")
-	//DEBUG, INFO, WARN, ERROR
-	poly_logLevel := flag.String("poly_loglevel", "DEBUG", "level of log")
 
 	//Lenovo
 	lenovo_switch := flag.Int("lenovo_switch", 1, "0 - Disable, 1 - Enable")
 	lenovo_mode := flag.String("lenovo_mode", "TEST", "PROD, TEST, WEB")
-	//DEBUG, INFO, WARN, ERROR
-	lenovo_logLevel := flag.String("lenovo_loglevel", "DEBUG", "level of log")
+	lenovo_logLevel := flag.String("lenovo_loglevel", "DEBUG", "DEBUG, INFO, WARN, ERROR")
 
 	flag.Parse()
 
@@ -79,10 +75,10 @@ func NewConfigGisup() (*ConfigGisup, error) {
 	//cfg.Log.LevelCmd = *logLevel
 
 	cfg.Token.TTL = *tokenTTL
-	cfg.HTTP.URL = *httpUrl
-	cfg.HTTP.Port = strings.Split(*httpUrl, ":")[1]
-	cfg.GRPC.Port = *grpcPort
-	cfg.RMQ.ServerExchange = *rmqServExcahnge
+	cfg.HttpURL = *httpUrl
+	cfg.HttpPort = strings.Split(*httpUrl, ":")[1]
+	cfg.GrpcPort = *grpcPort
+	cfg.RmqServerExchange = *rmqServExcahnge
 
 	cfg.Polycom.RestartHour = *poly_restart_time
 	cfg.Ubiquiti.Daily = *unifi_daily
@@ -93,21 +89,22 @@ func NewConfigGisup() (*ConfigGisup, error) {
 		cfg.Ubiquiti.H2 = *unifi_h2
 	}
 
-	cfg.Ubiquiti.UiSwitch = *unifi_switch
-	cfg.Eltex.EltexSwitch = *eltex_switch
-	cfg.Polycom.PolySwitch = *poly_switch
-	cfg.Lenovo.LenovoSwitch = *lenovo_switch
+	cfg.UiSwitch = *unifi_switch
+	cfg.EltexSwitch = *eltex_switch
+	cfg.PolySwitch = *poly_switch
+	cfg.LenovoSwitch = *lenovo_switch
 
-	cfg.Ubiquiti.UiMode = *unifi_mode
-	cfg.Eltex.EltexMode = *eltex_mode
-	cfg.Polycom.PolyMode = *poly_mode
-	cfg.Lenovo.LenovoMode = *lenovo_mode
+	cfg.UiMode = *unifi_mode
+	cfg.EltexMode = *eltex_mode
+	cfg.PolyMode = *poly_mode
+	cfg.LenovoMode = *lenovo_mode
 
-	cfg.Ubiquiti.UiLogLevel = *unifi_logLevel
-	cfg.Eltex.EltexLogLevel = *eltex_logLevel
-	cfg.Polycom.PolyLogLevel = *poly_logLevel
-	cfg.Lenovo.LenovoLogLevel = *lenovo_logLevel
+	cfg.UiLogLevel = *unifi_logLevel
+	cfg.EltexLogLevel = *eltex_logLevel
+	cfg.PolyLogLevel = *poly_logLevel
+	cfg.LenovoLogLevel = *lenovo_logLevel
 
+	//TODO: Нужно ли на данном этапе делать такое разделение?
 	if *mode == "TEST" {
 		//cfg.BpmUrl = cfg.BpmTest
 		//cfg.SoapUrl = cfg.SoapTest
@@ -168,8 +165,21 @@ func NewConfigGisup() (*ConfigGisup, error) {
 		//cfg.BpmUrl = cfg.BpmProd
 		//cfg.SoapUrl = cfg.SoapProd
 
-		//cfg.App.EveryCodeMap = map[int]int{ //[минута]номер контроллера
-		wifiEveryCodeMap := map[int]int{ //[минута]номер контроллера
+		wifiEveryCodeMap := map[int]int{
+			//[минута]номер контроллера
+			2:  1, // в начале часа различные выгрузки/загрузки в БД. нужно больше времени
+			9:  2,
+			15: 1,
+			21: 2,
+			27: 1,
+			33: 2,
+			39: 1,
+			45: 2,
+			51: 1,
+			57: 2,
+		}
+		wifiEveryCodeMap := map[int]int{
+			//[минута]номер контроллера
 			2:  1, // в начале часа различные выгрузки/загрузки в БД. нужно больше времени
 			9:  2,
 			15: 1,
@@ -190,26 +200,30 @@ func NewConfigGisup() (*ConfigGisup, error) {
 	log.Println("Mode	     : ", *mode) //cfg.InnerVars.Mode)
 	//log.Println("Log level     : ", cfg.Log.LevelCmd)
 	log.Println("Timezone    : ", cfg.App.TimeZone)
-	log.Println("HTTP URL    : ", cfg.HTTP.URL)
+	log.Println("HTTP URL    : ", cfg.HttpURL)
 	log.Println("C3PO URL    : ", cfg.C3poUrl)
 	log.Println("")
 
 	//log.Println("Every Code Map: ", cfg.App.EveryCodeMap)
-	log.Println("Unifi Switch: ", cfg.Ubiquiti.UiSwitch)
-	log.Println("Unifi Log   : ", cfg.Ubiquiti.UiLogLevel)
-	log.Println("Unifi Map   : ", cfg.Ubiquiti.UiEveryCodeMap)
+	log.Println("Unifi Switch : ", cfg.Ubiquiti.UiSwitch)
+	log.Println("Unifi Mode   : ", cfg.UiMode)
+	log.Println("Unifi Log    : ", cfg.Ubiquiti.UiLogLevel)
+	log.Println("Unifi Map    : ", cfg.Ubiquiti.UiEveryCodeMap)
 	log.Println("")
 
-	log.Println("Eltex Switch: ", cfg.Eltex.EltexSwitch)
-	log.Println("Eltex Log   : ", cfg.Eltex.EltexLogLevel)
-	log.Println("Eltex Map   : ", cfg.Eltex.EltexEveryCodeMap)
+	log.Println("Eltex Switch : ", cfg.Eltex.EltexSwitch)
+	log.Println("Eltex Mode   : ", cfg.EltexMode)
+	log.Println("Eltex Log    : ", cfg.Eltex.EltexLogLevel)
+	log.Println("Eltex Map    : ", cfg.Eltex.EltexEveryCodeMap)
 	log.Println("")
 
-	log.Println("Poly Switch : ", cfg.Polycom.PolySwitch)
-	log.Println("Poly Restart: ", cfg.Polycom.RestartHour)
+	log.Println("Poly Switch  : ", cfg.Polycom.PolySwitch)
+	log.Println("Poly Mode    : ", cfg.PolyMode)
+	log.Println("Poly Restart : ", cfg.Polycom.RestartHour)
 	log.Println("")
 
 	log.Println("Lenovo Switch: ", cfg.Lenovo.LenovoSwitch)
+	log.Println("Lenovo Mode  : ", cfg.LenovoMode)
 	log.Println("")
 
 	return cfg, nil

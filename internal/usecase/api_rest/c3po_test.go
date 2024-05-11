@@ -2,18 +2,38 @@ package api_rest
 
 import (
 	"github.com/deniskaponchik/GoSoft/internal/entity"
-	"net/http"
+	"github.com/ilyakaznacheev/cleanenv"
+	"log"
 	"testing"
-	"time"
 )
 
-func TestGetUserLogin(t *testing.T) {
-	unifiC3po := &UnifiC3po{
-		client: http.Client{
-			Timeout: 10 * time.Second,
-		},
-		url: "http://1stlinesupport:z75l!@tbtI3XDP5FQpsj@c3po.corp.tele2.ru/sccm/api/info/",
+// cd internal\usecase\api_rest
+// go test -run GetUserLogin
+func Test_GetUserLogin(t *testing.T) {
+
+	type (
+		ConfigC3po struct {
+			C3poUrl string `env-required:"true"   env:"C3PO_URL"`
+		}
+	)
+	cfg := &ConfigC3po{}
+	err := cleanenv.ReadEnv(cfg)
+	if err != nil {
+		log.Println("Ошибка получения данных из конфига")
+		return //nil, err
+	} else {
+		log.Println(cfg.C3poUrl)
 	}
+
+	/*
+		unifiC3po := &UnifiC3po{
+			client: http.Client{
+				Timeout: 10 * time.Second,
+			},
+			url: "",
+		}*/
+	c3po := NewC3po(cfg.C3poUrl)
+
 	client1 := &entity.Client{
 		Hostname: "NBCN-GUSIKHIN1",
 	}
@@ -27,7 +47,7 @@ func TestGetUserLogin(t *testing.T) {
 	//t.Logf(url)
 
 	//пустой логин пользователя
-	err := unifiC3po.GetUserLogin(client1)
+	err = c3po.GetUserLogin(client1)
 	if err != nil {
 		t.Errorf("Incorrect result. %s", err)
 	} else {
@@ -41,7 +61,7 @@ func TestGetUserLogin(t *testing.T) {
 	}
 
 	//Пустое имя компьютера
-	err = unifiC3po.GetUserLogin(client2)
+	err = c3po.GetUserLogin(client2)
 	if err != nil {
 		t.Errorf("Incorrect result. %s", err)
 	} else {
@@ -49,7 +69,7 @@ func TestGetUserLogin(t *testing.T) {
 	}
 
 	//Не корректное имя компьютера
-	err = unifiC3po.GetUserLogin(client3)
+	err = c3po.GetUserLogin(client3)
 	if err != nil {
 		t.Errorf("Incorrect result. %s", err)
 	} else {
