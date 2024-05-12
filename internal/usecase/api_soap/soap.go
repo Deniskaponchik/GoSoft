@@ -43,7 +43,7 @@ func NewSoap(s string, b string) *Soap {
 	}
 }
 
-func (ss *Soap) GetDirectoryFieldsAll(newDirectory string, mapRegionsRus map[string]bool) (err error) {
+func (ss *Soap) GetDirectoryFieldsAll(newDirectory string, mapDirectory map[string]string) (err error) {
 
 	//mapRegionsRus := map[string]bool
 
@@ -68,7 +68,9 @@ func (ss *Soap) GetDirectoryFieldsAll(newDirectory string, mapRegionsRus map[str
 	type Region struct {
 	}
 
-	//Вбиваем результат запроса из постмана сюда: https://tool.hiofd.com/en/xml-to-go/
+	//Вбиваем результат запроса из постмана сюда:
+	//https://tool.hiofd.com/en/xml-to-go/
+	//https://xml-to-go.github.io/
 	type Envelope struct {
 		XMLName xml.Name `xml:"Envelope"`
 		Text    string   `xml:",chardata"`
@@ -146,16 +148,26 @@ func (ss *Soap) GetDirectoryFieldsAll(newDirectory string, mapRegionsRus map[str
 							myError = 6
 							err = errors.New("Пришёл ответ с кодом НЕ ноль или пустой массив регионов")
 							return err
+
 						} else {
 							//Успешное завершение функции
+							countRowsCells := len(envelope.Body.GetDirectoryResponse.Table.Rows[0].Cell)
+
 							for _, row := range envelope.Body.GetDirectoryResponse.Table.Rows {
-								id := row.Cell[0]
-								regionName := row.Cell[1]
 
-								log.Println(id)
-								log.Println(regionName)
+								//id := row.Cell[0]
+								field1 := row.Cell[1]
+								//log.Println(id)	//log.Println(field1)
 
-								mapRegionsRus[regionName] = true
+								if countRowsCells == 2 {
+									//mapRegionsRus[regionName] = true
+									mapDirectory[field1] = ""
+								}
+								if countRowsCells == 3 {
+									field2 := row.Cell[2]
+									mapDirectory[field1] = field2
+								}
+
 							}
 							myError = 0
 							//return mapRegionsRus, nil

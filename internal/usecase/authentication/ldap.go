@@ -9,12 +9,12 @@ type Ldap struct {
 	Server   string
 }
 
-func NewLdap(dn, dm, l, p, r, s string) *Ldap {
+func NewLdap(dn, dm, login, password, r, s string) *Ldap {
 	return &Ldap{
 		DN:       dn,
 		Domain:   dm,
-		Login:    l,
-		Password: p,
+		Login:    login,
+		Password: password,
 		RoleDN:   r,
 		Server:   s,
 	}

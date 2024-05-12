@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestApiSafeRestart(t *testing.T) {
+func Test_ApiSafeRestart(t *testing.T) {
 	polyWebApi := &PolyWebAPI{
 		client: http.Client{
 			Timeout: 5 * time.Second,

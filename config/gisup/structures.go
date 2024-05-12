@@ -8,16 +8,18 @@ type (
 		Eltex
 		Bpm
 		Soap
-		GLPI
+		DbGlpi
+		DbGisupMySql
+		DbGisupPg //`yaml:"postgres"`
+		DbRedis
 		C3po
 		Ldap
 
+		//Log `yaml:"logger"`
 		App `yaml:"app"`
 		Token
 		HTTP `yaml:"http"`
 		GRPC
-		//Log `yaml:"logger"`
-		PG  `yaml:"postgres"`
 		RMQ `yaml:"rabbitmq"`
 	}
 	App struct {
@@ -27,7 +29,7 @@ type (
 		//EveryCodeMap map[int]int
 	}
 	//env-required:"true" -ОБЯЗАТЕЛЬНО должен получить переменную либо из окружения, либо из yaml.
-	//Между true и false разницы не заметил. Разобраться
+	//TODO: Между true и false разницы не заметил. Разобраться
 
 	Polycom struct {
 		PolyUsername     string `env-required:"true" yaml:"poly_usernamename"    env:"POLY_USERNAME"`
@@ -79,18 +81,28 @@ type (
 		SoapProd string `env-required:"true" env:"SOAP_PROD"`
 		SoapTest string `env-required:"true" env:"SOAP_TEST"`
 	}
-	GLPI struct {
-		GlpiConnectStr string `env-required:"true"   env:"GLPI_CONNECT_STR"`
+	DbGlpi struct {
 		//строка подключения к серверу без указания БД
-		//GlpiConnectStrGLPI string `env-required:"true"   env:"GLPI_CONNECT_STR_GLPI"`
-		//GlpiITsupportProd  string `env-required:"true"   env:"GLPI_CONNECT_STR_ITSUP"`
-		//GlpiITsupportTest  string `env-required:"true"   env:"GLPI_ITSUP_TEST"`
-		//GlpiITsupport      string //`env-required:"false"`
-		DB string //имя базы данных для unifi таблиц. задаю аргументами командной строки
+		GlpiConnectStr string `env-required:"true"   env:"GLPI_CONNECT_STR"`
+		GlpiDB         string //задаю аргументами командной строки
 	}
-	PG struct {
-		//PoolMax int `yaml:"pool_max" env:"PG_POOL_MAX"`
+	DbGisupMySql struct {
+		//строка подключения к серверу без указания БД
+		//на текущий момент крутится на том же сервере, что и GLPI
+		ITsupConnectStr string `env-required:"true"   env:"GLPI_CONNECT_STR"`
+		ITsupDBprod     string //задаю аргументами командной строки
+		ITsupDBtest     string //задаю аргументами командной строки
+	}
+	DbGisupPg struct {
+		//строка подключения к серверу без указания БД
 		PgConnectStr string `env:"PG_CONNECT_STR"`
+		PgDb         string
+		//PoolMax int `yaml:"pool_max" env:"PG_POOL_MAX"`
+	}
+	DbRedis struct {
+		//строка подключения к серверу без указания БД
+		RedisConnectString string `env:"REDIS_CONNECT_STR"`
+		RedisDB            string
 	}
 	C3po struct {
 		//C3poLogin    string `env-required:"true"   env:"C3PO_LOGIN"`
@@ -102,8 +114,8 @@ type (
 	Ldap struct {
 		LdapDN       string `env-required:"true"   env:"LDAP_DN"`
 		LdapDomain   string `env-required:"true"   env:"LDAP_Domain"`
-		LdapLogin    string `env-required:"true"   env:"LDAP_LOGIN"`
-		LdapPassword string `env-required:"true"   env:"LDAP_PASSWORD"`
+		LdapLogin    string `env:"LDAP_LOGIN"`
+		LdapPassword string `env:"LDAP_PASSWORD"`
 		LdapRoleDn   string `env-required:"true"   env:"LDAP_ROLE_DN"`
 		LdapServer   string `env-required:"true"   env:"LDAP_SERVER"`
 	}

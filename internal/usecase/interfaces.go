@@ -7,14 +7,6 @@ import (
 )
 
 type (
-	GisupRepo interface {
-		InsertOffice(*entity.Office) error
-		UpdateOfficeLogin(string, string) error
-		UpdateOfficeException(string, string) error
-	}
-)
-
-type (
 	PolyInterface interface {
 		InfinityPolyProcessing() error
 		Survey() error          //map[string]entity.PolyStruct, map[string][]entity.PolyStruct, error)
@@ -44,9 +36,54 @@ type (
 )
 
 type (
+	Repo interface {
+		UnifiRepo
+		PolyRepo
+	}
+	GisupRepo interface {
+		InsertOffice(*entity.Office) error
+		UpdateOfficeLogin(string, string) error
+		UpdateOfficeException(string, string) error
+	}
+	UnifiRepo interface {
+		ChangeCntrlNumber(int)
+
+		UpdateDbAnomaly(map[string]*entity.Anomaly) error
+		UpdateDbClient(map[string]*entity.Client) error
+		UpdateDbAp(map[string]*entity.Ap) error
+		UpdateDbOffice(map[string]*entity.Office) error
+
+		DownloadMacMapsClientApWithAnomaly(map[string]*entity.Client, map[string]*entity.Ap, string, time.Time) error
+		//DownloadClientsWithAnomalySlice(map[string]*entity.Client, string, time.Time) error
+		//DownloadMacClientsWithAnomalies(map[string]*entity.Client, string, time.Time) error
+		Download2MapFromDBclient() (map[string]*entity.Client, map[string]*entity.Client, error)
+		//DownloadMapFromDBmachinesErr() (map[string]*entity.Client, error)
+		Download2MapFromDBaps() (map[string]*entity.Ap, map[string]*entity.Ap, error)
+		//DownloadMapFromDBapsErr() (map[string]*entity.Ap, error)
+		DownloadMapOffice() (map[string]*entity.Office, error)
+
+		GetLoginPCerr(*entity.Client) (err error)
+	}
+	Soap interface {
+		CreateTicketSmacWifi(ticket *entity.Ticket) (err error)
+		CreateTicketSmacVcs(ticket *entity.Ticket) (err error)
+		CheckTicketStatusErr(ticket *entity.Ticket) (err error)
+		ChangeStatusErr(ticket *entity.Ticket) (err error)
+		AddCommentErr(ticket *entity.Ticket) (err error)
+	}
+	Authorization interface {
+		GenerateToken(*entity.User) (string, error)
+		ParseToken(string) (string, error)
+	}
+	Authentication interface {
+		AuthSecur(user *entity.User) error
+	}
 	UnifiRmq interface {
 		Publish(message, queueName string) error
 	}
+)
+
+type (
 	//implement usecase methods to web
 	UnifiRestIn interface {
 		CheckToken(string) (string, error)
@@ -64,44 +101,13 @@ type (
 		GetClientForRest(string) *entity.Client
 		GetApForRest(string) *entity.Ap
 	}
-	Authorization interface {
-		GenerateToken(*entity.User) (string, error)
-		ParseToken(string) (string, error)
-	}
-	Authentication interface {
-		AuthSecur(user *entity.User) error
-	}
+
 	//исходящие rest запросы
 	UnifiRestOut interface {
 		GetUserLogin(*entity.Client) error
 		//getPc(*entity.Client) error
 	}
-	UnifiRepo interface {
-		ChangeCntrlNumber(int)
 
-		UpdateDbAnomaly(map[string]*entity.Anomaly) error
-		UpdateDbClient(map[string]*entity.Client) error
-		UpdateDbAp(map[string]*entity.Ap) error
-		//UploadMapsToDBerr(string) error
-
-		DownloadMacMapsClientApWithAnomaly(map[string]*entity.Client, map[string]*entity.Ap, string, time.Time) error
-		//DownloadClientsWithAnomalySlice(map[string]*entity.Client, string, time.Time) error
-		//DownloadMacClientsWithAnomalies(map[string]*entity.Client, string, time.Time) error
-		Download2MapFromDBclient() (map[string]*entity.Client, map[string]*entity.Client, error)
-		//DownloadMapFromDBmachinesErr() (map[string]*entity.Client, error)
-		Download2MapFromDBaps() (map[string]*entity.Ap, map[string]*entity.Ap, error)
-		//DownloadMapFromDBapsErr() (map[string]*entity.Ap, error)
-
-		DownloadMapOffice() (map[string]*entity.Office, error)
-		GetLoginPCerr(*entity.Client) (err error)
-	}
-	UnifiSoap interface {
-		CreateTicketSmacWifi(ticket *entity.Ticket) (err error)
-		CreateTicketSmacVcs(ticket *entity.Ticket) (err error)
-		CheckTicketStatusErr(ticket *entity.Ticket) (err error)
-		ChangeStatusErr(ticket *entity.Ticket) (err error)
-		AddCommentErr(ticket *entity.Ticket) (err error)
-	}
 	Ui interface {
 		GetSites() error
 		AddAps2Maps(map[string]*entity.Ap, map[string]*entity.Ap) error

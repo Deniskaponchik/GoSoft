@@ -5,13 +5,13 @@ import (
 	"log"
 )
 
-type UnifiRmq struct {
+type Rmq struct {
 	connectString string
 	servExchange  string
 }
 
-func NewRmqUnifi(connectStr, servExchange string) *UnifiRmq {
-	return &UnifiRmq{
+func NewRmq(connectStr, servExchange string) *Rmq {
+	return &Rmq{
 		connectString: connectStr,
 		servExchange:  servExchange,
 	}
@@ -19,10 +19,10 @@ func NewRmqUnifi(connectStr, servExchange string) *UnifiRmq {
 }
 
 // https://russianblogs.com/article/53791654151/
-func (ur *UnifiRmq) Publish(message, queueName string) error {
+func (rmq *Rmq) Publish(message, queueName string) error {
 	// Подключаемся к серверу RabbitMQ
 	//conn, err := lib.RabbitMQConn()
-	conn, err := ur.RabbitMQConn()
+	conn, err := rmq.RabbitMQConn()
 	//lib.ErrorHanding(err, "Failed to connect to RabbitMQ")
 	if err != nil {
 		log.Println("Failed to connect to RabbitMQ")
@@ -86,9 +86,9 @@ func (ur *UnifiRmq) Publish(message, queueName string) error {
 }
 
 // Функция подключения RabbitMQ
-func (ur *UnifiRmq) RabbitMQConn() (conn *amqp.Connection, err error) {
+func (rmq *Rmq) RabbitMQConn() (conn *amqp.Connection, err error) {
 	// Создаем новое соединение
-	conn, err = amqp.Dial(ur.connectString)
+	conn, err = amqp.Dial(rmq.connectString)
 	// возвращаем соединение и ошибку
 	return
 }
