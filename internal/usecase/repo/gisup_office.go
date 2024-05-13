@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-func (ur *UnifiRepo) InsertOffice(newOffice *entity.Office) (err error) {
+func (gr *Repo) InsertOffice(newOffice *entity.Office) (err error) {
 	//site_apcut_login
-	query := "INSERT INTO  " + ur.databaseITsup + ".office VALUES " +
+	query := "INSERT INTO  " + gr.repoMySql.DataBase + ".office VALUES " +
 		"('" + newOffice.Site_ApCutName + "','" + newOffice.UserLogin + "','" + newOffice.TimeZoneStr + "','0');"
 
-	err = ur.dbExec(query)
+	err = gr.repoMySql.DbExec(query)
 	if err == nil {
 		return nil
 	} else {
@@ -20,10 +20,10 @@ func (ur *UnifiRepo) InsertOffice(newOffice *entity.Office) (err error) {
 	}
 }
 
-func (ur *UnifiRepo) UpdateOfficeLogin(sapcn string, newLogin string) (err error) {
+func (gr *Repo) UpdateOfficeLogin(sapcn string, newLogin string) (err error) {
 	//site_apcut_login
-	query := "UPDATE " + ur.databaseITsup + ".office SET login = '" + newLogin + "' WHERE site_apcut = '" + sapcn + "';"
-	err = ur.dbExec(query)
+	query := "UPDATE " + gr.repoMySql.DataBase + ".office SET login = '" + newLogin + "' WHERE site_apcut = '" + sapcn + "';"
+	err = gr.repoMySql.DbExec(query)
 	if err == nil {
 		return nil
 	} else {
@@ -31,10 +31,10 @@ func (ur *UnifiRepo) UpdateOfficeLogin(sapcn string, newLogin string) (err error
 	}
 }
 
-func (ur *UnifiRepo) UpdateOfficeException(sapcn string, newException string) (err error) {
+func (gr *Repo) UpdateOfficeException(sapcn string, newException string) (err error) {
 	//site_apcut_login
-	query := "UPDATE " + ur.databaseITsup + ".office SET exception = '" + newException + "' WHERE site_apcut = '" + sapcn + "';"
-	err = ur.dbExec(query)
+	query := "UPDATE " + gr.repoMySql.DataBase + ".office SET exception = '" + newException + "' WHERE site_apcut = '" + sapcn + "';"
+	err = gr.repoMySql.DbExec(query)
 	if err == nil {
 		return nil
 	} else {
@@ -42,19 +42,19 @@ func (ur *UnifiRepo) UpdateOfficeException(sapcn string, newException string) (e
 	}
 }
 
-func (ur *UnifiRepo) DownloadMapOffice() (map[string]*entity.Office, error) {
+func (gr *Repo) DownloadMapOffice() (map[string]*entity.Office, error) {
 
 	officeMap := make(map[string]*entity.Office) //https://yourbasic.org/golang/gotcha-assignment-entry-nil-map/
 	var err error
 	myError := 1
 	for myError != 0 {
-		if db, errSqlOpen := sql.Open("mysql", ur.dataSourceITsup); errSqlOpen == nil {
+		if db, errSqlOpen := sql.Open("mysql", gr.repoMySql.DataSource); errSqlOpen == nil {
 			errDBping := db.Ping()
 			if errDBping == nil {
 				defer db.Close() // defer the close till after the main function has finished
 				//queryAfter := "SELECT * FROM " + ur.database + ".poly"
 				//queryAfter := "SELECT * FROM it_support_db.ap WHERE controller = " + strconv.Itoa(int(bdController))
-				queryAfter := "SELECT * FROM " + ur.databaseITsup + ".office" //".site_apcut_login"
+				queryAfter := "SELECT * FROM " + gr.repoMySql.DataBase + ".office"
 				log.Println(queryAfter)
 
 				for myError != 0 { //зацикливание выполнения запроса

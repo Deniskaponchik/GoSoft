@@ -1,11 +1,13 @@
 // Package postgres implements postgres connection.
-package mysql1
+package mysql2
 
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/driver/sqliteshim"
+	"github.com/uptrace/bun/dialect/mysqldialect"
+
+	//"github.com/uptrace/bun/driver/sqliteshim"
 	"log"
 	"time"
 )
@@ -21,18 +23,18 @@ type MySql2 struct {
 	maxPoolSize  int
 	connAttempts int
 	connTimeout  time.Duration
+	database     string
 
-	bun *bun.
+	bun *bun.DB
 
+	//PG
 	//Builder squirrel.StatementBuilderType
 	//Pool    *pgxpool.Pool
 }
 
 // New -.
-func NewSqlMy(connectStr string, base string, opts ...Option) (*SqlMy, error) {
-	bun := &MySql2{
-		dataSource: connectStr + "/" + base,
-		dataBase:   base,
+func NewSqlMy(connectStr string, base string, opts ...Option) (*MySql2, error) {
+	mysql2 := &MySql2{
 
 		maxPoolSize:  _defaultMaxPoolSize,
 		connAttempts: _defaultConnAttempts,
@@ -41,41 +43,28 @@ func NewSqlMy(connectStr string, base string, opts ...Option) (*SqlMy, error) {
 
 	// Custom options
 	for _, opt := range opts {
-		opt(sm)
+		opt(mysql2)
 	}
 
-	log.Println(connectStr + "/" + base)
+	dataSource := connectStr + "/" + base
+	//log.Println(connectStr + "/" + base)
+	log.Println(dataSource)
 
-	sqldb, err := sql.Open("mysql", "root:pass@/test")
+	//sqldb, err := sql.Open("mysql", "root:pass@/test")
+	sqldb, err := sql.Open("mysql", dataSource)
 	if err != nil {
-		panic(err)
-	}
-
-	db := bun.NewDB(sqldb, mysqldialect.New())
-
-	if db, errSqlOpen := sql.Open("mysql", sm.dataSource); errSqlOpen == nil {
-		errDBping := db.Ping()
-		if errDBping == nil {
-			return sm, nil
-		} else {
-			log.Println("db.Ping failed:", errDBping)
-			log.Println("Подключение к БД НЕ установлено. Проверь доступность БД")
-			return nil, errDBping
-		}
+		//panic(err)
+		log.Println("Error creating Bun MySql DB:", err)
+		return nil, err
 	} else {
-		log.Println("Error creating DB:", errSqlOpen)
-		log.Println("To verify, db is:", db)
-		log.Println("Создание подключения к БД завершилось ошибкой. Часто возникает из-за не корректного драйвера")
-		return nil, errSqlOpen
+		db := bun.NewDB(sqldb, mysqldialect.New())
+		mysql2.bun = db
+		return mysql2, nil
 	}
-
-	//return sm, nil
 }
 
-
-
 // Close -.
-func (p *SqlMy) Close() {
+func (b *MySql2) Close() {
 	//if p.Pool != nil {		p.Pool.Close()	}
 
 }

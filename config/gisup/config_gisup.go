@@ -29,9 +29,16 @@ func NewConfigGisup() (*ConfigGisup, error) {
 	//share_mode влияет на то, какие будут использоваться сервера bpm и SOAP
 	mode := flag.String("mode", "PROD", "mode of app work: PROD, TEST, WEB")
 	//TODO: вспомнить, что тут можно указать и на что влияет
-	timezone := flag.Int("timezone", 100, "Time hour from Moscow")
 	//100-заявки создаются минута в минуту без задержек по ночам
-	db := flag.String("db", "it_support_db_4", "database for unifi tables")
+	timezone := flag.Int("timezone", 100, "Time hour from Moscow")
+
+	//Базы данных будут называться одинаково, на каком бы сервере не находились
+	//dbProd := flag.String("dbProd", "it_support_db_4", "database for gisup tables")
+	//dbTest := flag.String("dbTest", "gisup_db_4", "database for gisup tables")
+	dbGlpi := flag.String("db_glpi", "glpi_db", "database for glpi tables")
+	dbGisup := flag.String("db_gisup", "it_support_db_4", "database for gisup mysql tables")
+	dbPG := flag.String("db_pg", "gisup_db_4", "database for gisup postgres tables")
+	dbRedis := flag.String("db_redis", "gisup_db_4", "database for gisup redis tables")
 
 	//Аргументы внешних коммуникационных сервисов
 	httpUrl := flag.String("http_url", "10.57.179.121:8081", "url of http-server")
@@ -70,7 +77,6 @@ func NewConfigGisup() (*ConfigGisup, error) {
 
 	flag.Parse()
 
-	cfg.GLPI.DB = *db
 	cfg.App.TimeZone = *timezone
 	//cfg.Log.LevelCmd = *logLevel
 
@@ -104,7 +110,52 @@ func NewConfigGisup() (*ConfigGisup, error) {
 	cfg.PolyLogLevel = *poly_logLevel
 	cfg.LenovoLogLevel = *lenovo_logLevel
 
+	/*
+		cfg.GLPI.DB = *db
+		cfg.DbGisupMySql.GisupDBprod = *dbProd
+		cfg.DbGisupMySql.GisupDBprod = *dbTest
+		cfg.DbGisupPg.PgDb = *dbTest  //тест, который в будущем станет продом
+		cfg.DbRedis.RedisDB = *dbTest //тест, который в будущем станет продом
+	*/
+	cfg.DbGlpi.GlpiDB = *dbGlpi
+	cfg.DbGisupMySql.GisupDB = *dbGisup
+	cfg.DbGisupPg.PgDb = *dbPG
+	cfg.DbRedis.RedisDB = *dbRedis
+
 	//TODO: Нужно ли на данном этапе делать такое разделение?
+	if *mode == "PROD" {
+		//cfg.BpmUrl = cfg.BpmProd
+		//cfg.SoapUrl = cfg.SoapProd
+
+		wifiEveryCodeMap := map[int]int{
+			//[минута]номер контроллера
+			2:  1, // в начале часа различные выгрузки/загрузки в БД. нужно больше времени
+			9:  2,
+			15: 1,
+			21: 2,
+			27: 1,
+			33: 2,
+			39: 1,
+			45: 2,
+			51: 1,
+			57: 2,
+		}
+		wifiEveryCodeMap := map[int]int{
+			//[минута]номер контроллера
+			2:  1, // в начале часа различные выгрузки/загрузки в БД. нужно больше времени
+			9:  2,
+			15: 1,
+			21: 2,
+			27: 1,
+			33: 2,
+			39: 1,
+			45: 2,
+			51: 1,
+			57: 2,
+		}
+		cfg.Ubiquiti.UiEveryCodeMap = wifiEveryCodeMap
+		cfg.Eltex.EltexEveryCodeMap = wifiEveryCodeMap
+	}
 	if *mode == "TEST" {
 		//cfg.BpmUrl = cfg.BpmTest
 		//cfg.SoapUrl = cfg.SoapTest
@@ -145,7 +196,8 @@ func NewConfigGisup() (*ConfigGisup, error) {
 		cfg.Polycom.PolyEveryCodeMap = vcsEveryCodeMap
 		cfg.Lenovo.LenovoEveryCodeMap = vcsEveryCodeMap
 
-	} else if *mode == "WEB" {
+	}
+	if *mode == "WEB" {
 		//cfg.BpmUrl = cfg.BpmProd
 		//cfg.SoapUrl = cfg.SoapProd
 
@@ -160,41 +212,8 @@ func NewConfigGisup() (*ConfigGisup, error) {
 		cfg.Eltex.EltexSwitch = 0
 		cfg.Polycom.PolySwitch = 0
 		cfg.Lenovo.LenovoSwitch = 0
-
-	} else if *mode == "PROD" {
-		//cfg.BpmUrl = cfg.BpmProd
-		//cfg.SoapUrl = cfg.SoapProd
-
-		wifiEveryCodeMap := map[int]int{
-			//[минута]номер контроллера
-			2:  1, // в начале часа различные выгрузки/загрузки в БД. нужно больше времени
-			9:  2,
-			15: 1,
-			21: 2,
-			27: 1,
-			33: 2,
-			39: 1,
-			45: 2,
-			51: 1,
-			57: 2,
-		}
-		wifiEveryCodeMap := map[int]int{
-			//[минута]номер контроллера
-			2:  1, // в начале часа различные выгрузки/загрузки в БД. нужно больше времени
-			9:  2,
-			15: 1,
-			21: 2,
-			27: 1,
-			33: 2,
-			39: 1,
-			45: 2,
-			51: 1,
-			57: 2,
-		}
-		cfg.Ubiquiti.UiEveryCodeMap = wifiEveryCodeMap
-		cfg.Eltex.EltexEveryCodeMap = wifiEveryCodeMap
-
 	}
+
 	log.Println("")
 
 	log.Println("Mode	     : ", *mode) //cfg.InnerVars.Mode)

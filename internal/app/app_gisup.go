@@ -38,19 +38,25 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 	} else {
 		log.Println("Проверка подключения к БД GLPI прошла успешно")
 	}
-	//repoITsup, err := repo.NewRepoGlpi(cfg.GLPI.GlpiConnectStr, cfg.GLPI.DB)
-	repoGisupMySqlProd, err := mysql1.NewSqlMy(cfg.DbGisupMySql.ITsupConnectStr, cfg.DbGisupMySql.ITsupDBprod)
+	repoMySql, err := mysql1.NewSqlMy(cfg.DbGisupMySql.GisupConnectStr, cfg.DbGisupMySql.GisupDB)
 	if err != nil {
-		log.Fatalf("Подключение к GLPI завершилось ошибкой: %w", err)
+		log.Fatalf("Подключение к DB Gisup завершилось ошибкой: %w", err)
 	} else {
-		log.Println("Проверка подключения к БД IT support прошла успешно")
+		log.Println("Проверка подключения к DB Gisup прошла успешно")
 	}
-	repoGisupMySqlTest, err := mysql1.NewSqlMy(cfg.DbGisupMySql.ITsupConnectStr, cfg.DbGisupMySql.ITsupDBtest)
+	/*
+	repoGisupMySqlProd, err := mysql1.NewSqlMy(cfg.DbGisupMySql.GisupConnectStr, cfg.DbGisupMySql.GisupDBprod)
 	if err != nil {
-		log.Fatalf("Подключение к GLPI завершилось ошибкой: %w", err)
+		log.Fatalf("Подключение к DB Gisup Prod завершилось ошибкой: %w", err)
 	} else {
-		log.Println("Проверка подключения к БД IT support прошла успешно")
+		log.Println("Проверка подключения к DB Gisup Prod прошла успешно")
 	}
+	repoGisupMySqlTest, err := mysql1.NewSqlMy(cfg.DbGisupMySql.GisupConnectStr, cfg.DbGisupMySql.GisupDBtest)
+	if err != nil {
+		log.Fatalf("Подключение к DB Gisup Test завершилось ошибкой: %w", err)
+	} else {
+		log.Println("Проверка подключения к БД Gisup Test прошла успешно")
+	}*/
 
 	//Postgres
 	repoPG, err := postgres.NewRepoPG(cfg.DbGisupPg.PgConnectStr)
@@ -69,10 +75,11 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 		log.Println("Проверка подключения к Redis прошла успешно")
 	}
 
-	repo, err := repo.NewRepo(
+	repoGisup, err := repo.NewRepo(
 		*repoGlpi,
-		*repoGisupMySqlProd,
-		*repoGisupMySqlTest,
+		*repoMySql,
+		//*repoGisupMySqlProd,
+		//*repoGisupMySqlTest,
 		*repoPG,
 		*repoRedis,
 	)
@@ -98,7 +105,7 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 		}*/
 	log.Println("")
 
-	//LDAP
+	//LDAP client
 	ldap := authentication.NewLdap(cfg.LdapDN, cfg.LdapDomain, "", "", cfg.LdapRoleDn, cfg.LdapServer)/*
 		if err != nil {
 			log.Println("Подключение к LDAP завершилось ошибкой: %w", err)
@@ -116,7 +123,7 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 		}*/
 	log.Println("")
 
-	//C3PO
+	//C3PO client
 	c3po := api_rest.NewC3po(cfg.C3po.C3poUrl) /*
 		err = c3po.GetUserLogin()
 		if err != nil {
@@ -140,7 +147,7 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 	//
 	gisupUseCase := usecase.NewGisupUC(
 		//Обновление офисов из БД в мапу туда-обратно
-		repo,
+		repoGisup,
 		c3po,
 		//обработка админки веба
 		jwt,
@@ -166,34 +173,34 @@ func RunGisup(cfg *gisup.ConfigGisup) {
 	go wifiUseCase.InfinityProcessingWiFi
 
 
-		unifiUseCase := usecase.NewUnifiUC(
-			//unifiRepo, //вставляем объект, который удовлетворяет интерфейсу UnifiRepo
-			api_soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
-			amqp_rmq.NewRmqUnifi(cfg.RMQ.RmqConnectStr, cfg.RMQ.ServerExchange),
+	unifiUseCase := usecase.NewUnifiUC(
+		//unifiRepo, //вставляем объект, который удовлетворяет интерфейсу UnifiRepo
+		api_soap.NewSoap(cfg.SoapUrl, cfg.BpmUrl), // cfg.SoapTest, cfg.BpmTest
+		amqp_rmq.NewRmqUnifi(cfg.RMQ.RmqConnectStr, cfg.RMQ.ServerExchange),
 
-			api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlRostov, 1),
-			api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
-			api_rest.NewUnifiC3po(cfg.C3po.C3poUrl)
-			//authentication.NewLdap(cfg.LdapDN, cfg.LdapDomain, cfg.LdapLogin, cfg.LdapPassword, cfg.LdapRoleDn, cfg.LdapServer),
-			//authorization.NewAuthJwt(cfg.Token.JwtKey, cfg.Token.TTL),
+		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlRostov, 1),
+		api_web.NewUi(cfg.Ubiquiti.UiUsername, cfg.Ubiquiti.UiPassword, cfg.Ubiquiti.UiContrlNovosib, 2),
+		api_rest.NewUnifiC3po(cfg.C3po.C3poUrl)
+		//authentication.NewLdap(cfg.LdapDN, cfg.LdapDomain, cfg.LdapLogin, cfg.LdapPassword, cfg.LdapRoleDn, cfg.LdapServer),
+		//authorization.NewAuthJwt(cfg.Token.JwtKey, cfg.Token.TTL),
 
-			cfg.App.EveryCodeMap,
+		cfg.App.EveryCodeMap,
 
 
-			cfg.Ubiquiti.Daily,
-			cfg.Ubiquiti.H1,
-			cfg.Ubiquiti.H2,
-		)
-		go unifiUseCase.InfinityProcessingUnifi()
-		/*https://stackoverflow.com/questions/25142016/how-to-return-a-error-from-a-goroutine-through-channels
-		errors := make(chan error, 0)
-		go func() {
-			err = unifiUseCase.InfinityProcessingUnifi()
-			if err != nil {
-				errors <- err
-				return
-			}
-		}()
+		cfg.Ubiquiti.Daily,
+		cfg.Ubiquiti.H1,
+		cfg.Ubiquiti.H2,
+	)
+	go unifiUseCase.InfinityProcessingUnifi()
+	/*https://stackoverflow.com/questions/25142016/how-to-return-a-error-from-a-goroutine-through-channels
+	errors := make(chan error, 0)
+	go func() {
+		err = unifiUseCase.InfinityProcessingUnifi()
+		if err != nil {
+			errors <- err
+			return
+		}
+	}()
 	*/
 
 	eltexUseCase := usecase.NewEltex(

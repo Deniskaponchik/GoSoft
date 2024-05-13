@@ -3,9 +3,11 @@
 package entity
 
 type Office struct {
-	Site_ApCutName string `json:"site_apcut" example:"Иркутск_IRK"`
-	UserLogin      string `json:"user_login" example:"vasya.pupkin"`
-	TimeZone       int    `json:"time_zone"  example:"+5"`
-	TimeZoneStr    string //для приёма из формы на странице adminka.html
-	Exception      int    `json:"exception" example:"1"` //1-true, 0-false
+	ID                int    `json:"ID" example:"1"`
+	UsrHelpDeskRegion string `json:"UsrHelpDeskRegion" example:"Москва ЦФ"`
+	Site_ApCutName    string `json:"unifi" example:"Иркутск_IRK"`  //"site_apcut"
+	UserLogin         string `json:"login" example:"vasya.pupkin"` //"user_login"
+	TimeZone          int    `json:"timezone"  example:"+5"`       //"time_zone"
+	TimeZoneStr       string //для приёма из формы на странице adminka.html
+	//Exception    		int    `json:"exception" example:"1"` //1-true, 0-false
 }

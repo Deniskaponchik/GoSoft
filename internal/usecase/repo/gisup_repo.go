@@ -12,23 +12,25 @@ import (
 )
 
 type Repo struct {
-	repoGlpi           mysql1.SqlMy
-	repoGisupMySqlProd mysql1.SqlMy
-	repoGisupMySqlTest mysql1.SqlMy
-	repoPG             postgres.Postgres
-	repoRedis          redis1.Redis
+	repoGlpi  mysql1.SqlMy
+	repoMySql mysql1.SqlMy
+	//repoGisupMySqlProd mysql1.SqlMy
+	//repoGisupMySqlTest mysql1.SqlMy
+	repoPG    postgres.Postgres
+	repoRedis redis1.Redis
 }
 
 // реализуем Инъекцию зависимостей DI. Используется в app
-func NewRepo(repoGlpi mysql1.SqlMy, repoGisupMySqlProd mysql1.SqlMy, repoGisupMySqlTest mysql1.SqlMy,
-	repoPG postgres.Postgres, repoRedis redis1.Redis) (*Repo, error) {
+// repoGisupMySqlProd mysql1.SqlMy, repoGisupMySqlTest mysql1.SqlMy
+func NewRepo(repoGlpi mysql1.SqlMy, repoMySql mysql1.SqlMy, repoPG postgres.Postgres, repoRedis redis1.Redis) (*Repo, error) {
 
 	repo := &Repo{
-		repoGlpi:           repoGlpi,
-		repoGisupMySqlProd: repoGisupMySqlProd,
-		repoGisupMySqlTest: repoGisupMySqlTest,
-		repoPG:             repoPG,
-		repoRedis:          repoRedis,
+		repoGlpi:  repoGlpi,
+		repoMySql: repoMySql,
+		//repoGisupMySqlProd: repoGisupMySqlProd,
+		//repoGisupMySqlTest: repoGisupMySqlTest,
+		repoPG:    repoPG,
+		repoRedis: repoRedis,
 	}
 	return repo, nil
 }

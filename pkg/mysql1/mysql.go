@@ -21,8 +21,8 @@ type SqlMy struct {
 	connAttempts int
 	connTimeout  time.Duration
 
-	dataSource string
-	dataBase   string
+	DataSource string
+	DataBase   string
 
 	//Builder squirrel.StatementBuilderType
 	//Pool    *pgxpool.Pool
@@ -31,8 +31,8 @@ type SqlMy struct {
 // New -.
 func NewSqlMy(connectStr string, base string, opts ...Option) (*SqlMy, error) {
 	sm := &SqlMy{
-		dataSource: connectStr + "/" + base,
-		dataBase:   base,
+		DataSource: connectStr + "/" + base,
+		DataBase:   base,
 
 		maxPoolSize:  _defaultMaxPoolSize,
 		connAttempts: _defaultConnAttempts,
@@ -46,7 +46,7 @@ func NewSqlMy(connectStr string, base string, opts ...Option) (*SqlMy, error) {
 
 	log.Println(connectStr + "/" + base)
 
-	if db, errSqlOpen := sql.Open("mysql", sm.dataSource); errSqlOpen == nil {
+	if db, errSqlOpen := sql.Open("mysql", sm.DataSource); errSqlOpen == nil {
 		errDBping := db.Ping()
 		if errDBping == nil {
 			return sm, nil
@@ -65,10 +65,10 @@ func NewSqlMy(connectStr string, base string, opts ...Option) (*SqlMy, error) {
 	//return sm, nil
 }
 
-func (sm *SqlMy) dbExec(query string) (err error) {
+func (sm *SqlMy) DbExec(query string) (err error) {
 	myError := 1
 	for myError != 0 {
-		if db, errSqlOpen := sql.Open("mysql", sm.dataSource); errSqlOpen == nil {
+		if db, errSqlOpen := sql.Open("mysql", sm.DataSource); errSqlOpen == nil {
 			errDBping := db.Ping()
 			if errDBping == nil {
 				defer db.Close() // defer the close till after the main function has finished
